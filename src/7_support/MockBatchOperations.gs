@@ -64,6 +64,14 @@ class MockBatchOperations {
       ],
       data: []
     });
+
+    this.mockSheets.set(SHEET_NAMES.HUMAN_STATE, {
+      headers: [
+        'state_id', 'timestamp', 'energy_level', 'focus_level', 'mood',
+        'stress_level', 'current_context', 'notes'
+      ],
+      data: []
+    });
   }
 
   /**
