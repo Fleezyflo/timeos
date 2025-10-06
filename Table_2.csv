@@ -1,0 +1,11 @@
+Column Name,Type,Formula,Purpose
+-------------,------,---------,---------
+`duration_hours`,Decimal,"`IF(AND(ISNOTBLANK([scheduled_start]), ISNOTBLANK([scheduled_end])), (HOUR([scheduled_end] - [scheduled_start]) + MINUTE([scheduled_end] - [scheduled_start])/60), [estimated_minutes]/60)`",Duration in hours
+`is_overdue`,Yes/No,"`AND([status] <> ""COMPLETED"", [status] <> ""CANCELED"", ISNOTBLANK([deadline]), NOW() > [deadline])`",Whether task is past deadline
+`days_until_deadline`,Decimal,"`IF(ISNOTBLANK([deadline]), (HOUR([deadline] - NOW()) / 24), 999)`",Days remaining until deadline
+`is_today`,Yes/No,`DATE([scheduled_start]) = TODAY()`,Whether scheduled for today
+`is_active`,Yes/No,"`IN([status], {""IN_PROGRESS"", ""SCHEDULED"", ""PENDING""})`",Whether task is active
+`completion_rate`,Percent,"`IF(AND(ISNOTBLANK([actual_minutes]), ISNOTBLANK([estimated_minutes]), [estimated_minutes] > 0), [actual_minutes]/[estimated_minutes], 0)`",Actual vs estimated ratio
+`energy_match_score`,Decimal,Computed by bot,How well task energy matches current state
+`predicted_duration`,Number,"`PREDICT(""Task Duration Predictor"", [_THISROW])`",ML prediction of actual duration
+`completion_probability`,Percent,"`PREDICT(""On-Time Completion Predictor"", [_THISROW])`",ML prediction of on-time completion

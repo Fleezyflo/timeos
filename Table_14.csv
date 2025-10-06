@@ -1,0 +1,8 @@
+Column Name,AppSheet Type,Base Type,Required,Description
+-------------,---------------,-----------,----------,-------------
+`timestamp`,DateTime,DateTime,Yes,Log entry timestamp
+`level`,Enum,Text,Yes,"Log level: DEBUG, INFO, WARN, ERROR"
+`component`,Text,Text,Yes,Component name
+`action`,Text,Text,Yes,Action performed
+`data`,LongText,JSON,No,Additional data (JSON)
+`user`,Email,Email,No,User who triggered action

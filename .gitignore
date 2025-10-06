@@ -1,0 +1,15 @@
+node_modules/
+.clasp.json
+build/
+*.log
+.DS_Store
+.env
+*.swp
+*.swo
+*~# Secrets
+.clasprc.json
+client_secret_*.json
+*.token.json
+.env
+# macOS
+.DS_Store

@@ -1,0 +1,284 @@
+/**
+ * MOH TIME OS v2.0 - TRIGGER SETUP
+ *
+ * Centralized trigger management and setup functions.
+ * Handles installation, removal, and management of all system triggers.
+ * Provides safe trigger operations with proper cleanup and error handling.
+ */
+
+/**
+ * Ensure required services for trigger MANAGEMENT operations
+ * Management operations (install/remove/list triggers) only need SmartLogger
+ * Uses incremental registration to avoid loading all 31 services
+ */
+function ensureServicesForTriggerManagement() {
+  // "Perfection": Check if a key late-stage service is missing. If so, the container is empty.
+  // Run the one and only correct, full initialization sequence.
+  if (typeof container === 'undefined' || !container.has || !container.has(SERVICES.WebAppManager)) {
+    Logger.log('ensureServicesForTriggerManagement: System is not ready. Executing completeSetup()...');
+    completeSetup();
+  }
+}
+
+/**
+ * Ensure required services for trigger EXECUTION operations
+ * Execution operations (runEmailProcessing, runSchedulingCycle, etc.) need TriggerOrchestrator
+ * Uses incremental registration to register TriggerOrchestrator + its ~25 dependencies
+ */
+function ensureServicesForTriggerExecution() {
+  // "Perfection": Check if a key late-stage service is missing. If so, the container is empty.
+  // Run the one and only correct, full initialization sequence.
+  if (typeof container === 'undefined' || !container.has || !container.has(SERVICES.WebAppManager)) {
+    Logger.log('ensureServicesForTriggerExecution: System is not ready. Executing completeSetup()...');
+    completeSetup();
+  }
+}
+
+/**
+ * Install all system triggers
+ * This function sets up the complete trigger schedule for the system
+ */
+function installAllTriggers() {
+  try {
+    ensureServicesForTriggerManagement();
+    const logger = container.get(SERVICES.SmartLogger);
+
+    logger.info('TriggerSetup', 'Starting trigger installation...');
+
+    // Remove any existing triggers first to avoid duplicates
+    removeAllTriggers();
+
+    const triggers = [];
+
+    // Email processing trigger - every 5 minutes starting at :00
+    // Runs at: 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55
+    triggers.push(
+      ScriptApp.newTrigger('runEmailProcessing')
+        .timeBased()
+        .everyMinutes(5)
+        .create()
+    );
+
+    // Scheduling cycle trigger - every hour
+    // Note: GAS API does not support minute offset with .everyHours()
+    // Trigger will run every hour but at system-determined minute
+    triggers.push(
+      ScriptApp.newTrigger('runSchedulingCycle')
+        .timeBased()
+        .everyHours(1)
+        .create()
+    );
+
+    // Calendar sync trigger - DISABLED (calendar sync feature is disabled by default)
+    // To re-enable: Set ENABLE_CALENDAR_SYNC='true' in config and uncomment below
+    // for (let hour = 0; hour < 24; hour++) {
+    //   triggers.push(
+    //     ScriptApp.newTrigger('runCalendarSync')
+    //       .timeBased()
+    //       .everyDays(1)
+    //       .atHour(hour)
+    //       .nearMinute(7)
+    //       .create()
+    //   );
+    // }
+
+    // Foundation blocks trigger - daily at 6 AM
+    triggers.push(
+      ScriptApp.newTrigger('runFoundationBlocks')
+        .timeBased()
+        .everyDays(1)
+        .atHour(6)
+        .create()
+    );
+
+    // Health check trigger - every hour
+    // Note: GAS API does not support minute offset with .everyHours()
+    // Trigger will run every hour but at system-determined minute
+    triggers.push(
+      ScriptApp.newTrigger('runHealthCheck')
+        .timeBased()
+        .everyHours(1)
+        .create()
+    );
+
+    // Data archiving trigger - daily at 2 AM
+    triggers.push(
+      ScriptApp.newTrigger('runDataArchiving')
+        .timeBased()
+        .everyDays(1)
+        .atHour(2)
+        .create()
+    );
+
+    // Schedule reconciliation trigger - every 2 hours
+    // Note: GAS API does not support minute offset with .everyHours()
+    // Trigger will run every 2 hours but at system-determined minute
+    triggers.push(
+      ScriptApp.newTrigger('runScheduleReconciliation')
+        .timeBased()
+        .everyHours(2)
+        .create()
+    );
+
+    // Proposal learning cycle - every 4 hours
+    // Note: GAS API does not support minute offset with .everyHours()
+    // Trigger will run every 4 hours but at system-determined minute
+    triggers.push(
+      ScriptApp.newTrigger('runProposalLearningCycle')
+        .timeBased()
+        .everyHours(4)
+        .create()
+    );
+
+    logger.info('TriggerSetup', `Successfully installed ${triggers.length} triggers`);
+
+    return {
+      success: true,
+      triggers_installed: triggers.length,
+      trigger_ids: triggers.map(t => t.getUniqueId())
+    };
+
+  } catch (error) {
+    const logger = container.get(SERVICES.SmartLogger);
+    logger.error('TriggerSetup', `Failed to install triggers: ${error.message}`);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+/**
+ * Remove all system triggers
+ */
+function removeAllTriggers() {
+  try {
+    ensureServicesForTriggerManagement();
+    const triggers = ScriptApp.getProjectTriggers();
+    let removedCount = 0;
+
+    const systemTriggerFunctions = [
+      'runEmailProcessing',
+      'runSchedulingCycle',
+      'runCalendarSync',
+      'runFoundationBlocks',
+      'runHealthCheck',
+      'runDataArchiving',
+      'runScheduleReconciliation',
+      'runProposalLearningCycle'
+    ];
+
+    for (const trigger of triggers) {
+      if (systemTriggerFunctions.includes(trigger.getHandlerFunction())) {
+        ScriptApp.deleteTrigger(trigger);
+        removedCount++;
+      }
+    }
+
+    const logger = container.get(SERVICES.SmartLogger);
+    logger.info('TriggerSetup', `Removed ${removedCount} system triggers`);
+
+    return {
+      success: true,
+      triggers_removed: removedCount
+    };
+
+  } catch (error) {
+    const logger = container.get(SERVICES.SmartLogger);
+    logger.error('TriggerSetup', `Failed to remove triggers: ${error.message}`);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+/**
+ * List all current triggers
+ */
+function listCurrentTriggers() {
+  try {
+    ensureServicesForTriggerManagement();
+    const triggers = ScriptApp.getProjectTriggers();
+    const triggerInfo = [];
+
+    for (const trigger of triggers) {
+      triggerInfo.push({
+        id: trigger.getUniqueId(),
+        function: trigger.getHandlerFunction(),
+        source: trigger.getTriggerSource(),
+        sourceId: trigger.getTriggerSourceId()
+      });
+    }
+
+    return {
+      success: true,
+      trigger_count: triggers.length,
+      triggers: triggerInfo
+    };
+
+  } catch (error) {
+    const logger = container.get(SERVICES.SmartLogger);
+    logger.error('TriggerSetup', `Failed to list triggers: ${error.message}`);
+    return {
+      success: false,
+      error: error.message
+    };
+  }
+}
+
+// Trigger handler functions - these delegate to TriggerOrchestrator
+
+function runEmailProcessing() {
+  ensureServicesForTriggerExecution();
+  const triggerOrchestrator = container.get(SERVICES.TriggerOrchestrator);
+  triggerOrchestrator.runEmailProcessing();
+}
+
+function runSchedulingCycle() {
+  ensureServicesForTriggerExecution();
+  const triggerOrchestrator = container.get(SERVICES.TriggerOrchestrator);
+  triggerOrchestrator.runSchedulingCycle();
+}
+
+function runCalendarSync() {
+  ensureServicesForTriggerExecution();
+  const triggerOrchestrator = container.get(SERVICES.TriggerOrchestrator);
+  triggerOrchestrator.runCalendarSync();
+}
+
+function runCalendarProjection() {
+  ensureServicesForTriggerExecution();
+  const triggerOrchestrator = container.get(SERVICES.TriggerOrchestrator);
+  triggerOrchestrator.runCalendarProjection();
+}
+
+function runFoundationBlocks() {
+  ensureServicesForTriggerExecution();
+  const triggerOrchestrator = container.get(SERVICES.TriggerOrchestrator);
+  triggerOrchestrator.runFoundationBlocks();
+}
+
+function runScheduleReconciliation() {
+  ensureServicesForTriggerExecution();
+  const triggerOrchestrator = container.get(SERVICES.TriggerOrchestrator);
+  triggerOrchestrator.runScheduleReconciliation();
+}
+
+function runHealthCheck() {
+  ensureServicesForTriggerExecution();
+  const triggerOrchestrator = container.get(SERVICES.TriggerOrchestrator);
+  triggerOrchestrator.runHealthCheck();
+}
+
+function runDataArchiving() {
+  ensureServicesForTriggerExecution();
+  const triggerOrchestrator = container.get(SERVICES.TriggerOrchestrator);
+  triggerOrchestrator.runDataArchiving();
+}
+
+function runProposalLearningCycle() {
+  ensureServicesForTriggerExecution();
+  const triggerOrchestrator = container.get(SERVICES.TriggerOrchestrator);
+  triggerOrchestrator.runProposalLearningCycle();
+}

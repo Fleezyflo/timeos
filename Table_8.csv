@@ -1,0 +1,10 @@
+Column Name,AppSheet Type,Base Type,Required,Description
+-------------,---------------,-----------,----------,-------------
+`block_id`,Text,Text,Yes,Unique block identifier
+`day`,Enum,Text,Yes,"Day of week: Monday, Tuesday, ..., Sunday"
+`start_time`,Time,Time,Yes,"Block start time (e.g., 10:00)"
+`end_time`,Time,Time,Yes,"Block end time (e.g., 12:00)"
+`block_type`,Text,Text,No,"Type: ""work"", ""personal"", ""blocked"""
+`energy_level`,Enum,Text,Yes,"Expected energy: CRITICAL, HIGH, MEDIUM, LOW, RECOVERY"
+`context`,Text,Text,No,Context description
+`active`,Yes/No,Boolean,Yes,Whether block is currently active

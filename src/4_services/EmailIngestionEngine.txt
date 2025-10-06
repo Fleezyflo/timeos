@@ -1,0 +1,881 @@
+/**
+ * MOH TIME OS v2.0 - EMAIL INGESTION ENGINE
+ *
+ * Advanced email processing system with NLP-based task extraction.
+ * Includes zero-trust triage, sender reputation integration, and machine learning.
+ * Converts actionable emails into structured task proposals with intelligent scoring.
+ *
+ * Original lines: 6119-6800 from scriptA.js
+ */
+
+class EmailIngestionEngine {
+  constructor(configManager, errorHandler, batchOperations, logger, persistentStore) {
+    this.configManager = configManager;
+    this.errorHandler = errorHandler;
+    this.batchOperations = batchOperations;
+    this.logger = logger;
+    this.persistentStore = persistentStore;
+    this.CURSOR_KEY = 'email_ingestion_last_timestamp';
+    this.learningPatterns = this._initializeLearningSystem();
+  }
+
+  /**
+   * Lazy getter for ZeroTrustTriageEngine to resolve circular dependency
+   * @returns {ZeroTrustTriageEngine} The triage engine instance
+   */
+  get triageEngine() {
+    if (!this._triageEngine) {
+      // Lazy load from container to avoid circular dependency
+      if (typeof container !== 'undefined' && container.has && container.has(SERVICES.ZeroTrustTriageEngine)) {
+        this._triageEngine = container.get(SERVICES.ZeroTrustTriageEngine);
+      } else {
+        throw new Error('ZeroTrustTriageEngine not available in container');
+      }
+    }
+    return this._triageEngine;
+  }
+
+  /**
+   * Main entry point for email processing
+   * Supports both legacy label-based and zero-trust triage modes
+   */
+  processUnreadEmails() {
+    return this.errorHandler.withRetry(() => {
+      const scanMode = this.configManager.getString('SCAN_MODE', 'LABEL_ONLY');
+
+      if (scanMode === 'ZERO_TRUST_TRIAGE') {
+        try {
+          this.logger.info('EmailIngestionEngine', 'Using Zero-Trust Triage Engine for full inbox processing');
+          const triageResults = this.triageEngine.runInboxTriageCycle();
+          return this._convertTriageResultsToLegacyFormat(triageResults);
+        } catch (error) {
+          this.logger.error('EmailIngestionEngine', 'Zero-Trust Triage Engine failed - falling back to legacy label-based processing', {
+            error: error.message,
+            fallback_action: 'USING_LEGACY_ENGINE'
+          });
+        }
+      }
+
+      this.logger.info('EmailIngestionEngine', 'Using legacy label-based email processing');
+      return this._processLabelBasedEmails();
+    }, 'processUnreadEmails');
+  }
+
+  /**
+   * Legacy label-based email processing
+   * @private
+   */
+  _processLabelBasedEmails() {
+    const results = { processed: 0, actionable: 0, skipped: 0, proposals_created: [] };
+    const batchSize = this.configManager.getNumber('EMAIL_BATCH_SIZE', 50);
+    const labelName = this.configManager.getString('EMAIL_PROCESSING_LABEL', 'MOH-Time-OS');
+    const lastProcessedTimestamp = this._getLastProcessedCursor();
+
+    // Build search query with timestamp cursor
+    let searchQuery = `label:${labelName}`;
+    if (lastProcessedTimestamp) {
+      const cursorDate = new Date(lastProcessedTimestamp);
+      searchQuery += ` after:${Math.floor(cursorDate.getTime() / 1000)}`;
+    }
+
+    this.logger.debug('EmailIngestionEngine', `Search query: ${searchQuery}`);
+
+    // Search for emails with circuit breaker protection
+    const threads = this.errorHandler.executeWithCircuitBreaker('gmail', () =>
+      GmailApp.search(searchQuery, 0, batchSize)
+    );
+
+    if (!threads || threads.length === 0) {
+      this.logger.info('EmailIngestionEngine', 'No new emails to process');
+      return results;
+    }
+
+    this.logger.info('EmailIngestionEngine', `Found ${threads.length} email threads to process`);
+
+    let newCursorTimestamp = lastProcessedTimestamp;
+
+    for (const thread of threads) {
+      try {
+        const messages = this.errorHandler.executeWithCircuitBreaker('gmail', () => thread.getMessages());
+
+        for (const message of messages) {
+          try {
+            const messageDate = message.getDate();
+            const messageId = message.getId();
+
+            // Skip already processed messages
+            if (lastProcessedTimestamp && messageDate.getTime() <= new Date(lastProcessedTimestamp).getTime()) {
+              results.skipped++;
+              continue;
+            }
+
+            // Check for quarantine label
+            const labels = this.errorHandler.executeWithCircuitBreaker('gmail', () => message.getThread().getLabels());
+            const isQuarantined = labels.some(label => label.getName() === 'MOH-Quarantined');
+
+            if (isQuarantined) {
+              this.logger.warn('EmailIngestionEngine', 'Skipping quarantined message', {
+                message_id: messageId,
+                subject: message.getSubject()
+              });
+              results.skipped++;
+              continue;
+            }
+
+            // Process the message
+            const processResult = this._processMessage(message);
+            results.processed++;
+
+            if (processResult.isActionable) {
+              results.actionable++;
+              results.proposals_created.push(processResult.proposalData);
+              this.logger.debug('EmailIngestionEngine', `Created task proposal from email: ${message.getSubject()}`);
+            }
+
+            // Update cursor timestamp
+            if (messageDate.getTime() > new Date(newCursorTimestamp || 0).getTime()) {
+              newCursorTimestamp = TimeZoneAwareDate.toISOString(messageDate);
+            }
+
+          } catch (messageError) {
+            // RETHROW_WITH_LOG profile
+            // TEST: TEST_SILENT_062_UNKNOWN
+            LoggerFacade.error('EmailIngestionEngine', 'Message processing failed', {
+              error: messageError.message,
+              stack: messageError.stack,
+              context: '_processLabelBasedEmails'
+            });
+
+            // Quarantine poison pill messages
+            this._quarantinePoisonPill(message, messageError);
+            results.skipped++;
+          }
+        }
+      } catch (error) {
+        this.logger.error('EmailIngestionEngine', `Error processing thread: ${error.message}`);
+        results.skipped++;
+      }
+    }
+
+    // Create task proposals and update cursor
+    if (results.proposals_created.length > 0) {
+      this._createTaskProposals(results.proposals_created, newCursorTimestamp);
+    } else if (newCursorTimestamp && newCursorTimestamp !== lastProcessedTimestamp) {
+      this._updateLastProcessedCursor(newCursorTimestamp);
+    }
+
+    this.logger.info('EmailIngestionEngine',
+      `Processing complete: ${results.processed} processed, ${results.actionable} actionable, ${results.proposals_created.length} proposals created`);
+
+    return results;
+  }
+
+  /**
+   * Process individual email message
+   * @param {GmailMessage} message - Gmail message object
+   * @returns {Object} Processing result
+   * @private
+   */
+  _processMessage(message) {
+    try {
+      const subject = sanitizeString(message.getSubject());
+      const body = sanitizeString(message.getPlainBody());
+      const senderEmail = sanitizeString(message.getFrom());
+
+      // Filter out system-generated messages
+      if (this._isSystemGeneratedContent(subject, body, senderEmail)) {
+        this.logger.debug('EmailIngestionEngine', 'Ignoring system-generated message', {
+          subject: subject,
+          sender: senderEmail,
+          reason: 'System fingerprint detected'
+        });
+        return { isActionable: false, systemGenerated: true };
+      }
+
+      // Calculate actionability score with learning
+      const actionabilityScore = this._calculateActionabilityScoreWithLearning({
+        subject,
+        body,
+        senderEmail,
+        date: message.getDate()
+      });
+
+      const minActionabilityThreshold = this.configManager.getNumber('MIN_ACTIONABILITY_THRESHOLD', 0.6);
+      const isActionable = actionabilityScore >= minActionabilityThreshold;
+
+      if (!isActionable) {
+        return { isActionable: false };
+      }
+
+      // Parse task data from email
+      const taskData = this.parseTaskFromEmailWithLearning({
+        subject,
+        body,
+        senderEmail,
+        messageId: message.getId(),
+        date: message.getDate(),
+        actionabilityScore
+      });
+
+      return { isActionable: true, proposalData: taskData };
+
+    } catch (error) {
+      this.logger.error('EmailIngestionEngine', `Error processing message: ${error.message}`);
+      return { isActionable: false };
+    }
+  }
+
+  /**
+   * Quarantine problematic messages that cause processing errors
+   * @param {GmailMessage} message - Gmail message object
+   * @param {Error} error - The error that occurred
+   * @private
+   */
+  _quarantinePoisonPill(message, error) {
+    try {
+      const messageId = message.getId();
+      const subject = message.getSubject();
+
+      const quarantineLabel = this.errorHandler.executeWithCircuitBreaker('gmail', () =>
+        GmailApp.getUserLabelByName('MOH-Quarantined') || GmailApp.createLabel('MOH-Quarantined')
+      );
+
+      this.errorHandler.executeWithCircuitBreaker('gmail', () =>
+        message.getThread().addLabel(quarantineLabel)
+      );
+
+      this.logger.error('EmailIngestionEngine', 'POISON PILL DETECTED - Message quarantined', {
+        message_id: messageId,
+        subject: subject,
+        error: error.message,
+        stack: error.stack ? error.stack.substring(0, 500) : undefined,
+        action: 'MESSAGE_QUARANTINED'
+      });
+    } catch (quarantineError) {
+      this.logger.error('EmailIngestionEngine', 'Failed to quarantine poison pill', {
+        error: quarantineError.message,
+        original_error: error.message
+      });
+    }
+  }
+
+  /**
+   * Create task proposals from processed email data
+   * @param {Array} proposalDataArray - Array of proposal data objects
+   * @param {string} newCursorTimestamp - New cursor timestamp
+   * @private
+   */
+  _createTaskProposals(proposalDataArray, newCursorTimestamp) {
+    try {
+      const headers = this.batchOperations.getHeaders(SHEET_NAMES.PROPOSED_TASKS);
+
+      const rows = proposalDataArray.map(proposalData => {
+        const proposalId = `email_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const completeData = { proposal_id: proposalId, ...proposalData };
+        return headers.map(header => completeData[header] || '');
+      });
+
+      // Batch insert all rows at once instead of individual appendRow() calls for performance
+      this.batchOperations.appendRowsToExternalSheet('', SHEET_NAMES.PROPOSED_TASKS, rows);
+
+      if (newCursorTimestamp) {
+        this._updateLastProcessedCursor(newCursorTimestamp);
+        this.logger.debug('EmailIngestionEngine', `Cursor updated transactionally to: ${newCursorTimestamp}`);
+      }
+
+      this.logger.info('EmailIngestionEngine', `Created ${rows.length} task proposals with cursor update`);
+    } catch (error) {
+      this.logger.error('EmailIngestionEngine', `Error creating task proposals or updating cursor: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Get last processed cursor from persistent storage
+   * @returns {string|null} Last processed timestamp
+   * @private
+   */
+  _getLastProcessedCursor() {
+    try {
+      return this.persistentStore.get(this.CURSOR_KEY);
+    } catch (error) {
+      this.logger.warn('EmailIngestionEngine', `Could not retrieve cursor: ${error.message}`);
+      return null;
+    }
+  }
+
+  /**
+   * Update last processed cursor in persistent storage
+   * @param {string} timestamp - New cursor timestamp
+   * @private
+   */
+  _updateLastProcessedCursor(timestamp) {
+    try {
+      this.persistentStore.set(this.CURSOR_KEY, timestamp);
+      this.logger.debug('EmailIngestionEngine', `Updated cursor to: ${timestamp}`);
+    } catch (error) {
+      this.logger.error('EmailIngestionEngine', `Could not update cursor: ${error.message}`);
+    }
+  }
+
+  /**
+   * Detect system-generated content to avoid processing
+   * @param {string} subject - Email subject
+   * @param {string} body - Email body
+   * @param {string} senderEmail - Sender email address
+   * @returns {boolean} True if system-generated
+   * @private
+   */
+  _isSystemGeneratedContent(subject, body, senderEmail) {
+    const systemEmail = this.configManager.getString('SYSTEM_EMAIL', 'noreply@script.google.com');
+    const systemFingerprints = this.configManager.getArray('SYSTEM_EMAIL_FINGERPRINTS', [
+      'noreply',
+      'no-reply',
+      'donotreply',
+      'notification',
+      'automated',
+      'system',
+      'bot',
+      'mailer-daemon',
+      'postmaster'
+    ]);
+
+    // Check sender patterns
+    if (senderEmail.toLowerCase().includes(systemEmail.toLowerCase())) {
+      return true;
+    }
+
+    for (const fingerprint of systemFingerprints) {
+      if (senderEmail.toLowerCase().includes(fingerprint.toLowerCase())) {
+        return true;
+      }
+    }
+
+    // Check content fingerprints
+    const contentToCheck = (subject + ' ' + body).toLowerCase();
+    for (const fingerprint of systemFingerprints) {
+      if (contentToCheck.includes(fingerprint.toLowerCase())) {
+        this.logger.debug('EmailIngestionEngine', 'System fingerprint detected', {
+          fingerprint: fingerprint,
+          location: subject.toLowerCase().includes(fingerprint.toLowerCase()) ? 'subject' : 'body'
+        });
+        return true;
+      }
+    }
+
+    // Check system patterns
+    const systemPatterns = [
+      /automated\s+(message|email|notification)/i,
+      /system\s+(generated|notification|alert)/i,
+      /do\s+not\s+reply/i,
+      /this\s+is\s+an\s+automated/i,
+      /generated\s+by.*system/i,
+      /calendar\s+(event|reminder|notification)/i,
+      /task\s+(created|completed|canceled|updated).*automatically/i
+    ];
+
+    for (const pattern of systemPatterns) {
+      if (pattern.test(contentToCheck)) {
+        this.logger.debug('EmailIngestionEngine', 'System pattern detected', {
+          pattern: pattern.toString()
+        });
+        return true;
+      }
+    }
+
+    // Check for Google Calendar invitations and updates
+    if (subject.toLowerCase().includes('invitation:') ||
+        subject.toLowerCase().includes('updated invitation:') ||
+        subject.toLowerCase().includes('canceled event:') ||
+        contentToCheck.includes('changed: time') ||
+        contentToCheck.includes('this event has been')) {
+      this.logger.debug('EmailIngestionEngine', 'Calendar invitation detected', {
+        subject: subject.substring(0, 50)
+      });
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Convert zero-trust triage results to legacy format for compatibility
+   * @param {Object} triageResults - Results from zero-trust triage engine
+   * @returns {Object} Legacy format results
+   * @private
+   */
+  _convertTriageResultsToLegacyFormat(triageResults) {
+    return {
+      processed: triageResults.processed || 0,
+      actionable: triageResults.approved || 0,
+      skipped: triageResults.ignored || 0,
+      proposals_created: triageResults.proposals_created || [],
+      zero_trust_triage: true,
+      processing_time_ms: triageResults.processing_time_ms || 0,
+      errors: triageResults.errors || 0
+    };
+  }
+
+  /**
+   * Run learning cycle on proposal feedback
+   * @returns {Object} Learning cycle results
+   */
+  runProposalLearningCycle() {
+    this.logger.info('EmailIngestionEngine', 'Running proposal learning cycle');
+    try {
+      const proposedTasks = this.batchOperations.getRowsByFilter(SHEET_NAMES.PROPOSED_TASKS, {});
+      let processed = 0;
+
+      for (const task of proposedTasks) {
+        const status = task[2]; // Assuming status is in column 2
+        if (status === 'ACCEPTED' || status === 'REJECTED') {
+          processed++;
+        }
+      }
+
+      const results = {
+        processed: processed,
+        total_proposals: proposedTasks.length,
+        timestamp: TimeZoneAwareDate.toISOString(new Date())
+      };
+
+      this.logger.info('EmailIngestionEngine', 'Proposal learning cycle completed', results);
+      return results;
+    } catch (error) {
+      this.logger.error('EmailIngestionEngine', 'Proposal learning failed', { error: error.message });
+      return { processed: 0, error: error.message };
+    }
+  }
+
+  /**
+   * Initialize machine learning system for pattern recognition
+   * @returns {Object} Learning patterns object
+   * @private
+   */
+  _initializeLearningSystem() {
+    try {
+      const storedPatterns = this.persistentStore.get('email_learning_patterns');
+      const storedConfidence = this.persistentStore.get('email_learning_confidence');
+
+      // Define default structure
+      const defaultPatterns = {
+        senderPatterns: {},
+        subjectPatterns: {},
+        contentPatterns: {},
+        timePatterns: {},
+        priorityPatterns: {},
+        laneKeywords: {},
+        timeEstimateCorrections: {}
+      };
+
+      // Merge stored with defaults to ensure all properties exist
+      const loadedPatterns = storedPatterns ? JSON.parse(storedPatterns) : {};
+      const patterns = Object.assign({}, defaultPatterns, loadedPatterns);
+
+      const confidence = storedConfidence ? JSON.parse(storedConfidence) : {
+        overall: 0.5,
+        byCategory: {
+          sender: 0.5,
+          subject: 0.5,
+          content: 0.5,
+          timing: 0.5
+        }
+      };
+
+      return {
+        patterns,
+        confidence,
+        updatePattern: (category, key, value) => {
+          if (!patterns[category]) patterns[category] = {};
+          patterns[category][key] = value;
+          this._persistLearningData(patterns, confidence);
+        },
+        updateConfidence: (category, delta) => {
+          if (confidence.byCategory[category]) {
+            confidence.byCategory[category] = Math.max(0, Math.min(1,
+              confidence.byCategory[category] + delta
+            ));
+            confidence.overall = Object.values(confidence.byCategory)
+              .reduce((sum, val) => sum + val, 0) / Object.keys(confidence.byCategory).length;
+            this._persistLearningData(patterns, confidence);
+          }
+        },
+        getRecommendation: (email) => {
+          return this._generateRecommendation(email, patterns, confidence);
+        }
+      };
+    } catch (error) {
+      this.logger.error('EmailIngestionEngine', 'Failed to initialize learning system', {
+        error: error.message
+      });
+      return {
+        patterns: {
+          senderPatterns: {},
+          subjectPatterns: {},
+          contentPatterns: {},
+          timePatterns: {},
+          priorityPatterns: {},
+          laneKeywords: {},
+          timeEstimateCorrections: {}
+        },
+        confidence: { overall: 0.5, byCategory: {} },
+        updatePattern: () => {},
+        updateConfidence: () => {},
+        getRecommendation: () => null
+      };
+    }
+  }
+
+  _persistLearningData(patterns, confidence) {
+    try {
+      this.persistentStore.set('email_learning_patterns', JSON.stringify(patterns));
+      this.persistentStore.set('email_learning_confidence', JSON.stringify(confidence));
+    } catch (error) {
+      this.logger.error('EmailIngestionEngine', 'Failed to persist learning data', {
+        error: error.message
+      });
+    }
+  }
+
+  _generateRecommendation(email, patterns, confidence) {
+    const recommendations = {
+      priority: null,
+      category: null,
+      estimatedTime: null,
+      confidence: confidence.overall
+    };
+
+    if (patterns.senderPatterns && patterns.senderPatterns[email.from]) {
+      const senderHistory = patterns.senderPatterns[email.from];
+      recommendations.priority = senderHistory.averagePriority || PRIORITY.NORMAL;
+    }
+
+    if (patterns.subjectPatterns) {
+      for (const [pattern, data] of Object.entries(patterns.subjectPatterns)) {
+        if (email.subject && email.subject.includes(pattern)) {
+          recommendations.category = data.category;
+          recommendations.estimatedTime = data.averageTime;
+          break;
+        }
+      }
+    }
+
+    return recommendations;
+  }
+
+  /**
+   * Record user feedback for learning
+   * @param {string} proposalId - Proposal ID
+   * @param {string} action - User action (ACCEPTED/REJECTED)
+   * @param {Object} originalProposal - Original proposal data
+   * @param {Object} correctedData - User corrections (optional)
+   */
+  recordUserFeedback(proposalId, action, originalProposal, correctedData = null) {
+    if (!proposalId || !action) return;
+
+    if (action === 'ACCEPTED') {
+      this._updateSenderReputationScore(originalProposal.senderEmail);
+    } else if (action === 'REJECTED' && correctedData) {
+      // Learn from corrections
+      if (correctedData.lane && correctedData.lane !== originalProposal.lane) {
+        this._learnKeywordLaneAssociation(originalProposal.title, originalProposal.lane, correctedData.lane, this.learningPatterns);
+      }
+      if (correctedData.estimated_minutes && correctedData.estimated_minutes !== originalProposal.estimated_minutes) {
+        this._learnTimeEstimateCorrection(originalProposal.title, originalProposal.estimated_minutes, correctedData.estimated_minutes, this.learningPatterns);
+      }
+    }
+  }
+
+  /**
+   * Update sender reputation score
+   * @param {string} senderEmail - Sender email address
+   * @private
+   */
+  _updateSenderReputationScore(senderEmail) {
+    if (!senderEmail) return;
+    if (!this.learningPatterns.patterns.senderPatterns[senderEmail]) {
+      this.learningPatterns.patterns.senderPatterns[senderEmail] = 1;
+    } else {
+      this.learningPatterns.patterns.senderPatterns[senderEmail]++;
+    }
+  }
+
+  /**
+   * Learn keyword-lane associations from user corrections
+   * @param {string} content - Email content
+   * @param {string} originalLane - Original lane assignment
+   * @param {string} correctedLane - User-corrected lane
+   * @param {Object} learningPatterns - Learning patterns object
+   * @private
+   */
+  _learnKeywordLaneAssociation(content, originalLane, correctedLane, learningPatterns) {
+    const keywords = this._extractSignificantKeywords(content);
+    for (const keyword of keywords) {
+      if (!learningPatterns.laneKeywords[keyword]) learningPatterns.laneKeywords[keyword] = {};
+      if (!learningPatterns.laneKeywords[keyword][correctedLane]) learningPatterns.laneKeywords[keyword][correctedLane] = 0;
+      learningPatterns.laneKeywords[keyword][correctedLane]++;
+    }
+  }
+
+  /**
+   * Learn time estimation corrections from user feedback
+   * @param {string} content - Email content
+   * @param {number} originalMinutes - Original time estimate
+   * @param {number} correctedMinutes - User-corrected time estimate
+   * @param {Object} learningPatterns - Learning patterns object
+   * @private
+   */
+  _learnTimeEstimateCorrection(content, originalMinutes, correctedMinutes, learningPatterns) {
+    const keywords = this._extractSignificantKeywords(content);
+    const delta = correctedMinutes - originalMinutes;
+
+    for (const keyword of keywords) {
+      if (!learningPatterns.timeEstimateCorrections[keyword]) learningPatterns.timeEstimateCorrections[keyword] = [];
+      learningPatterns.timeEstimateCorrections[keyword].push(delta);
+    }
+  }
+
+  /**
+   * Calculate actionability score with machine learning
+   * @param {Object} emailData - Email data object
+   * @returns {number} Actionability score (0-1)
+   * @private
+   */
+  _calculateActionabilityScoreWithLearning(emailData) {
+    let score = 0;
+    const subject = emailData.subject.toLowerCase();
+    const body = emailData.body.toLowerCase();
+
+    // Base actionability keywords
+    const actionKeywords = this.configManager.getArray('EMAIL_ACTION_KEYWORDS', [
+      'action required', 'please', 'reminder', 'urgent', 'follow up', 'todo', 'request', 'assign', 'due',
+      'review', 'approve', 'sign', 'submit', 'complete', 'finish', 'check', 'verify', 'confirm', 'respond',
+      'update', 'prepare', 'analyze', 'investigate'
+    ]);
+    for (const keyword of actionKeywords) {
+      if (subject.includes(keyword) || body.includes(keyword)) {
+        score += 0.15;
+      }
+    }
+
+    // Subject line patterns
+    if (subject.match(/^\[task\]/i) || subject.match(/^\[action\]/i)) {
+      score += 0.2;
+    }
+
+    // Content length penalty
+    if (body.length < 100) {
+      score -= 0.1;
+    }
+
+    // Sender reputation boost
+    if (emailData.senderEmail && this.learningPatterns && this.learningPatterns.patterns && this.learningPatterns.patterns.senderPatterns && this.learningPatterns.patterns.senderPatterns[emailData.senderEmail]) {
+      score += Math.min(0.2, this.learningPatterns.patterns.senderPatterns[emailData.senderEmail] * 0.01);
+    }
+
+    // Learning-based lane association boost
+    const keywords = this._extractSignificantKeywords(subject + ' ' + body);
+    for (const keyword of keywords) {
+      if (this.learningPatterns && this.learningPatterns.patterns && this.learningPatterns.patterns.laneKeywords && this.learningPatterns.patterns.laneKeywords[keyword]) {
+        score += 0.05;
+      }
+    }
+
+    return Math.max(0, Math.min(1, score));
+  }
+
+  /**
+   * Parse task data from email with machine learning
+   * @param {Object} emailData - Email data object
+   * @returns {Object} Parsed task data
+   * @public - Made public for ZeroTrustTriageEngine
+   */
+  parseTaskFromEmailWithLearning(emailData) {
+    try {
+      this.logger.debug('EmailIngestionEngine', 'parseTaskFromEmailWithLearning called', {
+        hasSubject: !!emailData.subject,
+        hasBody: !!emailData.body,
+        hasSenderEmail: !!emailData.senderEmail,
+        hasDate: !!emailData.date,
+        hasActionabilityScore: !!emailData.actionabilityScore
+      });
+
+      const { subject, body, senderEmail, messageId, date, actionabilityScore } = emailData;
+      const content = `${subject} ${body}`.trim();
+
+      const title = this._generateTaskDescription(emailData);
+      const lane = this._inferLane(emailData);
+      const estimated_minutes = this._estimateTimeRequirement(emailData);
+      const priority = this._inferPriority(emailData);
+      const detectedDates = this._extractDateEntities(content);
+      const deadline = detectedDates.length > 0 ? detectedDates[0] : '';
+
+      const result = {
+        status: STATUS.PENDING,
+        created_at: TimeZoneAwareDate.toISOString(date),
+        processed_at: null,
+        source: 'email',
+        source_id: messageId,
+        sender: senderEmail,
+        subject: subject,
+        parsed_title: title,
+        suggested_lane: lane,
+        confidence_score: actionabilityScore || 0.5,
+        raw_content_preview: (body || '').substring(0, 200) + ((body || '').length > 200 ? '...' : '')
+      };
+
+      this.logger.debug('EmailIngestionEngine', 'parseTaskFromEmailWithLearning returning', {
+        parsed_title: result.parsed_title ? result.parsed_title.substring(0, 50) : 'N/A',
+        suggested_lane: result.suggested_lane,
+        confidence_score: result.confidence_score
+      });
+
+      return result;
+    } catch (error) {
+      this.logger.error('EmailIngestionEngine', `parseTaskFromEmailWithLearning error at line: ${error.stack}`, {
+        errorMessage: error.message,
+        emailSubject: emailData ? emailData.subject : 'unknown'
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Extract significant keywords from text
+   * @param {string} content - Text content
+   * @returns {Array} Array of significant keywords
+   * @private
+   */
+  _extractSignificantKeywords(content) {
+    const words = content
+      .replace(/[^\w\s]/gi, '')
+      .split(/\s+/)
+      .map(w => w.toLowerCase())
+      .filter(w => w.length > 3 && w.length < 50 && !CONSTANTS.STOP_WORDS.includes(w));
+
+    return Array.from(new Set(words));
+  }
+
+  /**
+   * Extract date entities from text
+   * @param {string} text - Text content
+   * @returns {Array} Array of detected dates
+   * @private
+   */
+  _extractDateEntities(text) {
+    const results = [];
+    const datePatterns = [
+      /\b(\d{1,2}\/\d{1,2}(?:\/\d{2,4})?)\b/g, // e.g. 12/5 or 12/5/2024
+      /\b(today|tomorrow|next week|next month)\b/gi
+    ];
+
+    for (const pattern of datePatterns) {
+      let match;
+      while ((match = pattern.exec(text)) !== null) {
+        results.push(match[0]);
+      }
+    }
+
+    return results;
+  }
+
+  /**
+   * Infer lane assignment from email content
+   * @param {Object} emailData - Email data object
+   * @returns {string} Inferred lane
+   * @private
+   */
+  _inferLane(emailData) {
+    const content = (emailData.subject + ' ' + emailData.body).toLowerCase();
+    const keywords = this._extractSignificantKeywords(content);
+
+    // Use learned associations first
+    for (const keyword of keywords) {
+      if (this.learningPatterns && this.learningPatterns.patterns && this.learningPatterns.patterns.laneKeywords) {
+        const lanes = this.learningPatterns.patterns.laneKeywords[keyword];
+        if (lanes && typeof lanes === 'object') {
+          let maxLane = null, maxCount = 0;
+          for (const lane in lanes) {
+            if (lanes[lane] > maxCount) {
+              maxLane = lane;
+              maxCount = lanes[lane];
+            }
+          }
+          if (maxLane) return maxLane;
+        }
+      }
+    }
+
+    // Fallback to rule-based assignment
+    if (content.includes('meeting') || content.includes('call')) return 'client';
+    if (content.includes('design') || content.includes('write')) return 'creative';
+    if (content.includes('admin') || content.includes('paperwork')) return LANE.OPERATIONAL;
+
+    return LANE.OPERATIONAL;
+  }
+
+  /**
+   * Estimate time requirement for task
+   * @param {Object} emailData - Email data object
+   * @returns {number} Estimated minutes
+   * @private
+   */
+  _estimateTimeRequirement(emailData) {
+    const content = (emailData.subject + ' ' + emailData.body).toLowerCase();
+    const keywords = this._extractSignificantKeywords(content);
+
+    // Use learned corrections first
+    for (const keyword of keywords) {
+      if (this.learningPatterns && this.learningPatterns.patterns && this.learningPatterns.patterns.timeEstimateCorrections) {
+        const corrections = this.learningPatterns.patterns.timeEstimateCorrections[keyword];
+        if (corrections && Array.isArray(corrections) && corrections.length > 0) {
+          const avgCorrection = corrections.reduce((a, b) => a + b, 0) / corrections.length;
+          return Math.max(15, 30 + avgCorrection); // Default 30 + learned adjustment
+        }
+      }
+    }
+
+    // Fallback to rule-based estimation
+    if (content.includes('call') || content.includes('quick')) return 15;
+    if (content.includes('meeting')) return 60;
+    if (content.includes('review') || content.includes('analyze')) return 90;
+    if (content.includes('project') || content.includes('complex')) return 120;
+
+    return 30;
+  }
+
+  /**
+   * Infer priority from email content
+   * @param {Object} emailData - Email data object
+   * @returns {string} Inferred priority
+   * @private
+   */
+  _inferPriority(emailData) {
+    const content = (emailData.subject + ' ' + emailData.body).toLowerCase();
+
+    if (content.includes('urgent') || content.includes('asap') || content.includes('critical') || content.includes('high priority')) {
+      return PRIORITY.HIGH;
+    }
+    if (content.includes('low priority') || content.includes('no rush') || content.includes('later')) {
+      return PRIORITY.LOW;
+    }
+
+    return PRIORITY.MEDIUM; // Default priority
+  }
+
+  /**
+   * Generate task description from email data
+   * @param {Object} emailData - Email data object
+   * @returns {string} Generated task description
+   * @private
+   */
+  _generateTaskDescription(emailData) {
+    if (emailData.subject && emailData.subject.length > 10) {
+      return emailData.subject;
+    }
+    if (emailData.body && emailData.body.length > 10) {
+      return emailData.body.substring(0, 60);
+    }
+    return 'Task from email';
+  }
+}

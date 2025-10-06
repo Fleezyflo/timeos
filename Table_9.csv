@@ -1,0 +1,15 @@
+Column Name,AppSheet Type,Base Type,Required,Description
+-------------,---------------,-----------,----------,-------------
+`block_id`,Text,Text,Yes,Unique block identifier
+`start_time`,DateTime,DateTime,Yes,Block start
+`end_time`,DateTime,DateTime,Yes,Block end
+`duration_minutes`,Number,Integer,Yes,Block duration
+`block_type`,Text,Text,No,Type of block
+`energy_level`,Enum,Text,No,Energy level for block
+`context`,Text,Text,No,Context/purpose
+`available`,Yes/No,Boolean,Yes,Whether available for scheduling
+`busy`,Yes/No,Boolean,Yes,Whether currently occupied
+`title`,Text,Text,No,Block title if booked
+`description`,LongText,Text,No,Block description
+`task_id`,Ref,Text,No,Reference to scheduled task
+`created_at`,DateTime,DateTime,Yes,Block creation timestamp

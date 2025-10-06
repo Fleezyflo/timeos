@@ -1,0 +1,14 @@
+Column Name,AppSheet Type,Base Type,Required,Initial Value,Formula/Expression,Description
+-------------,---------------,-----------,----------,---------------,-------------------,-------------
+`proposal_id`,Text,Text,Yes,`UNIQUEID()`,,Primary key
+`status`,Enum,Text,Yes,"`""PENDING""`",,Proposal status
+`created_at`,DateTime,DateTime,Yes,`NOW()`,,When proposal was created
+`processed_at`,DateTime,DateTime,No,,,When proposal was processed
+`source`,Text,Text,Yes,,,"Source: ""email"", ""ocr"", ""chat"", ""api"""
+`source_id`,Text,Text,No,,,"Original source identifier (email ID, etc.)"
+`sender`,Ref,Text,No,,→ SENDER_REPUTATION.[sender_email],Reference to sender
+`subject`,Text,Text,No,,,Email subject or proposal title
+`parsed_title`,Text,Text,Yes,,,Extracted task title
+`suggested_lane`,Text,Text,No,,,AI-suggested lane
+`confidence_score`,Percent,Number,No,,,AI confidence (0.0-1.0)
+`raw_content_preview`,LongText,Text,No,,,Preview of raw content

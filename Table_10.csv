@@ -1,0 +1,13 @@
+Column Name,AppSheet Type,Base Type,Required,Description
+-------------,---------------,-----------,----------,-------------
+`lane`,Text,Text,Yes,Lane identifier (primary key)
+`description`,LongText,Text,No,Lane description
+`weight`,Decimal,Number,No,Scheduling weight (0.0-1.0)
+`min_block_minutes`,Number,Integer,No,Minimum time block size
+`max_daily_minutes`,Number,Integer,No,Maximum daily allocation
+`priority_multiplier`,Decimal,Number,No,Priority score multiplier
+`context_type`,Text,Text,No,Context category
+`energy_preference`,Enum,Text,No,Preferred energy level
+`is_active`,Yes/No,Boolean,Yes,Whether lane is active
+`created_at`,DateTime,DateTime,Yes,Creation timestamp
+`updated_at`,DateTime,DateTime,No,Last update timestamp

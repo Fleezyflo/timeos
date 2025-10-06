@@ -1,0 +1,4599 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#667eea">
+  
+  <title>MOH TIME OS</title>
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css">
+
+  
+  <style>
+    :root {
+      --primary: #667eea;
+      --primary-dark: #5a67d8;
+      --success: #48bb78;
+      --warning: #ed8936;
+      --danger: #f56565;
+      --info: #4299e1;
+      --dark: #2d3748;
+      --light: #f7fafc;
+      --muted: #a0aec0;
+      
+      --priority-critical: #f56565;
+      --priority-urgent: #fc8181;
+      --priority-high: #ed8936;
+      --priority-medium: #667eea;
+      --priority-low: #48bb78;
+      --priority-minimal: #68d391;
+      
+      --lane-ops: #667eea;
+      --lane-admin: #4299e1;
+      --lane-creative: #9f7aea;
+      --lane-client: #f6ad55;
+      --lane-growth: #48bb78;
+      --lane-deep-focus: #2b6cb0;
+      --lane-batch: #38b2ac;
+      --lane-communication: #ed64a6;
+      --lane-learning: #f687b3;
+      --lane-maintenance: #a0aec0;
+      --lane-personal: #b794f4;
+      
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+      --spacing-xl: 32px;
+      
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      
+      --radius-sm: 4px;
+      --radius: 8px;
+      --radius-lg: 12px;
+      --radius-full: 9999px;
+      
+      --transition: 200ms ease;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      background: var(--light);
+      margin: 0;
+      padding: 0;
+      padding-bottom: 80px;
+    }
+
+    .view-content {
+      display: none;
+      padding: var(--spacing-md);
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .view-content.active {
+      display: block;
+    }
+
+    #bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      border-top: 1px solid #e2e8f0;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      padding: 8px 0 calc(8px + env(safe-area-inset-bottom, 0px));
+      z-index: 1000;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 4px;
+      color: var(--muted);
+      transition: var(--transition);
+      cursor: pointer;
+      border: none;
+      background: none;
+      font-size: 11px;
+    }
+
+    .nav-tab.active {
+      color: var(--primary);
+    }
+
+    .nav-tab i {
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+
+    .nav-tab .badge {
+      position: absolute;
+      top: 2px;
+      right: 50%;
+      transform: translateX(12px);
+      background: var(--danger);
+      color: white;
+      font-size: 10px;
+      font-weight: bold;
+      padding: 2px 4px;
+      border-radius: var(--radius-full);
+      min-width: 16px;
+      text-align: center;
+    }
+
+    .card {
+      background: white;
+      border-radius: var(--radius);
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+      box-shadow: var(--shadow);
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: var(--spacing-md);
+      color: var(--dark);
+    }
+
+    .task-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+      box-shadow: var(--shadow);
+      border-left: 4px solid var(--primary);
+      transition: var(--transition);
+      cursor: pointer;
+    }
+
+    .task-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .task-card.priority-CRITICAL { border-left-color: var(--priority-critical); }
+    .task-card.priority-URGENT { border-left-color: var(--priority-urgent); }
+    .task-card.priority-HIGH { border-left-color: var(--priority-high); }
+    .task-card.priority-MEDIUM { border-left-color: var(--priority-medium); }
+    .task-card.priority-LOW { border-left-color: var(--priority-low); }
+    .task-card.priority-MINIMAL { border-left-color: var(--priority-minimal); }
+
+    .task-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 8px;
+    }
+
+    .task-title {
+      font-weight: 600;
+      color: var(--dark);
+      flex: 1;
+    }
+
+    .task-time {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .task-meta {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .task-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 13px;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #e2e8f0;
+      color: var(--dark);
+    }
+
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .filters {
+      background: white;
+      padding: var(--spacing-md);
+      border-radius: var(--radius);
+      margin-bottom: var(--spacing-md);
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .filter-group label {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--dark);
+    }
+
+    .filter-group select,
+    .filter-group input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .modal.is-active {
+      display: flex;
+    }
+
+    .modal-card {
+      background: white;
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-card-head {
+      padding: var(--spacing-md);
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-card-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .modal-card-body {
+      padding: var(--spacing-md);
+    }
+
+    .modal-card-foot {
+      padding: var(--spacing-md);
+      border-top: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .field {
+      margin-bottom: var(--spacing-md);
+    }
+
+    .label {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 500;
+      color: var(--dark);
+    }
+
+    .input,
+    .textarea,
+    .select select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+    }
+
+    .textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .delete {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 20px;
+      color: var(--muted);
+    }
+
+    .toast-container {
+      position: fixed;
+      bottom: calc(80px + 20px + env(safe-area-inset-bottom, 0px));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      pointer-events: none;
+    }
+
+    .toast {
+      background: var(--dark);
+      color: white;
+      padding: 12px 20px;
+      border-radius: var(--radius);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      animation: slide-up 0.3s ease;
+      pointer-events: auto;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .toast.toast-success { background: var(--success); }
+    .toast.toast-error { background: var(--danger); }
+    .toast.toast-warning { background: var(--warning); }
+
+    @keyframes slide-up {
+      from {
+        transform: translateY(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .toast.fade-out {
+      animation: fade-out 0.3s ease forwards;
+    }
+
+    @keyframes fade-out {
+      to {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+    }
+
+    .fab {
+      position: fixed;
+      bottom: calc(80px + 16px + env(safe-area-inset-bottom, 0px));
+      right: 20px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      cursor: pointer;
+      font-size: 24px;
+      z-index: 999;
+      transition: var(--transition);
+    }
+
+    .fab:hover {
+      transform: scale(1.1);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--spacing-md);
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--spacing-md);
+    }
+
+    @media (min-width: 768px) {
+      .grid-2 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .grid-3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .energy-gauge {
+      width: 100%;
+      height: 120px;
+      position: relative;
+    }
+
+    .gauge-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+
+    .gauge-value {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--dark);
+    }
+
+    .gauge-label {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .swiper-container {
+      width: 100%;
+      height: 450px;
+      padding: 20px 0;
+    }
+
+    .proposal-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      box-shadow: var(--shadow-lg);
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .proposal-sender {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .reputation-badge {
+      background: var(--success);
+      color: white;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      font-weight: bold;
+      font-size: 11px;
+    }
+
+    .proposal-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: var(--dark);
+    }
+
+    .proposal-body { ... }
+
+.proposal-table {
+
+width: 100%;
+border-collapse: collapse;
+}
+.proposal-table thead {
+position: sticky;
+top: 0;
+background: var(--surface-2);
+z-index: 1;
+}
+.proposal-table th, .proposal-table td {
+padding: 12px;
+border-bottom: 1px solid var(--surface-3);
+vertical-align: top;
+}
+.proposal-table tbody tr:hover {
+background: var(--surface-hover);
+}
+.proposal-table .sender-cell .proposal-status {
+font-size: 12px;
+color: var(--muted);
+}
+.proposal-table .proposal-title {
+font-weight: 600;
+}
+.proposal-table .proposal-preview {
+font-size: 12px;
+color: var(--muted);
+margin-top: 4px;
+}
+.proposal-table .actions-cell {
+display: flex;
+gap: 8px;
+justify-content: flex-end;
+}
+.btn-icon {
+padding: 6px 8px;
+}
+
+    .proposal-meta {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      font-size: 13px;
+    }
+
+    .confidence {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--muted);
+    }
+
+    .proposal-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .range-slider {
+      width: 100%;
+    }
+
+    .slider-container {
+      margin-bottom: var(--spacing-md);
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .slider-value {
+      color: var(--primary);
+      font-weight: bold;
+    }
+
+    .mood-selector {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 8px;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .mood-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+      border: 2px solid #e2e8f0;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .mood-option:hover {
+      border-color: var(--primary);
+    }
+
+    .mood-option.selected {
+      border-color: var(--primary);
+      background: #f0f4ff;
+    }
+
+    .mood-option i {
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .calendar-container {
+      height: 500px;
+      background: white;
+      border-radius: var(--radius);
+      padding: var(--spacing-md);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 16px;
+      color: #e2e8f0;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+
+    .settings-section {
+      background: white;
+      border-radius: var(--radius);
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .settings-section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: var(--spacing-md);
+      color: var(--dark);
+    }
+
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .setting-item:last-child {
+      border-bottom: none;
+    }
+
+    .setting-label {
+      flex: 1;
+    }
+
+    .setting-name {
+      font-weight: 500;
+      color: var(--dark);
+    }
+
+    .setting-desc {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .toggle-switch {
+      position: relative;
+      width: 48px;
+      height: 24px;
+      background: #e2e8f0;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .toggle-switch.active {
+      background: var(--primary);
+    }
+
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: var(--transition);
+    }
+
+    .toggle-switch.active::after {
+      left: 26px;
+    }
+
+    @media (max-width: 768px) {
+      .filters {
+        flex-direction: column;
+      }
+
+      .filter-group {
+        min-width: auto;
+      }
+    }
+
+    /* Styles for new features */
+    .task-menu-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px 8px;
+      font-size: 16px;
+      transition: var(--transition);
+    }
+
+    .task-menu-btn:hover {
+      color: var(--primary);
+    }
+
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-md);
+      min-width: 160px;
+      z-index: 100;
+    }
+
+    .dropdown-menu.show {
+      display: block;
+    }
+
+    .dropdown-item {
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: var(--transition);
+    }
+
+    .dropdown-item:hover {
+      background: var(--light);
+    }
+
+    .conflict-indicator {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      background: var(--danger);
+      color: white;
+      border-radius: var(--radius-sm);
+      padding: 2px 6px;
+      font-size: 11px;
+      font-weight: bold;
+    }
+
+    .time-block-indicator {
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 10px,
+        rgba(102, 126, 234, 0.1) 10px,
+        rgba(102, 126, 234, 0.1) 20px
+      );
+      border: 2px solid var(--primary);
+      border-radius: var(--radius-sm);
+      padding: 8px;
+      margin-bottom: 8px;
+    }
+
+    .scroll-mode-toggle {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      background: white;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+    }
+
+    .offline-indicator {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--warning);
+      color: white;
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      z-index: 9999;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .offline-indicator.show {
+      display: flex;
+    }
+
+    .snooze-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      border: 2px solid #e2e8f0;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .snooze-option:hover {
+      border-color: var(--primary);
+      background: #f0f4ff;
+    }
+
+    .snooze-option i {
+      font-size: 24px;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .snooze-option span {
+      font-weight: 500;
+      color: var(--dark);
+    }
+
+    .system-info {
+      background: var(--light);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .system-info-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+    }
+
+    .system-info-label {
+      font-weight: 500;
+    }
+
+    .system-info-value {
+      color: var(--dark);
+    }
+  </style>
+</head>
+<body>
+  <div id="header" style="position: fixed; top: 0; left: 0; right: 0; background: var(--primary); color: white; padding: 12px 20px; z-index: 1000; display: flex; justify-content: space-between; align-items: center;">
+    <h1 style="margin: 0; font-size: 1.5rem;">MOH TIME OS</h1>
+    <div id="clock" style="font-size: 1.2rem;">00:00:00</div>
+  </div>
+  <div style="height: 60px;"></div>
+  <div id="app">
+    <div id="dashboard-view" class="view-content active">
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-title">Energy</div>
+          <div class="energy-gauge" id="energy-gauge"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Focus</div>
+          <div class="energy-gauge" id="focus-gauge"></div>
+        </div>
+        <div class="card">
+          <div class="card-title">Completion</div>
+          <div class="energy-gauge" id="completion-gauge"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Quick Actions</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button class="btn btn-primary" onclick="APP.startDay()">
+            <i class="fas fa-sun"></i> Start Day
+          </button>
+          <button class="btn btn-secondary" onclick="APP.processEmails()">
+            <i class="fas fa-envelope"></i> Process Emails
+          </button>
+          <button class="btn btn-secondary" onclick="APP.runIntelligentScheduler()">
+            <i class="fas fa-calendar-alt"></i> Run Scheduler
+          </button>
+          <button class="btn btn-secondary" id="refresh-dashboard-btn" onclick="APP.loadDashboard({ force: true })">
+            <i class="fas fa-sync"></i> Refresh
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Today's Schedule</div>
+        <div id="today-schedule"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">High Priority Tasks</div>
+        <div id="priority-tasks"></div>
+      </div>
+    </div>
+
+    <div id="tasks-view" class="view-content">
+      <div class="card" style="margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+          <div>
+            <span style="font-weight: 600; color: var(--dark); margin-right: 12px;">Quick Lane Filters:</span>
+            <button class="btn btn-secondary btn-small" id="refresh-tasks-btn" onclick="APP.loadTasks({ force: true })">
+              <i class="fas fa-sync"></i> Refresh
+            </button>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn btn-secondary btn-small lane-filter-btn" onclick="APP.loadTasksForLane('all')">
+              <i class="fas fa-list"></i> All Lanes
+            </button>
+            <button class="btn btn-secondary btn-small lane-filter-btn" onclick="APP.loadTasksForLane('ops')">
+              <i class="fas fa-cog"></i> Operations <span class="badge" id="lane-count-ops" style="display: none;"></span>
+            </button>
+            <button class="btn btn-secondary btn-small lane-filter-btn" onclick="APP.loadTasksForLane('admin')">
+              <i class="fas fa-briefcase"></i> Admin <span class="badge" id="lane-count-admin" style="display: none;"></span>
+            </button>
+            <button class="btn btn-secondary btn-small lane-filter-btn" onclick="APP.loadTasksForLane('creative')">
+              <i class="fas fa-paint-brush"></i> Creative <span class="badge" id="lane-count-creative" style="display: none;"></span>
+            </button>
+            <button class="btn btn-secondary btn-small lane-filter-btn" onclick="APP.loadTasksForLane('client')">
+              <i class="fas fa-users"></i> Client <span class="badge" id="lane-count-client" style="display: none;"></span>
+            </button>
+            <button class="btn btn-secondary btn-small lane-filter-btn" onclick="APP.loadTasksForLane('growth')">
+              <i class="fas fa-chart-line"></i> Growth <span class="badge" id="lane-count-growth" style="display: none;"></span>
+            </button>
+            <button class="btn btn-secondary btn-small lane-filter-btn" onclick="APP.loadTasksForLane('deep_focus')">
+              <i class="fas fa-brain"></i> Deep Focus <span class="badge" id="lane-count-deep_focus" style="display: none;"></span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="filters">
+        <div class="filter-group">
+          <label>Status</label>
+          <select id="filter-status" onchange="APP.applyFilters()">
+            <option value="">All Statuses</option>
+            <option value="PENDING">Pending</option>
+            <option value="SCHEDULED">Scheduled</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="CANCELED">Canceled</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Priority</label>
+          <select id="filter-priority" onchange="APP.applyFilters()">
+            <option value="">All Priorities</option>
+            <option value="CRITICAL">Critical</option>
+            <option value="URGENT">Urgent</option>
+            <option value="HIGH">High</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="LOW">Low</option>
+            <option value="MINIMAL">Minimal</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Lane</label>
+          <select id="filter-lane" onchange="APP.applyFilters()">
+            <option value="">All Lanes</option>
+            <option value="ops">Operations</option>
+            <option value="admin">Admin</option>
+            <option value="creative">Creative</option>
+            <option value="client">Client</option>
+            <option value="growth">Growth</option>
+            <option value="deep_focus">Deep Focus</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Sort By</label>
+          <select id="filter-sort" onchange="APP.applyFilters()">
+            <option value="priority">Priority</option>
+            <option value="deadline">Deadline</option>
+            <option value="created">Created Date</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label>Search</label>
+          <input type="text" id="filter-search" placeholder="Search tasks..." oninput="APP.debounceSearch()">
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="select-all-tasks" onchange="APP.toggleSelectAll()" style="width: 18px; height: 18px; cursor: pointer;">
+            <label for="select-all-tasks" style="cursor: pointer; user-select: none; margin: 0;">Select All</label>
+            <span id="selected-count" style="color: var(--muted); font-size: 13px;"></span>
+          </div>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn btn-success btn-small" onclick="APP.handleBulkComplete()" id="bulk-complete-btn" disabled>
+              <i class="fas fa-check"></i> Complete Selected
+            </button>
+            <button class="btn btn-danger btn-small" onclick="APP.handleBulkCancel()" id="bulk-cancel-btn" disabled>
+              <i class="fas fa-times"></i> Cancel Selected
+            </button>
+            <button class="btn btn-secondary btn-small" onclick="APP.handleBulkReschedule()" id="bulk-reschedule-btn" disabled>
+              <i class="fas fa-calendar"></i> Reschedule Selected
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="scroll-mode-toggle">
+        <label style="font-weight: 500; color: var(--dark);">Display Mode:</label>
+        <div style="display: flex; gap: 8px;">
+          <button id="pagination-mode-btn" class="btn btn-secondary btn-small" onclick="APP.setScrollMode('pagination')">
+            <i class="fas fa-list-ol"></i> Pagination
+          </button>
+          <button id="infinite-scroll-btn" class="btn btn-secondary btn-small" onclick="APP.setScrollMode('infinite')">
+            <i class="fas fa-infinity"></i> Infinite Scroll
+          </button>
+        </div>
+      </div>
+
+      <div id="tasks-list"></div>
+
+      <div id="pagination-controls" class="card" style="margin-top: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <button class="btn btn-secondary btn-small" onclick="APP.previousPage()" id="prev-page-btn" disabled>
+            <i class="fas fa-chevron-left"></i> Previous
+          </button>
+          <span id="page-info" style="color: var(--muted); font-size: 13px;">Page 1 of 1</span>
+          <button class="btn btn-secondary btn-small" onclick="APP.nextPage()" id="next-page-btn" disabled>
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="calendar-view" class="view-content">
+      <div class="card" style="margin-bottom: 16px;">
+        <button class="btn btn-secondary btn-small" id="refresh-calendar-btn" onclick="APP.loadCalendar({ force: true })">
+          <i class="fas fa-sync"></i> Refresh
+        </button>
+      </div>
+      <div class="calendar-container" id="calendar"></div>
+    </div>
+
+    <div id="triage-view" class="view-content">
+      <div class="card">
+        <div class="card-title">Email Proposals <span id="triage-count" style="color: var(--muted); font-size: 14px;"></span>
+          <button class="btn btn-secondary btn-small" id="refresh-triage-btn" onclick="APP.loadTriage({ force: true })">
+            <i class="fas fa-sync"></i> Refresh
+          </button>
+        </div>
+        <div id="triage-wrapper"></div>
+      </div>
+    </div>
+
+    <div id="energy-view" class="view-content">
+      <div class="card">
+        <div class="card-title">Log Energy State</div>
+        
+        <div class="slider-container">
+          <div class="slider-label">
+            <span>Energy Level</span>
+            <span class="slider-value" id="energy-value">5</span>
+          </div>
+          <input type="range" class="range-slider" id="energy-slider" min="1" max="10" value="5" oninput="document.getElementById('energy-value').textContent = this.value">
+        </div>
+
+        <div class="slider-container">
+          <div class="slider-label">
+            <span>Focus Level</span>
+            <span class="slider-value" id="focus-value">5</span>
+          </div>
+          <input type="range" class="range-slider" id="focus-slider" min="1" max="10" value="5" oninput="document.getElementById('focus-value').textContent = this.value">
+        </div>
+
+        <div class="slider-container">
+          <div class="slider-label">
+            <span>Stress Level</span>
+            <span class="slider-value" id="stress-value">5</span>
+          </div>
+          <input type="range" class="range-slider" id="stress-slider" min="1" max="10" value="5" oninput="document.getElementById('stress-value').textContent = this.value">
+        </div>
+
+        <div class="field">
+          <label class="label">Mood</label>
+          <div class="mood-selector" id="mood-selector">
+            <div class="mood-option" data-mood="ENERGIZED" onclick="APP.selectMood('ENERGIZED')">
+              <i class="fas fa-bolt" style="color: #f6ad55;"></i>
+              <span>Energized</span>
+            </div>
+            <div class="mood-option" data-mood="FOCUSED" onclick="APP.selectMood('FOCUSED')">
+              <i class="fas fa-bullseye" style="color: #667eea;"></i>
+              <span>Focused</span>
+            </div>
+            <div class="mood-option" data-mood="MOTIVATED" onclick="APP.selectMood('MOTIVATED')">
+              <i class="fas fa-fire" style="color: #f56565;"></i>
+              <span>Motivated</span>
+            </div>
+            <div class="mood-option selected" data-mood="NEUTRAL" onclick="APP.selectMood('NEUTRAL')">
+              <i class="fas fa-minus-circle" style="color: #a0aec0;"></i>
+              <span>Neutral</span>
+            </div>
+            <div class="mood-option" data-mood="TIRED" onclick="APP.selectMood('TIRED')">
+              <i class="fas fa-bed" style="color: #4299e1;"></i>
+              <span>Tired</span>
+            </div>
+            <div class="mood-option" data-mood="STRESSED" onclick="APP.selectMood('STRESSED')">
+              <i class="fas fa-exclamation-triangle" style="color: #ed8936;"></i>
+              <span>Stressed</span>
+            </div>
+            <div class="mood-option" data-mood="OVERWHELMED" onclick="APP.selectMood('OVERWHELMED')">
+              <i class="fas fa-dizzy" style="color: #f56565;"></i>
+              <span>Overwhelmed</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label">Notes</label>
+          <textarea class="textarea" id="energy-notes" placeholder="How are you feeling? Any context?"></textarea>
+        </div>
+
+        <button class="btn btn-primary" onclick="APP.logEnergy()">
+          <i class="fas fa-save"></i> Log Energy State
+        </button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Energy History</div>
+        <div class="chart-container">
+          <canvas id="energy-chart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Recent Logs</div>
+        <div id="energy-history"></div>
+      </div>
+    </div>
+
+    <div id="settings-view" class="view-content">
+      <div class="settings-section">
+        <div class="settings-section-title">Work Hours</div>
+        <div class="setting-item">
+          <div class="setting-label">
+            <div class="setting-name">Start Time</div>
+          </div>
+          <input type="time" id="work-start" value="09:00" class="input" style="width: 120px;">
+        </div>
+        <div class="setting-item">
+          <div class="setting-label">
+            <div class="setting-name">End Time</div>
+          </div>
+          <input type="time" id="work-end" value="17:00" class="input" style="width: 120px;">
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Scheduler Status</div>
+        <div class="system-info">
+          <div class="system-info-item">
+            <span class="system-info-label">Status:</span>
+            <span class="system-info-value" id="scheduler-status">
+              <i class="fas fa-circle" style="color: var(--success);"></i> Active
+            </span>
+          </div>
+          <div class="system-info-item">
+            <span class="system-info-label">Last Run:</span>
+            <span class="system-info-value" id="scheduler-last-run">Never</span>
+          </div>
+          <div class="system-info-item">
+            <span class="system-info-label">Tasks Scheduled:</span>
+            <span class="system-info-value" id="scheduler-tasks-count">0</span>
+          </div>
+          <div class="system-info-item">
+            <span class="system-info-label">Health Score:</span>
+            <span class="system-info-value" id="scheduler-health">100%</span>
+          </div>
+        </div>
+        <div style="margin-top: 12px;">
+          <button class="btn btn-primary btn-small" onclick="APP.runIntelligentScheduler()">
+            <i class="fas fa-play"></i> Run Scheduler Now
+          </button>
+          <button class="btn btn-secondary btn-small" id="refresh-scheduler-btn" onclick="APP.refreshSchedulerHealth({ force: true })">
+            <i class="fas fa-sync"></i> Refresh Status
+          </button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Scheduling Preferences</div>
+        <div class="setting-item">
+          <div class="setting-label">
+            <div class="setting-name">Default Task Duration</div>
+            <div class="setting-desc">Estimated minutes for new tasks</div>
+          </div>
+          <input type="number" id="default-duration" value="30" min="5" step="5" class="input" style="width: 80px;">
+        </div>
+        <div class="setting-item">
+          <div class="setting-label">
+            <div class="setting-name">Sync to Google Calendar</div>
+            <div class="setting-desc">Automatically sync tasks to calendar</div>
+          </div>
+          <div class="toggle-switch active" id="sync-calendar" onclick="APP.toggleSetting('sync-calendar')"></div>
+        </div>
+        <div class="setting-item">
+          <div class="setting-label">
+            <div class="setting-name">Block Focus Time</div>
+            <div class="setting-desc">Protect deep work sessions</div>
+          </div>
+          <div class="toggle-switch active" id="block-focus" onclick="APP.toggleSetting('block-focus')"></div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Email Triage</div>
+        <div class="setting-item">
+          <div class="setting-label">
+            <div class="setting-name">Auto-Approve Threshold</div>
+            <div class="setting-desc">Confidence score for automatic approval (0-100)</div>
+          </div>
+          <input type="number" id="auto-approve" value="90" min="0" max="100" class="input" style="width: 80px;">
+        </div>
+        <div class="setting-item">
+          <div class="setting-label">
+            <div class="setting-name">Processing Frequency</div>
+            <div class="setting-desc">Check emails every N minutes</div>
+          </div>
+          <input type="number" id="email-frequency" value="15" min="5" step="5" class="input" style="width: 80px;">
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Notifications</div>
+        <div class="setting-item">
+          <div class="setting-label">
+            <div class="setting-name">Task Start Notifications</div>
+            <div class="setting-desc">Get notified when a task is about to start</div>
+          </div>
+          <div class="toggle-switch active" id="notify-task" onclick="APP.toggleSetting('notify-task')"></div>
+        </div>
+        <div class="setting-item">
+          <div class="setting-label">
+            <div class="setting-name">Triage Queue Alerts</div>
+            <div class="setting-desc">Notify when new proposals arrive</div>
+          </div>
+          <div class="toggle-switch active" id="notify-triage" onclick="APP.toggleSetting('notify-triage')"></div>
+        </div>
+        <div class="setting-item">
+          <div class="setting-label">
+            <div class="setting-name">Daily Summary</div>
+            <div class="setting-desc">End of day summary email</div>
+          </div>
+          <div class="toggle-switch" id="notify-summary" onclick="APP.toggleSetting('notify-summary')"></div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">Data Management</div>
+        <div class="setting-item">
+          <div class="setting-label">
+            <div class="setting-name">Export Data</div>
+            <div class="setting-desc">Download all your tasks and data as CSV</div>
+          </div>
+          <button class="btn btn-secondary btn-small" onclick="APP.exportData()">
+            <i class="fas fa-download"></i> Export
+          </button>
+        </div>
+        <div class="setting-item">
+          <div class="setting-label">
+            <div class="setting-name">Clear Cache</div>
+            <div class="setting-desc">Remove locally cached data</div>
+          </div>
+          <button class="btn btn-danger btn-small" onclick="APP.clearCache()">
+            <i class="fas fa-trash"></i> Clear
+          </button>
+        </div>
+        <div class="setting-item">
+          <div class="setting-label">
+            <div class="setting-name">Reset Tutorial</div>
+            <div class="setting-desc">Show onboarding tutorial again</div>
+          </div>
+          <button class="btn btn-secondary btn-small" onclick="APP.resetTutorial()">
+            <i class="fas fa-redo"></i> Reset
+          </button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-section-title">System Information</div>
+        <div class="system-info">
+          <div class="system-info-item">
+            <span class="system-info-label">Version:</span>
+            <span class="system-info-value" id="system-version">4.0.0</span>
+          </div>
+          <div class="system-info-item">
+            <span class="system-info-label">Last Sync:</span>
+            <span class="system-info-value" id="system-last-sync">Never</span>
+          </div>
+          <div class="system-info-item">
+            <span class="system-info-label">Cache Size:</span>
+            <span class="system-info-value" id="system-cache-size">0 KB</span>
+          </div>
+          <div class="system-info-item">
+            <span class="system-info-label">Tasks Cached:</span>
+            <span class="system-info-value" id="system-tasks-cached">0</span>
+          </div>
+          <div class="system-info-item">
+            <span class="system-info-label">Connection Status:</span>
+            <span class="system-info-value" id="system-connection">Online</span>
+          </div>
+          <div class="system-info-item">
+            <span class="system-info-label">Queue Size:</span>
+            <span class="system-info-value" id="system-queue-size">0 pending</span>
+          </div>
+          <div class="system-info-item">
+            <span class="system-info-label">Dashboard Cache Age:</span>
+            <span class="system-info-value" id="cache-age-dashboard">Never</span>
+          </div>
+          <div class="system-info-item">
+            <span class="system-info-label">Tasks Cache Age:</span>
+            <span class="system-info-value" id="cache-age-tasks">Never</span>
+          </div>
+          <div class="system-info-item">
+            <span class="system-info-label">Triage Cache Age:</span>
+            <span class="system-info-value" id="cache-age-triage">Never</span>
+          </div>
+          <div class="system-info-item">
+            <span class="system-info-label">Calendar Cache Age:</span>
+            <span class="system-info-value" id="cache-age-calendar">Never</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="padding: 16px;">
+        <button class="btn btn-primary" onclick="APP.saveSettings()">
+          <i class="fas fa-save"></i> Save Settings
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="offline-indicator" id="offline-indicator">
+    <i class="fas fa-wifi-slash"></i>
+    <span>You are offline. Changes will be synced when connection is restored.</span>
+  </div>
+
+  <nav id="bottom-nav">
+    <button class="nav-tab active" data-view="dashboard" onclick="APP.showView('dashboard')">
+      <i class="fas fa-home"></i>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-tab" data-view="tasks" onclick="APP.showView('tasks')">
+      <i class="fas fa-tasks"></i>
+      <span>Tasks</span>
+    </button>
+    <button class="nav-tab" data-view="calendar" onclick="APP.showView('calendar')">
+      <i class="fas fa-calendar-alt"></i>
+      <span>Calendar</span>
+    </button>
+    <button class="nav-tab" data-view="triage" onclick="APP.showView('triage')">
+      <i class="fas fa-inbox"></i>
+      <span>Triage</span>
+      <span class="badge" id="triage-badge" style="display: none;">0</span>
+    </button>
+    <button class="nav-tab" data-view="energy" onclick="APP.showView('energy')">
+      <i class="fas fa-battery-half"></i>
+      <span>Energy</span>
+    </button>
+    <button class="nav-tab" data-view="settings" onclick="APP.showView('settings')">
+      <i class="fas fa-cog"></i>
+      <span>Settings</span>
+    </button>
+  </nav>
+
+  <button class="fab" onclick="APP.openCreateTaskModal()">
+    <i class="fas fa-plus"></i>
+  </button>
+
+  <div id="modal-create-task" class="modal">
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title">Create New Task</p>
+        <button class="delete" onclick="APP.closeModal('modal-create-task')">&times;</button>
+      </header>
+      <section class="modal-card-body">
+        <div class="field">
+          <label class="label">Title *</label>
+          <input class="input" type="text" id="new-task-title" required>
+        </div>
+        <div class="field">
+          <label class="label">Description</label>
+          <textarea class="textarea" id="new-task-description"></textarea>
+        </div>
+        <div class="field">
+          <label class="label">Priority</label>
+          <div class="select">
+            <select id="new-task-priority">
+              <option value="MEDIUM">Medium</option>
+              <option value="CRITICAL">Critical</option>
+              <option value="URGENT">Urgent</option>
+              <option value="HIGH">High</option>
+              <option value="LOW">Low</option>
+              <option value="MINIMAL">Minimal</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Lane</label>
+          <div class="select">
+            <select id="new-task-lane">
+              <option value="ops">Operations</option>
+              <option value="admin">Admin</option>
+              <option value="creative">Creative</option>
+              <option value="client">Client</option>
+              <option value="growth">Growth</option>
+              <option value="deep_focus">Deep Focus</option>
+              <option value="batch">Batch</option>
+              <option value="communication">Communication</option>
+              <option value="learning">Learning</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="personal">Personal</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Estimated Minutes</label>
+          <input class="input" type="number" id="new-task-duration" value="30" min="5" step="5">
+        </div>
+        <div class="field">
+          <label class="label">Energy Required</label>
+          <div class="select">
+            <select id="new-task-energy">
+              <option value="MEDIUM">Medium</option>
+              <option value="CRITICAL">Critical</option>
+              <option value="HIGH">High</option>
+              <option value="LOW">Low</option>
+              <option value="RECOVERY">Recovery</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Focus Required</label>
+          <div class="select">
+            <select id="new-task-focus">
+              <option value="MEDIUM">Medium</option>
+              <option value="INTENSE">Intense</option>
+              <option value="HIGH">High</option>
+              <option value="LOW">Low</option>
+              <option value="BACKGROUND">Background</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Deadline</label>
+          <input class="input" type="datetime-local" id="new-task-deadline">
+        </div>
+      </section>
+      <footer class="modal-card-foot">
+        <button class="btn btn-primary" onclick="APP.submitNewTask()">Create Task</button>
+        <button class="btn btn-secondary" onclick="APP.closeModal('modal-create-task')">Cancel</button>
+      </footer>
+    </div>
+  </div>
+
+  <div id="modal-edit-proposal" class="modal">
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title">Edit Proposal</p>
+        <button class="delete" onclick="APP.closeModal('modal-edit-proposal')">&times;</button>
+      </header>
+      <section class="modal-card-body">
+        <input type="hidden" id="edit-proposal-id">
+        <div class="field">
+          <label class="label">Title</label>
+          <input class="input" type="text" id="edit-proposal-title">
+        </div>
+        <div class="field">
+          <label class="label">Priority</label>
+          <div class="select">
+            <select id="edit-proposal-priority">
+              <option value="CRITICAL">Critical</option>
+              <option value="URGENT">Urgent</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
+              <option value="MINIMAL">Minimal</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Lane</label>
+          <div class="select">
+            <select id="edit-proposal-lane">
+              <option value="ops">Operations</option>
+              <option value="admin">Admin</option>
+              <option value="creative">Creative</option>
+              <option value="client">Client</option>
+              <option value="growth">Growth</option>
+              <option value="deep_focus">Deep Focus</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Duration (minutes)</label>
+          <input class="input" type="number" id="edit-proposal-duration" value="30" min="5" step="5">
+        </div>
+      </section>
+      <footer class="modal-card-foot">
+        <button class="btn btn-success" onclick="APP.approveEditedProposal()">Approve</button>
+        <button class="btn btn-secondary" onclick="APP.closeModal('modal-edit-proposal')">Cancel</button>
+      </footer>
+    </div>
+  </div>
+
+  <div id="modal-complete-task" class="modal">
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title">Complete Task</p>
+        <button class="delete" onclick="APP.closeModal('modal-complete-task')">&times;</button>
+      </header>
+      <section class="modal-card-body">
+        <input type="hidden" id="complete-task-id">
+        <div class="field">
+          <label class="label">Task Title</label>
+          <input class="input" type="text" id="complete-task-title" readonly>
+        </div>
+        <div class="field">
+          <label class="label">Estimated Minutes</label>
+          <input class="input" type="number" id="complete-task-estimated" readonly>
+        </div>
+        <div class="field">
+          <label class="label">Actual Minutes Taken *</label>
+          <input class="input" type="number" id="complete-task-actual" min="1" step="5" required>
+        </div>
+        <div class="field">
+          <label class="label">Completion Notes</label>
+          <textarea class="textarea" id="complete-task-notes" placeholder="Optional notes about completion..."></textarea>
+        </div>
+        <div class="field">
+          <label class="label">Estimation Accuracy</label>
+          <div id="estimation-accuracy" style="font-size: 18px; font-weight: bold; color: var(--primary);">
+            0%
+          </div>
+        </div>
+      </section>
+      <footer class="modal-card-foot">
+        <button class="btn btn-success" onclick="APP.submitCompleteTask()">Mark Complete</button>
+        <button class="btn btn-secondary" onclick="APP.closeModal('modal-complete-task')">Cancel</button>
+      </footer>
+    </div>
+  </div>
+
+  <div id="modal-conflict-resolution" class="modal">
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title">Resolve Scheduling Conflict</p>
+        <button class="delete" onclick="APP.closeModal('modal-conflict-resolution')">&times;</button>
+      </header>
+      <section class="modal-card-body">
+        <input type="hidden" id="conflict-task-id">
+        <input type="hidden" id="conflict-type">
+        <div class="field">
+          <label class="label">Task</label>
+          <input class="input" type="text" id="conflict-task-title" readonly>
+        </div>
+        <div class="field">
+          <label class="label">Conflict Type</label>
+          <div class="notification is-warning" id="conflict-description">
+            <i class="fas fa-exclamation-triangle"></i> 
+            <span id="conflict-type-text">This task conflicts with another scheduled task in the same time slot.</span>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Choose Resolution</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="snooze-option" onclick="APP.resolveConflict('RESCHEDULE')">
+              <i class="fas fa-calendar-alt"></i>
+              <span>Reschedule This Task</span>
+            </div>
+            <div class="snooze-option" onclick="APP.resolveConflict('OVERRIDE')">
+              <i class="fas fa-exclamation"></i>
+              <span>Override & Keep Both</span>
+            </div>
+            <div class="snooze-option" onclick="APP.resolveConflict('SPLIT')">
+              <i class="fas fa-cut"></i>
+              <span>Split Task Duration</span>
+            </div>
+            <div class="snooze-option" onclick="APP.resolveConflict('PRIORITY')">
+              <i class="fas fa-sort-amount-up"></i>
+              <span>Prioritize Higher Task</span>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Alternative Time Slots</label>
+          <div id="alternative-slots" style="max-height: 150px; overflow-y: auto;">
+            <div class="loading">Loading available slots...</div>
+          </div>
+        </div>
+      </section>
+      <footer class="modal-card-foot">
+        <button class="btn btn-secondary" onclick="APP.closeModal('modal-conflict-resolution')">Cancel</button>
+      </footer>
+    </div>
+  </div>
+
+  <div id="modal-snooze-task" class="modal">
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title">Snooze Task</p>
+        <button class="delete" onclick="APP.closeModal('modal-snooze-task')">&times;</button>
+      </header>
+      <section class="modal-card-body">
+        <input type="hidden" id="snooze-task-id">
+        <div class="field">
+          <label class="label">Task</label>
+          <input class="input" type="text" id="snooze-task-title" readonly>
+        </div>
+        <div class="field">
+          <label class="label">Choose Snooze Duration</label>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="snooze-option" onclick="APP.snoozeTask(30)">
+            <i class="fas fa-clock"></i>
+            <span>30 Minutes</span>
+          </div>
+          <div class="snooze-option" onclick="APP.snoozeTask(60)">
+            <i class="fas fa-hourglass-half"></i>
+            <span>1 Hour</span>
+          </div>
+          <div class="snooze-option" onclick="APP.snoozeTask(120)">
+            <i class="fas fa-hourglass-end"></i>
+            <span>2 Hours</span>
+          </div>
+          <div class="snooze-option" onclick="APP.snoozeTillTomorrow()">
+            <i class="fas fa-sun"></i>
+            <span>Tomorrow Morning</span>
+          </div>
+        </div>
+        <div class="field" style="margin-top: 16px;">
+          <label class="label">Custom Time</label>
+          <input class="input" type="datetime-local" id="snooze-custom-time">
+          <button class="btn btn-primary btn-small" onclick="APP.snoozeCustom()" style="margin-top: 8px;">
+            <i class="fas fa-calendar"></i> Set Custom Time
+          </button>
+        </div>
+      </section>
+      <footer class="modal-card-foot">
+        <button class="btn btn-secondary" onclick="APP.closeModal('modal-snooze-task')">Cancel</button>
+      </footer>
+    </div>
+  </div>
+
+  <div id="modal-task-details" class="modal">
+    <div class="modal-card" style="max-width: 800px;">
+      <header class="modal-card-head">
+        <p class="modal-card-title">Task Details</p>
+        <button class="delete" onclick="APP.closeModal('modal-task-details')">&times;</button>
+      </header>
+      <section class="modal-card-body">
+        <input type="hidden" id="details-task-id">
+        <div class="grid-2">
+          <div class="field">
+            <label class="label">Title</label>
+            <div id="details-title" style="font-size: 18px; font-weight: 600;"></div>
+          </div>
+          <div class="field">
+            <label class="label">Status</label>
+            <div id="details-status"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Description</label>
+          <div id="details-description" style="background: var(--light); padding: 12px; border-radius: var(--radius-sm);"></div>
+        </div>
+        <div class="grid-3">
+          <div class="field">
+            <label class="label">Priority</label>
+            <div id="details-priority"></div>
+          </div>
+          <div class="field">
+            <label class="label">Lane</label>
+            <div id="details-lane"></div>
+          </div>
+          <div class="field">
+            <label class="label">Score</label>
+            <div id="details-score"></div>
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="field">
+            <label class="label">Energy Required</label>
+            <div id="details-energy"></div>
+          </div>
+          <div class="field">
+            <label class="label">Focus Required</label>
+            <div id="details-focus"></div>
+          </div>
+          <div class="field">
+            <label class="label">Estimated Minutes</label>
+            <div id="details-estimated"></div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label class="label">Scheduled Start</label>
+            <div id="details-scheduled-start"></div>
+          </div>
+          <div class="field">
+            <label class="label">Scheduled End</label>
+            <div id="details-scheduled-end"></div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="field">
+            <label class="label">Deadline</label>
+            <div id="details-deadline"></div>
+          </div>
+          <div class="field">
+            <label class="label">Rollover Count</label>
+            <div id="details-rollover"></div>
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="field">
+            <label class="label">Created</label>
+            <div id="details-created"></div>
+          </div>
+          <div class="field">
+            <label class="label">Updated</label>
+            <div id="details-updated"></div>
+          </div>
+          <div class="field">
+            <label class="label">Source</label>
+            <div id="details-source"></div>
+          </div>
+        </div>
+        <div class="field" id="details-completion-section" style="display: none;">
+          <label class="label">Completion Details</label>
+          <div style="background: #f0fff4; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--success);">
+            <div class="grid-3">
+              <div>
+                <strong>Completed:</strong>
+                <div id="details-completed-date"></div>
+              </div>
+              <div>
+                <strong>Actual Minutes:</strong>
+                <div id="details-actual-minutes"></div>
+              </div>
+              <div>
+                <strong>Accuracy:</strong>
+                <div id="details-accuracy"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <footer class="modal-card-foot">
+        <button class="btn btn-primary" onclick="APP.openEditTaskModalFromDetails()">
+          <i class="fas fa-edit"></i> Edit Task
+        </button>
+        <button class="btn btn-success" onclick="APP.openCompleteModalFromDetails()">
+          <i class="fas fa-check"></i> Complete
+        </button>
+        <button class="btn btn-warning" onclick="APP.openSnoozeModalFromDetails()">
+          <i class="fas fa-clock"></i> Snooze
+        </button>
+        <button class="btn btn-secondary" onclick="APP.closeModal('modal-task-details')">Close</button>
+      </footer>
+    </div>
+  </div>
+
+  <div id="modal-edit-task" class="modal">
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title">Edit Task</p>
+        <button class="delete" onclick="APP.closeModal('modal-edit-task')">&times;</button>
+      </header>
+      <section class="modal-card-body">
+        <input type="hidden" id="edit-task-id">
+        <div class="field">
+          <label class="label">Title *</label>
+          <input class="input" type="text" id="edit-task-title" required>
+        </div>
+        <div class="field">
+          <label class="label">Description</label>
+          <textarea class="textarea" id="edit-task-description"></textarea>
+        </div>
+        <div class="field">
+          <label class="label">Priority</label>
+          <div class="select">
+            <select id="edit-task-priority">
+              <option value="CRITICAL">Critical</option>
+              <option value="URGENT">Urgent</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
+              <option value="MINIMAL">Minimal</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Lane</label>
+          <div class="select">
+            <select id="edit-task-lane">
+              <option value="ops">Operations</option>
+              <option value="admin">Admin</option>
+              <option value="creative">Creative</option>
+              <option value="client">Client</option>
+              <option value="growth">Growth</option>
+              <option value="deep_focus">Deep Focus</option>
+              <option value="batch">Batch</option>
+              <option value="communication">Communication</option>
+              <option value="learning">Learning</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="personal">Personal</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Estimated Minutes</label>
+          <input class="input" type="number" id="edit-task-duration" min="5" step="5">
+        </div>
+        <div class="field">
+          <label class="label">Energy Required</label>
+          <div class="select">
+            <select id="edit-task-energy">
+              <option value="CRITICAL">Critical</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
+              <option value="RECOVERY">Recovery</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Focus Required</label>
+          <div class="select">
+            <select id="edit-task-focus">
+              <option value="INTENSE">Intense</option>
+              <option value="HIGH">High</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="LOW">Low</option>
+              <option value="BACKGROUND">Background</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Deadline</label>
+          <input class="input" type="datetime-local" id="edit-task-deadline">
+        </div>
+        <div class="field">
+          <label class="label">Scheduled Start</label>
+          <input class="input" type="datetime-local" id="edit-task-start">
+        </div>
+        <div class="field">
+          <label class="label">Scheduled End</label>
+          <input class="input" type="datetime-local" id="edit-task-end">
+        </div>
+      </section>
+      <footer class="modal-card-foot">
+        <button class="btn btn-primary" onclick="APP.submitEditTask()">Save Changes</button>
+        <button class="btn btn-danger" onclick="APP.deleteTask()">Delete Task</button>
+        <button class="btn btn-secondary" onclick="APP.closeModal('modal-edit-task')">Cancel</button>
+      </footer>
+    </div>
+  </div>
+
+  <div id="modal-bulk-reschedule" class="modal">
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title">Reschedule Selected Tasks</p>
+        <button class="delete" onclick="APP.closeModal('modal-bulk-reschedule')">&times;</button>
+      </header>
+      <section class="modal-card-body">
+        <div class="field">
+          <label class="label">New Start Date & Time</label>
+          <input class="input" type="datetime-local" id="bulk-new-start">
+        </div>
+        <div class="field">
+          <label class="label">New End Date & Time</label>
+          <input class="input" type="datetime-local" id="bulk-new-end">
+        </div>
+        <p style="color: var(--muted); font-size: 13px;">
+          <i class="fas fa-info-circle"></i> This will reschedule <span id="bulk-task-count">0</span> selected task(s)
+        </p>
+      </section>
+      <footer class="modal-card-foot">
+        <button class="btn btn-primary" onclick="APP.submitBulkReschedule()">Reschedule Tasks</button>
+        <button class="btn btn-secondary" onclick="APP.closeModal('modal-bulk-reschedule')">Cancel</button>
+      </footer>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <script>
+    const APP = {
+      cacheTtl: {
+        dashboard: 60000,
+        tasks: 60000,
+        triage: 60000,
+        calendar: 300000,
+        scheduler: 600000
+      },
+
+      state: {
+        currentView: 'dashboard',
+        selectedMood: 'NEUTRAL',
+        tasks: [],
+        proposals: [],
+        energyHistory: [],
+        calendarEvents: [],
+        selectedTasks: new Set(),
+        filters: {
+          status: '',
+          priority: '',
+          lane: '',
+          search: '',
+          sort: 'priority'
+        },
+        pagination: {
+          currentPage: 1,
+          pageSize: 20,
+          totalPages: 1
+        },
+        settings: {},
+        scrollMode: 'pagination',
+        isOnline: true,
+        lastSync: null,
+        currentTaskDetails: null,
+        isRefreshing: {
+          dashboard: false,
+          tasks: false,
+          triage: false,
+          calendar: false,
+          scheduler: false
+        }
+      },
+
+      // Cache management with Maps
+      cache: {
+        tasks: { data: [], map: new Map(), fetchedAt: null },
+        dashboard: { data: null, fetchedAt: null },
+        triage: { data: null, fetchedAt: null },
+        scheduler: { data: null, fetchedAt: null },
+        calendar: { data: [], fetchedAt: null },
+        settings: { data: new Map(), fetchedAt: null },
+        constants: { data: null, fetchedAt: null }
+      },
+
+      isCacheFresh(cacheKey) {
+        const cacheEntry = this.cache[cacheKey];
+        if (!cacheEntry || !cacheEntry.fetchedAt) {
+          return false;
+        }
+        const now = new Date();
+        const fetchedAt = new Date(cacheEntry.fetchedAt);
+        const age = now.getTime() - fetchedAt.getTime();
+        return age < this.cacheTtl[cacheKey];
+      },
+
+      setCache(cacheKey, data) {
+        this.cache[cacheKey] = {
+          data: data,
+          fetchedAt: new Date().toISOString()
+        };
+        if (cacheKey === 'tasks') {
+          this.cache.tasks.map = new Map(data.map(t => [t.action_id, t]));
+        }
+      },
+
+      getCachedTasks() {
+        return this.cache.tasks.data || [];
+      },
+
+      invalidateCache(cacheKey) {
+        if (this.cache[cacheKey]) {
+          this.cache[cacheKey].fetchedAt = null;
+        }
+      },
+
+      // Offline queue for actions
+      offlineQueue: [],
+
+      calendar: null,
+      swiperInstance: null,
+      energyChart: null,
+      searchTimeout: null,
+
+      init() {
+        console.log('Initializing MOH TIME OS...');
+        this.setupOfflineHandling();
+        this.setupKeyboardShortcuts();
+        this.restoreState();
+        
+        // Load initial data from server
+        this.loadInitialData().then(() => {
+          console.log('Initial data loaded, starting app features...');
+        });
+        
+        // Start clock updates
+        this.updateClock();
+        setInterval(() => this.updateClock(), 1000);
+        
+        this.updateSystemInfo();
+      },
+
+      async loadInitialData() {
+        const bootstrapPromise = new Promise(resolve => {
+          google.script.run
+            .withSuccessHandler(response => resolve(response))
+            .withFailureHandler(error => {
+              console.error('Bootstrap failed:', error);
+              resolve({ success: false, error: error.message });
+            })
+            .bootstrapClient();
+        });
+
+        const payload = await bootstrapPromise;
+        if (!payload || !payload.success) {
+          this.showToast(payload?.error || 'Failed to load initial data', 'error');
+          return;
+        }
+
+        const data = payload.data || {};
+
+        if (data.settings) {
+          this.cache.settings = {
+            data: new Map(Object.entries(data.settings)),
+            fetchedAt: data.generatedAt?.settings || new Date().toISOString()
+          };
+          this.state.settings = data.settings;
+        }
+
+        if (Array.isArray(data.tasks)) {
+          this.cache.tasks = {
+            data: data.tasks,
+            map: new Map(data.tasks.map(t => [t.action_id, t])),
+            fetchedAt: data.generatedAt?.tasks || new Date().toISOString()
+          };
+          this.state.tasks = data.tasks;
+          this.renderTaskList(this.applyTaskFilters(data.tasks));
+          this.updateLaneCounts();
+        }
+
+        if (data.constants) {
+          this.constants = data.constants;
+          this.cache.constants = {
+            data: data.constants,
+            fetchedAt: data.generatedAt?.constants || new Date().toISOString()
+          };
+        }
+
+        if (data.dashboard) {
+          this.cache.dashboard = {
+            data: data.dashboard,
+            fetchedAt: data.generatedAt?.dashboard || new Date().toISOString()
+          };
+          this.renderDashboardFromCache();
+        }
+
+        if (data.triage) {
+          this.cache.triage = {
+            data: data.triage,
+            fetchedAt: data.generatedAt?.triage || new Date().toISOString()
+          };
+          this.renderTriageFromCache();
+        }
+
+        if (data.schedulerStatus) {
+          this.cache.scheduler = {
+            data: data.schedulerStatus,
+            fetchedAt: data.generatedAt?.schedulerStatus || new Date().toISOString()
+          };
+          this.updateSchedulerStatus(data.schedulerStatus);
+        }
+
+        this.state.lastSync = new Date();
+        this.updateSystemInfo();
+      },
+
+      // CRITICAL MISSING FUNCTION 3: Error Recovery System with exponential backoff
+      retryWithBackoff(fn, maxRetries = 3, initialDelay = 1000) {
+        return new Promise((resolve, reject) => {
+          let retries = 0;
+          let delay = initialDelay;
+          
+          const attempt = () => {
+            fn()
+              .then(resolve)
+              .catch(error => {
+                retries++;
+                if (retries >= maxRetries) {
+                  console.error(`Failed after ${retries} retries:`, error);
+                  reject(error);
+                } else {
+                  console.log(`Retry ${retries}/${maxRetries} after ${delay}ms`);
+                  setTimeout(attempt, delay);
+                  delay *= 2; // Exponential backoff
+                }
+              });
+          };
+          
+          attempt();
+        });
+      },
+
+      // CRITICAL MISSING FUNCTION 4A: Save state to localStorage
+      saveState() {
+        const stateToSave = {
+          currentView: this.state.currentView,
+          filters: this.state.filters,
+          scrollMode: this.state.scrollMode,
+          pagination: {
+            currentPage: this.state.pagination.currentPage,
+            pageSize: this.state.pagination.pageSize
+          },
+          selectedMood: this.state.selectedMood,
+          lastSync: this.state.lastSync,
+          scrollPositions: {}
+        };
+        
+        // Save scroll positions for each view
+        document.querySelectorAll('.view-content').forEach(view => {
+          const viewId = view.id;
+          stateToSave.scrollPositions[viewId] = {
+            scrollTop: view.scrollTop,
+            scrollLeft: view.scrollLeft
+          };
+        });
+        
+        try {
+          localStorage.setItem('mohTimeOsState', JSON.stringify(stateToSave));
+          console.log('State saved to localStorage');
+        } catch (e) {
+          console.error('Failed to save state:', e);
+        }
+      },
+
+      // CRITICAL MISSING FUNCTION 4B: Restore state from localStorage
+      restoreState() {
+        try {
+          const savedState = localStorage.getItem('mohTimeOsState');
+          if (savedState) {
+            const state = JSON.parse(savedState);
+            
+            // Restore filters
+            if (state.filters) {
+              this.state.filters = { ...this.state.filters, ...state.filters };
+              
+              // Update filter UI
+              if (document.getElementById('filter-status')) {
+                document.getElementById('filter-status').value = state.filters.status || '';
+                document.getElementById('filter-priority').value = state.filters.priority || '';
+                document.getElementById('filter-lane').value = state.filters.lane || '';
+                document.getElementById('filter-sort').value = state.filters.sort || 'priority';
+                document.getElementById('filter-search').value = state.filters.search || '';
+              }
+            }
+            
+            // Restore scroll mode
+            if (state.scrollMode) {
+              this.state.scrollMode = state.scrollMode;
+            }
+            
+            // Restore pagination
+            if (state.pagination) {
+              this.state.pagination.currentPage = state.pagination.currentPage || 1;
+              this.state.pagination.pageSize = state.pagination.pageSize || 20;
+            }
+            
+            // Restore selected mood
+            if (state.selectedMood) {
+              this.state.selectedMood = state.selectedMood;
+            }
+            
+            // Restore current view
+            if (state.currentView) {
+              // Will be applied after DOM is ready
+              setTimeout(() => {
+                this.showView(state.currentView);
+                
+                // Restore scroll positions
+                if (state.scrollPositions) {
+                  Object.keys(state.scrollPositions).forEach(viewId => {
+                    const view = document.getElementById(viewId);
+                    if (view && state.scrollPositions[viewId]) {
+                      view.scrollTop = state.scrollPositions[viewId].scrollTop;
+                      view.scrollLeft = state.scrollPositions[viewId].scrollLeft;
+                    }
+                  });
+                }
+              }, 100);
+            }
+            
+            console.log('State restored from localStorage');
+          }
+        } catch (e) {
+          console.error('Failed to restore state:', e);
+        }
+      },
+
+      // CRITICAL MISSING FUNCTION 5: Keyboard Shortcuts
+      setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+          // Ctrl+N: Open new task modal
+          if (e.ctrlKey && e.key === 'n') {
+            e.preventDefault();
+            this.openCreateTaskModal();
+          }
+          
+          // Escape: Close any open modal
+          if (e.key === 'Escape') {
+            const activeModals = document.querySelectorAll('.modal.is-active');
+            activeModals.forEach(modal => {
+              modal.classList.remove('is-active');
+            });
+          }
+          
+          // Tab: Navigate between views (when not in input)
+          if (e.key === 'Tab' && !e.target.matches('input, textarea, select')) {
+            e.preventDefault();
+            const views = ['dashboard', 'tasks', 'calendar', 'triage', 'energy', 'settings'];
+            const currentIndex = views.indexOf(this.state.currentView);
+            const nextIndex = e.shiftKey ? 
+              (currentIndex - 1 + views.length) % views.length : 
+              (currentIndex + 1) % views.length;
+            this.showView(views[nextIndex]);
+          }
+          
+          // Enter: Submit focused form
+          if (e.key === 'Enter' && e.target.matches('input:not([type="submit"])')) {
+            const form = e.target.closest('.modal-card');
+            if (form) {
+              const submitBtn = form.querySelector('.modal-card-foot .btn-primary');
+              if (submitBtn) {
+                e.preventDefault();
+                submitBtn.click();
+              }
+            }
+          }
+        });
+        
+        // Auto-save state on important changes
+        window.addEventListener('beforeunload', () => {
+          this.saveState();
+        });
+        
+        // Save state periodically
+        setInterval(() => {
+          this.saveState();
+        }, 60000); // Save every minute
+      },
+
+      // CRITICAL MISSING FUNCTION 2B: Add event to calendar
+      addEventToCalendar(task) {
+        if (!this.calendar) {
+          console.log('Calendar not available, skipping event addition');
+          return;
+        }
+        
+        const event = {
+          id: task.action_id,
+          title: task.title,
+          start: task.scheduled_start || new Date(),
+          end: task.scheduled_end || new Date(new Date().getTime() + (task.estimated_minutes || 30) * 60000),
+          backgroundColor: this.getPriorityColor(task.priority),
+          borderColor: this.getPriorityColor(task.priority),
+          extendedProps: {
+            taskId: task.action_id,
+            priority: task.priority,
+            lane: task.lane,
+            status: task.status,
+            description: task.description,
+            energyRequired: task.energy_required,
+            focusRequired: task.focus_required
+          }
+        };
+        
+        // Check if event already exists and update or add
+        try {
+          const existingEvent = this.calendar.getEvents().find(e => e.id === task.action_id);
+          if (existingEvent) {
+            existingEvent.setProp('title', event.title);
+            existingEvent.setStart(event.start);
+            existingEvent.setEnd(event.end);
+            existingEvent.setExtendedProp('status', task.status);
+          } else {
+            this.calendar.addEvent(event);
+          }
+        } catch (error) {
+          console.error('Error adding event to calendar:', error);
+        }
+      },
+
+      setupOfflineHandling() {
+        window.addEventListener('online', () => {
+          this.state.isOnline = true;
+          document.getElementById('offline-indicator').classList.remove('show');
+          this.processOfflineQueue();
+          this.showToast('Connection restored', 'success');
+        });
+
+        window.addEventListener('offline', () => {
+          this.state.isOnline = false;
+          document.getElementById('offline-indicator').classList.add('show');
+          this.showToast('Working offline', 'warning');
+        });
+      },
+
+
+
+      pollForUpdates(options = { force: false, viewOverride: null }) {
+        const effectiveView = options.viewOverride || this.state.currentView;
+        let backendCallTriggered = false;
+
+        if (effectiveView === 'tasks') {
+          if (options.force || !this.isCacheFresh('tasks')) {
+            this.loadTasks({ force: true });
+            backendCallTriggered = true;
+          }
+        }
+        if (effectiveView === 'triage') {
+          if (options.force || !this.isCacheFresh('triage')) {
+            this.loadTriage({ force: true });
+            backendCallTriggered = true;
+          }
+        }
+        if (effectiveView === 'dashboard') {
+          if (options.force || !this.isCacheFresh('dashboard')) {
+            this.loadDashboard({ force: true });
+            backendCallTriggered = true;
+          }
+        }
+        if (effectiveView === 'calendar') {
+          if (options.force || !this.isCacheFresh('calendar')) {
+            this.loadCalendar({ force: true });
+            backendCallTriggered = true;
+          }
+        }
+
+        if (backendCallTriggered) {
+          this.state.lastSync = new Date();
+        }
+        this.updateSystemInfo();
+      },
+
+      processOfflineQueue() {
+        while (this.offlineQueue.length > 0) {
+          const action = this.offlineQueue.shift();
+          action();
+        }
+      },
+
+      queueOfflineAction(action) {
+        if (!this.state.isOnline) {
+          this.offlineQueue.push(action);
+          this.showToast('Action queued for when online', 'info');
+        } else {
+          action();
+        }
+      },
+
+      setScrollMode(mode) {
+        this.state.scrollMode = mode;
+        const paginationBtn = document.getElementById('pagination-mode-btn');
+        const infiniteBtn = document.getElementById('infinite-scroll-btn');
+        const paginationControls = document.getElementById('pagination-controls');
+
+        if (mode === 'pagination') {
+          paginationBtn.classList.add('btn-primary');
+          paginationBtn.classList.remove('btn-secondary');
+          infiniteBtn.classList.remove('btn-primary');
+          infiniteBtn.classList.add('btn-secondary');
+          paginationControls.style.display = 'block';
+        } else {
+          infiniteBtn.classList.add('btn-primary');
+          infiniteBtn.classList.remove('btn-secondary');
+          paginationBtn.classList.remove('btn-primary');
+          paginationBtn.classList.add('btn-secondary');
+          paginationControls.style.display = 'none';
+          this.setupInfiniteScroll();
+        }
+        this.renderTaskList(this.state.tasks);
+      },
+
+      setupInfiniteScroll() {
+        const tasksList = document.getElementById('tasks-list');
+        tasksList.addEventListener('scroll', () => {
+          if (tasksList.scrollTop + tasksList.clientHeight >= tasksList.scrollHeight - 100) {
+            this.loadMoreTasks();
+          }
+        });
+      },
+
+      loadMoreTasks() {
+        if (this.state.scrollMode === 'infinite') {
+          this.state.pagination.currentPage++;
+          this.loadTasks(true);
+        }
+      },
+
+      formatCacheAge(timestamp) {
+        if (!timestamp) return 'Never';
+        const now = new Date();
+        const then = new Date(timestamp);
+        const seconds = Math.floor((now.getTime() - then.getTime()) / 1000);
+
+        if (seconds < 60) return `${seconds}s ago`;
+        const minutes = Math.floor(seconds / 60);
+        if (minutes < 60) return `${minutes}m ago`;
+        const hours = Math.floor(minutes / 60);
+        if (hours < 24) return `${hours}h ago`;
+        const days = Math.floor(hours / 24);
+        return `${days}d ago`;
+      },
+
+      updateButtonDisabledState(buttonId, isDisabled) {
+        const button = document.getElementById(buttonId);
+        if (button) {
+          button.disabled = isDisabled;
+        }
+      },
+
+      updateSystemInfo() {
+        const version = document.getElementById('system-version');
+        const lastSync = document.getElementById('system-last-sync');
+        const cacheSize = document.getElementById('system-cache-size');
+        const tasksCached = document.getElementById('system-tasks-cached');
+        const connection = document.getElementById('system-connection');
+        const queueSize = document.getElementById('system-queue-size');
+
+        if (version) version.textContent = '4.0.0';
+        if (lastSync) lastSync.textContent = this.state.lastSync ? 
+          this.formatCacheAge(this.state.lastSync) : 'Never';
+        
+        const cacheSizeKB = Math.round((JSON.stringify(this.cache).length / 1024) * 100) / 100;
+        if (cacheSize) cacheSize.textContent = `${cacheSizeKB} KB`;
+        
+        if (tasksCached) tasksCached.textContent = this.cache.tasks.map.size;
+        if (connection) connection.textContent = this.state.isOnline ? 'Online' : 'Offline';
+        if (queueSize) queueSize.textContent = `${this.offlineQueue.length} pending`;
+
+        const dashboardAge = document.getElementById('cache-age-dashboard');
+        if (dashboardAge) dashboardAge.textContent = this.formatCacheAge(this.cache.dashboard.fetchedAt);
+        const tasksAge = document.getElementById('cache-age-tasks');
+        if (tasksAge) tasksAge.textContent = this.formatCacheAge(this.cache.tasks.fetchedAt);
+        const triageAge = document.getElementById('cache-age-triage');
+        if (triageAge) triageAge.textContent = this.formatCacheAge(this.cache.triage.fetchedAt);
+        const calendarAge = document.getElementById('cache-age-calendar');
+        // Update refresh button states
+        this.updateButtonDisabledState('refresh-dashboard-btn', this.state.isRefreshing.dashboard);
+        this.updateButtonDisabledState('refresh-tasks-btn', this.state.isRefreshing.tasks);
+        this.updateButtonDisabledState('refresh-calendar-btn', this.state.isRefreshing.calendar);
+        this.updateButtonDisabledState('refresh-triage-btn', this.state.isRefreshing.triage);
+        this.updateButtonDisabledState('refresh-scheduler-btn', this.state.isRefreshing.scheduler);
+      },
+
+      clearCache() {
+        if (confirm('Are you sure you want to clear all cached data?')) {
+          this.cache.tasks.clear();
+          this.cache.proposals.clear();
+          this.cache.energyStates.clear();
+          this.cache.settings.clear();
+          this.updateSystemInfo();
+          this.showToast('Cache cleared successfully', 'success');
+        }
+      },
+
+      exportData() {
+        google.script.run
+          .withSuccessHandler(response => {
+            if (response.success) {
+              const blob = new Blob([response.data], { type: 'text/csv' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `moh_time_os_export_${new Date().toISOString().split('T')[0]}.csv`;
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+              this.showToast('Data exported successfully', 'success');
+            } else {
+              this.showToast(response.error || 'Export failed', 'error');
+            }
+          })
+          .withFailureHandler(error => {
+            this.showToast('Error exporting data: ' + error.message, 'error');
+          })
+          .appsheet_exportData();
+      },
+
+      resetTutorial() {
+        if (confirm('Reset tutorial and show onboarding again?')) {
+          localStorage.removeItem('tutorialCompleted');
+          this.showToast('Tutorial reset. Refresh to see onboarding.', 'success');
+        }
+      },
+
+      showView(viewName) {
+        this.state.currentView = viewName;
+
+        document.querySelectorAll('.view-content').forEach(view => {
+          view.classList.remove('active');
+        });
+        document.getElementById(viewName + '-view').classList.add('active');
+
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+          tab.classList.remove('active');
+        });
+        document.querySelector(`.nav-tab[data-view="${viewName}"]`).classList.add('active');
+
+        if (viewName === 'dashboard') this.loadDashboard({ force: false });
+        else if (viewName === 'tasks') this.loadTasks({ force: false });
+        else if (viewName === 'calendar') this.loadCalendar({ force: false });
+        else if (viewName === 'triage') this.loadTriage({ force: false });
+        else if (viewName === 'energy') this.loadEnergyView();
+        else if (viewName === 'settings') this.loadSettings();
+      },
+
+      loadDashboard(options = { force: false }) {
+        if (!options.force && this.isCacheFresh('dashboard')) {
+          this.renderDashboardFromCache();
+          return;
+        }
+
+        this.state.isRefreshing.dashboard = true;
+        google.script.run
+          .withSuccessHandler(response => {
+            this.state.isRefreshing.dashboard = false;
+            if (response.success) {
+              this.setCache('dashboard', response.data);
+              this.renderDashboardFromCache();
+            } else {
+              this.showToast(response.error || 'Failed to load dashboard', 'error');
+            }
+          })
+          .withFailureHandler(error => {
+            this.state.isRefreshing.dashboard = false;
+            this.showToast('Error loading dashboard: ' + error.message, 'error');
+          })
+          .appsheet_getMyDay({ view: 'today' });
+      },
+
+      loadTasks(options = { force: false }) {
+        if (!options.force && this.isCacheFresh('tasks')) {
+          this.renderTaskList(this.applyTaskFilters(this.getCachedTasks()));
+          this.updateLaneCounts();
+          return;
+        }
+
+        this.state.isRefreshing.tasks = true;
+        google.script.run
+          .withSuccessHandler(response => {
+            this.state.isRefreshing.tasks = false;
+            if (response.success) {
+              this.setCache('tasks', response.data.tasks || []);
+              this.state.tasks = response.data.tasks || [];
+              this.renderTaskList(this.applyTaskFilters(this.state.tasks));
+              this.updateLaneCounts();
+            } else {
+              this.showToast(response.error || 'Failed to load tasks', 'error');
+            }
+          })
+          .withFailureHandler(error => {
+            this.state.isRefreshing.tasks = false;
+            this.showToast('Error loading tasks: ' + error.message, 'error');
+          })
+          .appsheet_getAllTasks({
+            limit: 500, // Fetch more tasks for client-side filtering
+            offset: 0
+          });
+      },
+
+      initializeCalendar() {
+        const calendarEl = document.getElementById('calendar');
+        if (typeof FullCalendar === 'undefined') {
+          console.log('FullCalendar not yet loaded, retrying in 500ms...');
+          setTimeout(() => this.initializeCalendar(), 500);
+          return;
+        }
+        try {
+          this.calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            events: [],
+            editable: true,
+            eventDrop: info => {
+              const event = info.event;
+              const taskId = event.extendedProps.taskId;
+              if (taskId) {
+                this.retryWithBackoff(() => {
+                  return new Promise((resolve, reject) => {
+                    google.script.run
+                      .withSuccessHandler(response => {
+                        if (response.success) {
+                          this.showToast('Task rescheduled!', 'success');
+                          // Update cached event object
+                          const cachedEventIndex = this.cache.calendar.data.findIndex(e => e.task_id === taskId);
+                          if (cachedEventIndex !== -1) {
+                            this.cache.calendar.data[cachedEventIndex].start_time = event.start.toISOString();
+                            this.cache.calendar.data[cachedEventIndex].end_time = event.end ? event.end.toISOString() : new Date(event.start.getTime() + 30 * 60000).toISOString();
+                            this.cache.calendar.fetchedAt = Date.now(); // Mark cache as fresh
+                          }
+                          this.invalidateCache('tasks');
+                          resolve(response);
+                        } else {
+                          info.revert();
+                          this.showToast(response.error || 'Failed to reschedule', 'error');
+                          reject(response);
+                        }
+                      })
+                      .withFailureHandler(error => {
+                        info.revert();
+                        this.showToast('Error rescheduling: ' + error.message, 'error');
+                        reject(error);
+                      })
+                      .appsheet_rescheduleTask({
+                        taskId: taskId,
+                        newStart: event.start.toISOString(),
+                        newEnd: event.end ? event.end.toISOString() : new Date(event.start.getTime() + 30 * 60000).toISOString()
+                      });
+                  });
+                }).catch(error => {
+                  info.revert();
+                  this.showToast('Failed to reschedule after retries', 'error');
+                });
+              }
+            },
+            eventResize: info => {
+              const event = info.event;
+              const taskId = event.extendedProps.taskId;
+              if (taskId) {
+                this.retryWithBackoff(() => {
+                  return new Promise((resolve, reject) => {
+                    google.script.run
+                      .withSuccessHandler(response => {
+                        if (response.success) {
+                          this.showToast('Task duration updated!', 'success');
+                          // Update cached event object
+                          const cachedEventIndex = this.cache.calendar.data.findIndex(e => e.task_id === taskId);
+                          if (cachedEventIndex !== -1) {
+                            this.cache.calendar.data[cachedEventIndex].start_time = event.start.toISOString();
+                            this.cache.calendar.data[cachedEventIndex].end_time = event.end ? event.end.toISOString() : new Date(event.start.getTime() + 30 * 60000).toISOString();
+                            this.cache.calendar.fetchedAt = Date.now(); // Mark cache as fresh
+                          }
+                          this.invalidateCache('tasks');
+                          resolve(response);
+                        } else {
+                          info.revert();
+                          this.showToast(response.error || 'Failed to update duration', 'error');
+                          reject(response);
+                        }
+                      })
+                      .withFailureHandler(error => {
+                        info.revert();
+                        this.showToast('Error updating duration: ' + error.message, 'error');
+                        reject(error);
+                      })
+                      .appsheet_updateTask({
+                        taskId: taskId,
+                        updates: {
+                          scheduled_start: event.start.toISOString(),
+                          scheduled_end: event.end ? event.end.toISOString() : new Date(event.start.getTime() + 30 * 60000).toISOString(),
+                          estimated_minutes: event.end ? Math.round((event.end - event.start) / (1000 * 60)) : 30
+                        }
+                      });
+                  });
+                }).catch(error => {
+                  info.revert();
+                  this.showToast('Failed to update task duration after retries', 'error');
+                });
+              }
+            },
+            eventClick: info => {
+              const event = info.event;
+              this.showToast('Task: ' + event.title, 'info');
+            }
+          });
+          this.calendar.render();
+        } catch (error) {
+          console.error('Failed to initialize FullCalendar:', error);
+          this.showToast('Calendar initialization failed. Please refresh the page.', 'error');
+          this.calendar = null;
+        }
+      },
+
+      loadCalendar(options = { force: false }) {
+        if (!this.calendar) {
+          this.initializeCalendar();
+        }
+
+        if (!options.force && this.isCacheFresh('calendar')) {
+          this.renderCalendarFromCache();
+          return;
+        }
+
+        this.state.isRefreshing.calendar = true;
+        const start = new Date();
+        const end = new Date();
+        end.setDate(end.getDate() + 30);
+
+        this.retryWithBackoff(() => {
+          return new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(response => {
+                this.state.isRefreshing.calendar = false;
+                if (response.success) {
+                  this.setCache('calendar', response.data.events || []);
+                  this.renderCalendarFromCache();
+                  resolve(response);
+                } else {
+                  this.showToast(response.error || 'Failed to load calendar events', 'error');
+                  reject(response);
+                }
+              })
+              .withFailureHandler(error => {
+                this.state.isRefreshing.calendar = false;
+                this.showToast('Error loading calendar: ' + error.message, 'error');
+                reject(error);
+              })
+              .appsheet_getCalendarEvents({
+                startDate: start.toISOString(),
+                endDate: end.toISOString()
+              });
+          });
+        }).catch(error => {
+          this.state.isRefreshing.calendar = false;
+          this.showToast('Failed to load calendar after retries', 'error');
+        });
+      },
+
+      loadTriage(options = { force: false }) {
+        if (!options.force && this.isCacheFresh('triage')) {
+          this.renderTriageFromCache();
+          return;
+        }
+
+        this.state.isRefreshing.triage = true;
+        google.script.run
+          .withSuccessHandler(response => {
+            this.state.isRefreshing.triage = false;
+            if (response.success) {
+              const proposals = Array.isArray(response.data)
+                ? response.data
+                : Array.isArray(response.data?.proposals)
+                  ? response.data.proposals
+                  : [];
+              this.setCache('triage', {
+                proposals,
+                count: proposals.length
+              });
+              this.renderTriageFromCache();
+            } else {
+              this.showToast(response.error || 'Failed to load triage queue', 'error');
+            }
+          })
+          .withFailureHandler(error => {
+            this.state.isRefreshing.triage = false;
+            this.showToast('Error loading triage queue: ' + error.message, 'error');
+          })
+          .appsheet_getProposals({ status: 'PENDING', limit: 500 });
+      },
+
+      loadEnergyView() {
+        google.script.run
+          .withSuccessHandler(response => {
+            if (response.success) {
+              this.state.energyHistory = response.data.history || [];
+              this.renderEnergyChart();
+              this.renderEnergyHistory();
+            }
+          })
+          .withFailureHandler(error => {
+            this.showToast('Error loading energy history: ' + error.message, 'error');
+          })
+          .appsheet_getEnergyHistory({ limit: 30 });
+      },
+
+      loadSettings() {
+        google.script.run
+          .withSuccessHandler(response => {
+            if (response.success) {
+              this.state.settings = response.data;
+              this.populateSettings(response.data);
+            }
+          })
+          .withFailureHandler(error => {
+            this.showToast('Error loading settings: ' + error.message, 'error');
+          })
+          .appsheet_getSettings({ userId: 'default' });
+      },
+
+      renderEnergyGauge(containerId, value, max) {
+        const percentage = (value / max) * 100;
+        const color = value > 70 ? '#48bb78' : value > 40 ? '#ed8936' : '#f56565';
+        
+        const container = document.getElementById(containerId);
+        container.innerHTML = `
+          <svg viewBox="0 0 100 60" style="width: 100%; height: 100%;">
+            <path d="M 10 50 A 40 40 0 0 1 90 50" 
+                  stroke="#e2e8f0" stroke-width="8" fill="none"/>
+            <path d="M 10 50 A 40 40 0 0 1 90 50" 
+                  stroke="${color}" stroke-width="8" fill="none"
+                  stroke-dasharray="${percentage * 1.26} 126"
+                  stroke-linecap="round"/>
+          </svg>
+          <div class="gauge-text">
+            <div class="gauge-value">${value}</div>
+            <div class="gauge-label">/ ${max}</div>
+          </div>
+        `;
+      },
+
+      renderTodaySchedule(tasks) {
+        const container = document.getElementById('today-schedule');
+        if (tasks.length === 0) {
+          container.innerHTML = '<div class="empty-state"><i class="fas fa-calendar-check"></i><p>No tasks scheduled for today</p></div>';
+          return;
+        }
+        container.innerHTML = tasks.map(task => this.createTaskCard(task)).join('');
+      },
+
+      renderPriorityTasks(tasks) {
+        const container = document.getElementById('priority-tasks');
+        if (tasks.length === 0) {
+          container.innerHTML = '<div class="empty-state"><i class="fas fa-tasks"></i><p>No high priority tasks</p></div>';
+          return;
+        }
+        container.innerHTML = tasks.map(task => this.createTaskCard(task)).join('');
+      },
+
+      renderTaskList(tasks) {
+        const container = document.getElementById('tasks-list');
+        if (tasks.length === 0) {
+          container.innerHTML = '<div class="empty-state"><i class="fas fa-tasks"></i><p>No tasks found</p></div>';
+          this.updatePaginationUI();
+          return;
+        }
+        
+        const sortedTasks = this.sortTasks(tasks);
+        const paginatedTasks = this.paginateTasks(sortedTasks);
+        
+        container.innerHTML = paginatedTasks.map(task => this.createTaskCard(task, true)).join('');
+        this.updatePaginationUI();
+        this.updateSelectionUI();
+      },
+
+      createTaskCard(task, showCheckbox = false) {
+        const priorityClass = `priority-${task.priority || 'MEDIUM'}`;
+        const statusClass = `status-${task.status || 'PENDING'}`;
+        const isSelected = this.state.selectedTasks.has(task.action_id);
+        const hasConflict = this.checkTaskConflict(task);
+        const isTimeBlock = task.protected === 'true';
+        
+        return `
+          <div class="task-card ${priorityClass} ${statusClass} ${isTimeBlock ? 'time-block-indicator' : ''}" 
+               data-task-id="${task.action_id}"
+               style="position: relative;">
+            ${hasConflict ? '<div class="conflict-indicator">CONFLICT</div>' : ''}
+            <div style="display: flex; align-items: start; gap: 12px;">
+              ${showCheckbox ? `
+                <input type="checkbox" 
+                       class="task-checkbox" 
+                       data-task-id="${task.action_id}" 
+                       ${isSelected ? 'checked' : ''} 
+                       onchange="APP.toggleTaskSelection('${task.action_id}')"
+                       onclick="event.stopPropagation()"
+                       style="width: 18px; height: 18px; cursor: pointer; margin-top: 4px;">
+              ` : ''}
+              <div style="flex: 1;">
+                <div class="task-header">
+                  <div class="task-title">${task.title || 'Untitled Task'}</div>
+                  <div class="task-time">${task.estimated_minutes || 30} min</div>
+                  <div style="position: relative;">
+                    <button class="task-menu-btn" onclick="event.stopPropagation(); APP.toggleTaskMenu('${task.action_id}')">
+                      <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <div class="dropdown-menu" id="menu-${task.action_id}">
+                      <div class="dropdown-item" onclick="event.stopPropagation(); APP.openTaskDetails('${task.action_id}')">
+                        <i class="fas fa-info-circle"></i> View Details
+                      </div>
+                      <div class="dropdown-item" onclick="event.stopPropagation(); APP.openEditTaskModal('${task.action_id}')">
+                        <i class="fas fa-edit"></i> Edit Task
+                      </div>
+                      <div class="dropdown-item" onclick="event.stopPropagation(); APP.openCompleteTaskModal('${task.action_id}')">
+                        <i class="fas fa-check"></i> Complete
+                      </div>
+                      <div class="dropdown-item" onclick="event.stopPropagation(); APP.openSnoozeModal('${task.action_id}')">
+                        <i class="fas fa-clock"></i> Snooze
+                      </div>
+                      <div class="dropdown-item" onclick="event.stopPropagation(); APP.archiveTask('${task.action_id}')">
+                        <i class="fas fa-archive"></i> Archive
+                      </div>
+                      ${hasConflict ? `
+                      <div class="dropdown-item" onclick="event.stopPropagation(); APP.openConflictResolutionModal('${task.action_id}')">
+                        <i class="fas fa-exclamation-triangle"></i> Resolve Conflict
+                      </div>
+                      ` : ''}
+                      <div class="dropdown-item" onclick="event.stopPropagation(); APP.duplicateTask('${task.action_id}')">
+                        <i class="fas fa-copy"></i> Duplicate
+                      </div>
+                      <div class="dropdown-item" onclick="event.stopPropagation(); APP.deleteTask('${task.action_id}')">
+                        <i class="fas fa-trash"></i> Delete
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="task-meta">
+                  <span><i class="fas fa-folder"></i> ${task.lane || 'ops'}</span>
+                  ${task.deadline ? `<span><i class="fas fa-clock"></i> ${this.formatDeadline(task.deadline)}</span>` : ''}
+                  <span><i class="fas fa-battery-half"></i> ${task.energy_required || 'MEDIUM'}</span>
+                </div>
+                <div class="task-actions">
+                  <button class="btn btn-primary btn-small" onclick="event.stopPropagation(); APP.startTask('${task.action_id}')">
+                    <i class="fas fa-play"></i> Start
+                  </button>
+                  <button class="btn btn-success btn-small" onclick="event.stopPropagation(); APP.openCompleteTaskModal('${task.action_id}')">
+                    <i class="fas fa-check"></i> Complete
+                  </button>
+                  <button class="btn btn-secondary btn-small" onclick="event.stopPropagation(); APP.openSnoozeModal('${task.action_id}')">
+                    <i class="fas fa-clock"></i> Snooze
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      },
+
+ renderTriageQueue(proposals) {
+   const wrapper = document.getElementById('triage-wrapper');
+   if (!wrapper) return;
+   if (proposals.length === 0) {
+     wrapper.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No proposals to review</p></div>';
+     return;
+   }
+   wrapper.innerHTML = `
+     <div style="overflow-x: auto;">
+       <table class="proposal-table">
+       <thead>
+         <tr>
+           <th>Sender</th>
+           <th>Subject</th>
+           <th>Lane</th>
+           <th>Confidence</th>
+           <th>Created</th>
+           <th>Source</th>
+           <th></th>
+         </tr>
+       </thead>
+       <tbody>
+         ${proposals.map(proposal => `
+           <tr data-proposal-id="${proposal.proposal_id}">
+             <td class="sender-cell">
+               <div class="sender-name">${proposal.sender || 'Unknown'}</div>
+               <div class="proposal-status">${proposal.status}</div>
+             </td>
+             <td class="subject-cell">
+               <div class="proposal-title">${proposal.parsed_title || proposal.subject || '(no subject)'}</div>
+               <div class="proposal-preview">${(proposal.raw_content_preview || '').slice(0, 160)}</div>
+             </td>
+             <td>${proposal.suggested_lane || '—'}</td>
+             <td>${proposal.confidence_score !== null ? `${proposal.confidence_score}%` : '—'}</td>
+             <td>${proposal.created_at || '—'}</td>
+             <td>${proposal.source || 'Email'}</td>
+             <td class="actions-cell">
+               <button class="btn btn-secondary btn-icon" title="Edit" onclick="APP.editProposal('${proposal.proposal_id}')">
+                 <i class="fas fa-edit"></i>
+               </button>
+               <button class="btn btn-success btn-icon" title="Approve" onclick="APP.approveProposal('${proposal.proposal_id}')">
+                 <i class="fas fa-check"></i>
+               </button>
+               <button class="btn btn-danger btn-icon" title="Reject" onclick="APP.rejectProposal('${proposal.proposal_id}')">
+                 <i class="fas fa-times"></i>
+               </button>
+             </td>
+           </tr>
+         `).join('')}
+       </tbody>
+     </table>
+     </div>
+   `;
+ },
+
+      renderEnergyChart() {
+        const ctx = document.getElementById('energy-chart');
+        if (!ctx) return;
+
+        const labels = this.state.energyHistory.map(h => new Date(h.timestamp).toLocaleDateString());
+        const energyData = this.state.energyHistory.map(h => h.energy_level);
+        const focusData = this.state.energyHistory.map(h => h.focus_level);
+        const stressData = this.state.energyHistory.map(h => h.stress_level);
+
+        if (this.energyChart) {
+          this.energyChart.destroy();
+        }
+
+        this.energyChart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Energy',
+                data: energyData,
+                borderColor: '#48bb78',
+                backgroundColor: 'rgba(72, 187, 120, 0.1)',
+                tension: 0.4
+              },
+              {
+                label: 'Focus',
+                data: focusData,
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                tension: 0.4
+              },
+              {
+                label: 'Stress',
+                data: stressData,
+                borderColor: '#f56565',
+                backgroundColor: 'rgba(245, 101, 101, 0.1)',
+                tension: 0.4
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: 'top'
+              }
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                max: 10
+              }
+            }
+          }
+        });
+      },
+
+      renderEnergyHistory() {
+        const container = document.getElementById('energy-history');
+        if (this.state.energyHistory.length === 0) {
+          container.innerHTML = '<div class="empty-state"><p>No energy logs yet</p></div>';
+          return;
+        }
+
+        container.innerHTML = this.state.energyHistory.slice(0, 10).map(log => `
+          <div class="task-card">
+            <div class="task-header">
+              <div>${new Date(log.timestamp).toLocaleString()}</div>
+              <div>${log.mood}</div>
+            </div>
+            <div class="task-meta">
+              <span>Energy: ${log.energy_level}/10</span>
+              <span>Focus: ${log.focus_level}/10</span>
+              <span>Stress: ${log.stress_level}/10</span>
+            </div>
+            ${log.notes ? `<p style="margin-top: 8px; color: var(--muted);">${log.notes}</p>` : ''}
+          </div>
+        `).join('');
+      },
+
+      selectMood(mood) {
+        this.state.selectedMood = mood;
+        document.querySelectorAll('.mood-option').forEach(opt => {
+          opt.classList.remove('selected');
+        });
+        document.querySelector(`.mood-option[data-mood="${mood}"]`).classList.add('selected');
+      },
+
+      logEnergy() {
+        const energy = parseInt(document.getElementById('energy-slider').value);
+        const focus = parseInt(document.getElementById('focus-slider').value);
+        const stress = parseInt(document.getElementById('stress-slider').value);
+        const notes = document.getElementById('energy-notes').value;
+
+        google.script.run
+          .withSuccessHandler(response => {
+            if (response.success) {
+              this.showToast('Energy state logged successfully', 'success');
+              document.getElementById('energy-notes').value = '';
+              this.invalidateCache('dashboard');
+              this.loadEnergyView();
+              this.loadDashboard({ force: true });
+            } else {
+              this.showToast(response.error || 'Failed to log energy', 'error');
+            }
+          })
+          .withFailureHandler(error => {
+            this.showToast('Error logging energy: ' + error.message, 'error');
+          })
+          .appsheet_logEnergyState({
+            energy_level: energy,
+            focus_level: focus,
+            stress_level: stress,
+            mood: this.state.selectedMood,
+            notes: notes
+          });
+      },
+
+      startDay() {
+        this.showToast('Starting your day...', 'info');
+        google.script.run
+          .withSuccessHandler(response => {
+            this.showToast('Day started! Good luck!', 'success');
+            this.invalidateCache('tasks');
+            this.invalidateCache('dashboard');
+            this.invalidateCache('calendar');
+            this.invalidateCache('scheduler');
+            this.loadDashboard({ force: true });
+          })
+          .withFailureHandler(error => {
+            this.showToast('Error starting day: ' + error.message, 'error');
+          })
+          .appsheet_runScheduling({ mode: 'OPTIMIZE' });
+      },
+
+      processEmails() {
+        this.showToast('Processing emails...', 'info');
+        google.script.run
+          .withSuccessHandler(response => {
+            if (response.success) {
+              this.showToast(`Processed ${response.processed || 0} emails`, 'success');
+              this.invalidateCache('triage');
+              this.loadTriage({ force: true });
+            }
+          })
+          .withFailureHandler(error => {
+            this.showToast('Error processing emails: ' + error.message, 'error');
+          })
+          .appsheet_processEmails({ maxEmails: 20 });
+      },
+
+            runScheduler() {
+              this.showToast('Running scheduler...', 'info');
+              google.script.run
+                .withSuccessHandler(response => {
+                  if (response.success) {
+                    this.showToast(`Scheduled ${response.scheduled || 0} tasks`, 'success');
+                    this.invalidateCache('tasks');
+                    this.invalidateCache('dashboard');
+                    this.invalidateCache('calendar');
+                    this.invalidateCache('scheduler');
+                    this.loadDashboard({ force: true });
+                  } else {
+                    this.showToast(response.error || 'Scheduler failed', 'error');
+                  }
+                })
+                .withFailureHandler(error => {
+                  this.showToast('Error running scheduler: ' + error.message, 'error');
+                })
+                .appsheet_runScheduling({ dryRun: false });
+            },
+      startTask(taskId) {
+        google.script.run
+          .withSuccessHandler(response => {
+            if (response.success) {
+              this.showToast('Task started!', 'success');
+              this.invalidateCache('tasks');
+              this.invalidateCache('dashboard');
+              this.invalidateCache('calendar');
+              this.loadTasks({ force: true });
+              this.loadDashboard({ force: true });
+            } else {
+              this.showToast(response.error || 'Failed to start task', 'error');
+            }
+          })
+          .withFailureHandler(error => {
+            this.showToast('Error: ' + error.message, 'error');
+          })
+          .appsheet_startTask({ taskId: taskId });
+      },
+
+      completeTask(taskId) {
+        google.script.run
+          .withSuccessHandler(response => {
+            if (response.success) {
+              this.showToast('Task completed!', 'success');
+              this.invalidateCache('tasks');
+              this.invalidateCache('dashboard');
+              this.invalidateCache('calendar');
+              this.loadTasks({ force: true });
+              this.loadDashboard({ force: true });
+            } else {
+              this.showToast(response.error || 'Failed to complete task', 'error');
+            }
+          })
+          .withFailureHandler(error => {
+            this.showToast('Error: ' + error.message, 'error');
+          })
+          .appsheet_completeTask({ taskId: taskId });
+      },
+
+      snoozeTask(taskId) {
+        google.script.run
+          .withSuccessHandler(response => {
+            if (response.success) {
+              this.showToast('Task snoozed for 1 hour', 'success');
+              this.loadTasks();
+            } else {
+              this.showToast(response.error || 'Failed to snooze task', 'error');
+            }
+          })
+          .withFailureHandler(error => {
+            this.showToast('Error: ' + error.message, 'error');
+          })
+          .appsheet_snoozeTask({ taskId: taskId, minutes: 60 });
+      },
+
+      approveProposal(proposalId) {
+        google.script.run
+          .withSuccessHandler(response => {
+            if (response.success) {
+              this.showToast('Proposal approved!', 'success');
+              this.invalidateCache('triage');
+              this.invalidateCache('tasks');
+              this.invalidateCache('dashboard');
+              this.invalidateCache('calendar');
+              this.loadTriage({ force: true });
+              this.loadTasks({ force: true });
+              this.loadDashboard({ force: true });
+            } else {
+              this.showToast(response.error || 'Failed to approve', 'error');
+            }
+          })
+          .withFailureHandler(error => {
+            this.showToast('Error: ' + error.message, 'error');
+          })
+          .appsheet_approveProposal({ proposalId: proposalId });
+      },
+
+      rejectProposal(proposalId) {
+        google.script.run
+          .withSuccessHandler(response => {
+            if (response.success) {
+              this.showToast('Proposal rejected', 'success');
+              this.invalidateCache('triage');
+              this.loadTriage({ force: true });
+            } else {
+              this.showToast(response.error || 'Failed to reject', 'error');
+            }
+          })
+          .withFailureHandler(error => {
+            this.showToast('Error: ' + error.message, 'error');
+          })
+          .appsheet_processProposal({
+            proposalId: proposalId,
+            action: 'reject'
+          });
+      },
+
+      editProposal(proposalId) {
+        const proposal = this.state.proposals.find(p => p.proposal_id === proposalId);
+        if (!proposal) return;
+
+        document.getElementById('edit-proposal-id').value = proposalId;
+        document.getElementById('edit-proposal-title').value = proposal.extracted_title || proposal.subject;
+        document.getElementById('edit-proposal-priority').value = proposal.suggested_priority || 'MEDIUM';
+        document.getElementById('edit-proposal-lane').value = proposal.suggested_lane || 'ops';
+        document.getElementById('edit-proposal-duration').value = proposal.suggested_duration || 30;
+
+        this.openModal('modal-edit-proposal');
+      },
+
+      approveEditedProposal() {
+        const proposalId = document.getElementById('edit-proposal-id').value;
+        const overrides = {
+          title: document.getElementById('edit-proposal-title').value,
+          priority: document.getElementById('edit-proposal-priority').value,
+          lane: document.getElementById('edit-proposal-lane').value,
+          estimated_minutes: parseInt(document.getElementById('edit-proposal-duration').value)
+        };
+
+        google.script.run
+          .withSuccessHandler(response => {
+            if (response.success) {
+              this.showToast('Proposal approved with edits!', 'success');
+              this.closeModal('modal-edit-proposal');
+              this.invalidateCache('triage');
+              this.invalidateCache('tasks');
+              this.invalidateCache('dashboard');
+              this.invalidateCache('calendar');
+              this.loadTriage({ force: true });
+              this.loadTasks({ force: true });
+              this.loadDashboard({ force: true });
+            } else {
+              this.showToast(response.error || 'Failed to approve', 'error');
+            }
+          })
+          .withFailureHandler(error => {
+            this.showToast('Error: ' + error.message, 'error');
+          })
+          .appsheet_approveProposal({
+            proposalId: proposalId,
+            overrides: overrides
+          });
+      },
+
+      handleSwipeLeft(proposalId) {
+        this.showToast('Rejecting proposal...', 'warning');
+        this.rejectProposal(proposalId);
+      },
+
+      handleSwipeRight(proposalId) {
+        this.showToast('Approving proposal...', 'success');
+        this.approveProposal(proposalId);
+      },
+
+      openCreateTaskModal() {
+        this.openModal('modal-create-task');
+      },
+
+      submitNewTask() {
+        const title = document.getElementById('new-task-title').value;
+        if (!title) {
+          this.showToast('Title is required', 'error');
+          return;
+        }
+
+        const taskData = {
+          title: title,
+          description: document.getElementById('new-task-description').value,
+          priority: document.getElementById('new-task-priority').value,
+          lane: document.getElementById('new-task-lane').value,
+          estimated_minutes: parseInt(document.getElementById('new-task-duration').value),
+          energy_required: document.getElementById('new-task-energy').value,
+          focus_required: document.getElementById('new-task-focus').value,
+          deadline: document.getElementById('new-task-deadline').value || null
+        };
+
+        google.script.run
+          .withSuccessHandler(response => {
+            if (response.success) {
+              this.showToast('Task created successfully!', 'success');
+              this.closeModal('modal-create-task');
+              document.getElementById('new-task-title').value = '';
+              document.getElementById('new-task-description').value = '';
+              this.invalidateCache('tasks');
+              this.invalidateCache('dashboard');
+              this.invalidateCache('calendar');
+              this.loadTasks({ force: true });
+              this.loadDashboard({ force: true });
+            } else {
+              this.showToast(response.error || 'Failed to create task', 'error');
+            }
+          })
+          .withFailureHandler(error => {
+            this.showToast('Error creating task: ' + error.message, 'error');
+          })
+          .appsheet_createTask(taskData);
+      },
+
+      applyFilters() {
+        this.state.filters.status = document.getElementById('filter-status').value;
+        this.state.filters.priority = document.getElementById('filter-priority').value;
+        this.state.filters.lane = document.getElementById('filter-lane').value;
+        this.state.filters.sort = document.getElementById('filter-sort').value;
+        this.state.pagination.currentPage = 1;
+        this.loadTasks();
+      },
+
+      applyTaskFilters(tasks) {
+        const { status, priority, lane, search } = this.state.filters;
+        let filteredTasks = tasks;
+
+        if (status) {
+          filteredTasks = filteredTasks.filter(t => t.status === status);
+        }
+        if (priority) {
+          filteredTasks = filteredTasks.filter(t => t.priority === priority);
+        }
+        if (lane) {
+          filteredTasks = filteredTasks.filter(t => t.lane === lane);
+        }
+        if (search) {
+          const searchTerm = search.toLowerCase();
+          filteredTasks = filteredTasks.filter(t => 
+            (t.title && t.title.toLowerCase().includes(searchTerm)) || 
+            (t.description && t.description.toLowerCase().includes(searchTerm))
+          );
+        }
+
+        return filteredTasks;
+      },
+
+      sortTasks(tasks) {
+        const sortBy = this.state.filters.sort;
+        const sorted = [...tasks];
+        
+        if (sortBy === 'priority') {
+          const priorityOrder = { CRITICAL: 0, URGENT: 1, HIGH: 2, MEDIUM: 3, LOW: 4, MINIMAL: 5 };
+          sorted.sort((a, b) => (priorityOrder[a.priority] || 3) - (priorityOrder[b.priority] || 3));
+        } else if (sortBy === 'deadline') {
+          sorted.sort((a, b) => {
+            const aDate = a.deadline ? new Date(a.deadline).getTime() : Infinity;
+            const bDate = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+            return aDate - bDate;
+          });
+        } else if (sortBy === 'created') {
+          sorted.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+        }
+        
+        return sorted;
+      },
+
+      paginateTasks(tasks) {
+        const { currentPage, pageSize } = this.state.pagination;
+        const totalPages = Math.ceil(tasks.length / pageSize);
+        this.state.pagination.totalPages = totalPages;
+        
+        const start = (currentPage - 1) * pageSize;
+        const end = start + pageSize;
+        
+        return tasks.slice(start, end);
+      },
+
+      updatePaginationUI() {
+        const { currentPage, totalPages } = this.state.pagination;
+        const pageInfo = document.getElementById('page-info');
+        const prevBtn = document.getElementById('prev-page-btn');
+        const nextBtn = document.getElementById('next-page-btn');
+        
+        if (pageInfo) pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+        if (prevBtn) prevBtn.disabled = currentPage === 1;
+        if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+      },
+
+      previousPage() {
+        if (this.state.pagination.currentPage > 1) {
+          this.state.pagination.currentPage--;
+          this.renderTaskList(this.state.tasks);
+        }
+      },
+
+      nextPage() {
+        if (this.state.pagination.currentPage < this.state.pagination.totalPages) {
+          this.state.pagination.currentPage++;
+          this.renderTaskList(this.state.tasks);
+        }
+      },
+
+      toggleTaskSelection(taskId) {
+        if (this.state.selectedTasks.has(taskId)) {
+          this.state.selectedTasks.delete(taskId);
+        } else {
+          this.state.selectedTasks.add(taskId);
+        }
+        this.updateSelectionUI();
+      },
+
+      toggleSelectAll() {
+        const selectAllCheckbox = document.getElementById('select-all-tasks');
+        const paginatedTasks = this.paginateTasks(this.sortTasks(this.state.tasks));
+        
+        if (selectAllCheckbox.checked) {
+          paginatedTasks.forEach(task => this.state.selectedTasks.add(task.action_id));
+        } else {
+          paginatedTasks.forEach(task => this.state.selectedTasks.delete(task.action_id));
+        }
+        
+        this.renderTaskList(this.state.tasks);
+      },
+
+      updateSelectionUI() {
+        const selectedCount = this.state.selectedTasks.size;
+        const countElement = document.getElementById('selected-count');
+        const bulkCompleteBtn = document.getElementById('bulk-complete-btn');
+        const bulkCancelBtn = document.getElementById('bulk-cancel-btn');
+        const bulkRescheduleBtn = document.getElementById('bulk-reschedule-btn');
+        
+        if (countElement) {
+          countElement.textContent = selectedCount > 0 ? `(${selectedCount} selected)` : '';
+        }
+        
+        const hasSelection = selectedCount > 0;
+        if (bulkCompleteBtn) bulkCompleteBtn.disabled = !hasSelection;
+        if (bulkCancelBtn) bulkCancelBtn.disabled = !hasSelection;
+        if (bulkRescheduleBtn) bulkRescheduleBtn.disabled = !hasSelection;
+      },
+
+      bulkCompleteSelected() {
+        const selectedIds = Array.from(this.state.selectedTasks);
+        if (selectedIds.length === 0) return;
+        
+        this.showToast(`Completing ${selectedIds.length} tasks...`, 'info');
+        
+        let completed = 0;
+        selectedIds.forEach(taskId => {
+          google.script.run
+            .withSuccessHandler(() => {
+              completed++;
+              if (completed === selectedIds.length) {
+                this.showToast('All tasks completed!', 'success');
+                this.state.selectedTasks.clear();
+                this.loadTasks();
+                this.loadDashboard();
+              }
+            })
+            .withFailureHandler(error => {
+              this.showToast('Error completing task: ' + error.message, 'error');
+            })
+            .appsheet_completeTask({ taskId: taskId });
+        });
+      },
+
+      bulkCancelSelected() {
+        const selectedIds = Array.from(this.state.selectedTasks);
+        if (selectedIds.length === 0) return;
+        
+        this.showToast(`Canceling ${selectedIds.length} tasks...`, 'info');
+        
+        let canceled = 0;
+        selectedIds.forEach(taskId => {
+          google.script.run
+            .withSuccessHandler(() => {
+              canceled++;
+              if (canceled === selectedIds.length) {
+                this.showToast('All tasks canceled!', 'success');
+                this.state.selectedTasks.clear();
+                this.loadTasks();
+              }
+            })
+            .withFailureHandler(error => {
+              this.showToast('Error canceling task: ' + error.message, 'error');
+            })
+            .appsheet_cancelTask({ taskId: taskId, reason: 'Bulk cancel' });
+        });
+      },
+
+      // CRITICAL MISSING FUNCTION 1: Bulk Operation Handlers
+      handleBulkComplete() {
+        const selectedIds = Array.from(this.state.selectedTasks);
+        if (selectedIds.length === 0) {
+          this.showToast('No tasks selected', 'warning');
+          return;
+        }
+        
+        if (confirm(`Complete ${selectedIds.length} selected task(s)?`)) {
+          this.showToast(`Completing ${selectedIds.length} tasks...`, 'info');
+          
+          const promises = selectedIds.map(taskId => {
+            return this.retryWithBackoff(() => {
+              return new Promise((resolve, reject) => {
+                google.script.run
+                  .withSuccessHandler(resolve)
+                  .withFailureHandler(reject)
+                  .appsheet_completeTask({ taskId: taskId });
+              });
+            });
+          });
+          
+          Promise.allSettled(promises).then(results => {
+            const succeeded = results.filter(r => r.status === 'fulfilled').length;
+            const failed = results.filter(r => r.status === 'rejected').length;
+            
+            if (succeeded > 0) {
+              this.showToast(`Completed ${succeeded} task(s)${failed > 0 ? `, ${failed} failed` : ''}`, 
+                            failed > 0 ? 'warning' : 'success');
+              this.state.selectedTasks.clear();
+              this.invalidateCache('tasks');
+              this.invalidateCache('dashboard');
+              this.invalidateCache('calendar');
+              this.loadTasks({ force: true });
+              this.loadDashboard({ force: true });
+            }
+          });
+        }
+      },
+
+      handleBulkCancel() {
+        const selectedIds = Array.from(this.state.selectedTasks);
+        if (selectedIds.length === 0) {
+          this.showToast('No tasks selected', 'warning');
+          return;
+        }
+        
+        if (confirm(`Cancel ${selectedIds.length} selected task(s)?`)) {
+          this.showToast(`Canceling ${selectedIds.length} tasks...`, 'info');
+          
+          const promises = selectedIds.map(taskId => {
+            return this.retryWithBackoff(() => {
+              return new Promise((resolve, reject) => {
+                google.script.run
+                  .withSuccessHandler(resolve)
+                  .withFailureHandler(reject)
+                  .appsheet_cancelTask({ taskId: taskId, reason: 'Bulk cancel' });
+              });
+            });
+          });
+          
+          Promise.allSettled(promises).then(results => {
+            const succeeded = results.filter(r => r.status === 'fulfilled').length;
+            const failed = results.filter(r => r.status === 'rejected').length;
+            
+            if (succeeded > 0) {
+              this.showToast(`Canceled ${succeeded} task(s)${failed > 0 ? `, ${failed} failed` : ''}`, 
+                            failed > 0 ? 'warning' : 'success');
+              this.state.selectedTasks.clear();
+              this.invalidateCache('tasks');
+              this.invalidateCache('dashboard');
+              this.invalidateCache('calendar');
+              this.loadTasks({ force: true });
+              this.loadDashboard({ force: true });
+            }
+          });
+        }
+      },
+
+      handleBulkReschedule() {
+        const selectedIds = Array.from(this.state.selectedTasks);
+        if (selectedIds.length === 0) {
+          this.showToast('No tasks selected', 'warning');
+          return;
+        }
+        
+        document.getElementById('bulk-task-count').textContent = selectedIds.length;
+        this.openModal('modal-bulk-reschedule');
+      },
+
+      openBulkRescheduleModal() {
+        const selectedCount = this.state.selectedTasks.size;
+        if (selectedCount === 0) return;
+        
+        document.getElementById('bulk-task-count').textContent = selectedCount;
+        this.openModal('modal-bulk-reschedule');
+      },
+
+      submitBulkReschedule() {
+        const newStart = document.getElementById('bulk-new-start').value;
+        const newEnd = document.getElementById('bulk-new-end').value;
+        
+        if (!newStart || !newEnd) {
+          this.showToast('Please provide both start and end times', 'error');
+          return;
+        }
+        
+        const selectedIds = Array.from(this.state.selectedTasks);
+        this.showToast(`Rescheduling ${selectedIds.length} tasks...`, 'info');
+        
+        let rescheduled = 0;
+        selectedIds.forEach(taskId => {
+          google.script.run
+            .withSuccessHandler(() => {
+              rescheduled++;
+              if (rescheduled === selectedIds.length) {
+                this.showToast('All tasks rescheduled!', 'success');
+                this.state.selectedTasks.clear();
+                this.closeModal('modal-bulk-reschedule');
+                this.invalidateCache('tasks');
+                this.invalidateCache('dashboard');
+                this.invalidateCache('calendar');
+                this.loadTasks({ force: true });
+                this.loadDashboard({ force: true });
+              }
+            })
+            .withFailureHandler(error => {
+              this.showToast('Error rescheduling task: ' + error.message, 'error');
+            })
+            .appsheet_rescheduleTask({ 
+              taskId: taskId,
+              newStart: new Date(newStart).toISOString(),
+              newEnd: new Date(newEnd).toISOString()
+            });
+        });
+      },
+
+      debounceSearch() {
+        clearTimeout(this.searchTimeout);
+        this.searchTimeout = setTimeout(() => {
+          this.state.filters.search = document.getElementById('filter-search').value;
+          this.loadTasks();
+        }, 300);
+      },
+
+      toggleSetting(settingId) {
+        const toggle = document.getElementById(settingId);
+        toggle.classList.toggle('active');
+      },
+
+      populateSettings(settings) {
+        if (settings.workHoursStart) document.getElementById('work-start').value = settings.workHoursStart;
+        if (settings.workHoursEnd) document.getElementById('work-end').value = settings.workHoursEnd;
+        if (settings.defaultTaskDuration) document.getElementById('default-duration').value = settings.defaultTaskDuration;
+        if (settings.autoApproveThreshold) document.getElementById('auto-approve').value = settings.autoApproveThreshold * 100;
+        if (settings.emailProcessingFrequency) document.getElementById('email-frequency').value = settings.emailProcessingFrequency;
+      },
+
+      saveSettings() {
+        const settings = {
+          workHoursStart: document.getElementById('work-start').value,
+          workHoursEnd: document.getElementById('work-end').value,
+          defaultTaskDuration: parseInt(document.getElementById('default-duration').value),
+          autoApproveThreshold: parseFloat(document.getElementById('auto-approve').value) / 100,
+          emailProcessingFrequency: parseInt(document.getElementById('email-frequency').value),
+          syncToGoogleCalendar: document.getElementById('sync-calendar').classList.contains('active'),
+          blockFocusTime: document.getElementById('block-focus').classList.contains('active'),
+          notifyTaskStart: document.getElementById('notify-task').classList.contains('active'),
+          notifyTriageQueue: document.getElementById('notify-triage').classList.contains('active'),
+          notifyDailySummary: document.getElementById('notify-summary').classList.contains('active')
+        };
+
+        google.script.run
+          .withSuccessHandler(response => {
+            if (response.success) {
+              this.showToast('Settings saved successfully!', 'success');
+            } else {
+              this.showToast(response.error || 'Failed to save settings', 'error');
+            }
+          })
+          .withFailureHandler(error => {
+            this.showToast('Error saving settings: ' + error.message, 'error');
+          })
+          .appsheet_updateSettings({
+            userId: 'default',
+            settings: settings
+          });
+      },
+
+      openModal(modalId) {
+        document.getElementById(modalId).classList.add('is-active');
+      },
+
+      closeModal(modalId) {
+        document.getElementById(modalId).classList.remove('is-active');
+      },
+
+      showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        
+        const icon = type === 'success' ? 'check-circle' : 
+                     type === 'error' ? 'exclamation-circle' : 
+                     type === 'warning' ? 'exclamation-triangle' : 'info-circle';
+        
+        toast.innerHTML = `
+          <i class="fas fa-${icon}"></i>
+          <span>${message}</span>
+        `;
+        
+        document.getElementById('toast-container').appendChild(toast);
+        
+        setTimeout(() => {
+          toast.classList.add('fade-out');
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
+      },
+
+      formatDeadline(deadline) {
+        const date = new Date(deadline);
+        const now = new Date();
+        const diff = date - now;
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        
+        if (hours < 0) return 'Overdue';
+        if (hours < 24) return `Due in ${hours}h`;
+        return `Due ${date.toLocaleDateString()}`;
+      },
+
+      getPriorityColor(priority) {
+        const colors = {
+          CRITICAL: '#f56565',
+          URGENT: '#fc8181',
+          HIGH: '#ed8936',
+          MEDIUM: '#667eea',
+          LOW: '#48bb78',
+          MINIMAL: '#68d391'
+        };
+        return colors[priority] || colors.MEDIUM;
+      },
+
+      checkTaskConflict(task) {
+        if (!task.scheduled_start || !task.scheduled_end) return false;
+        const taskStart = new Date(task.scheduled_start);
+        const taskEnd = new Date(task.scheduled_end);
+        
+        return this.state.tasks.some(otherTask => {
+          if (otherTask.action_id === task.action_id) return false;
+          if (!otherTask.scheduled_start || !otherTask.scheduled_end) return false;
+          
+          const otherStart = new Date(otherTask.scheduled_start);
+          const otherEnd = new Date(otherTask.scheduled_end);
+          
+          return (taskStart < otherEnd && taskEnd > otherStart);
+        });
+      },
+
+      toggleTaskMenu(taskId) {
+        const menu = document.getElementById(`menu-${taskId}`);
+        
+        document.querySelectorAll('.dropdown-menu').forEach(m => {
+          if (m !== menu) m.classList.remove('show');
+        });
+        
+        menu.classList.toggle('show');
+        
+        document.addEventListener('click', function closeMenus(e) {
+          if (!e.target.closest('.task-menu-btn')) {
+            menu.classList.remove('show');
+            document.removeEventListener('click', closeMenus);
+          }
+        });
+      },
+
+      openTaskDetails(taskId) {
+        const task = this.state.tasks.find(t => t.action_id === taskId) || 
+                     this.cache.tasks.get(taskId);
+        
+        if (!task) {
+          google.script.run
+            .withSuccessHandler(response => {
+              if (response.success) {
+                this.state.currentTaskDetails = response.data;
+                this.populateTaskDetails(response.data);
+                this.openModal('modal-task-details');
+              }
+            })
+            .withFailureHandler(error => {
+              this.showToast('Error loading task details: ' + error.message, 'error');
+            })
+            .appsheet_getTask({ taskId: taskId });
+        } else {
+          this.state.currentTaskDetails = task;
+          this.populateTaskDetails(task);
+          this.openModal('modal-task-details');
+        }
+      },
+
+      populateTaskDetails(task) {
+        document.getElementById('details-task-id').value = task.action_id;
+        document.getElementById('details-title').textContent = task.title || 'Untitled';
+        document.getElementById('details-status').textContent = task.status || 'PENDING';
+        document.getElementById('details-description').textContent = task.description || 'No description';
+        document.getElementById('details-priority').textContent = task.priority || 'MEDIUM';
+        document.getElementById('details-lane').textContent = task.lane || 'ops';
+        document.getElementById('details-score').textContent = task.score || '0';
+        document.getElementById('details-energy').textContent = task.energy_required || 'MEDIUM';
+        document.getElementById('details-focus').textContent = task.focus_required || 'MEDIUM';
+        document.getElementById('details-estimated').textContent = `${task.estimated_minutes || 30} minutes`;
+        document.getElementById('details-scheduled-start').textContent = 
+          task.scheduled_start ? new Date(task.scheduled_start).toLocaleString() : 'Not scheduled';
+        document.getElementById('details-scheduled-end').textContent = 
+          task.scheduled_end ? new Date(task.scheduled_end).toLocaleString() : 'Not scheduled';
+        document.getElementById('details-deadline').textContent = 
+          task.deadline ? new Date(task.deadline).toLocaleString() : 'No deadline';
+        document.getElementById('details-rollover').textContent = task.rollover_count || '0';
+        document.getElementById('details-created').textContent = 
+          task.created_at ? new Date(task.created_at).toLocaleString() : 'Unknown';
+        document.getElementById('details-updated').textContent = 
+          task.updated_at ? new Date(task.updated_at).toLocaleString() : 'Unknown';
+        document.getElementById('details-source').textContent = task.source || 'manual';
+        
+        const completionSection = document.getElementById('details-completion-section');
+        if (task.status === 'COMPLETED' && task.completed_date) {
+          completionSection.style.display = 'block';
+          document.getElementById('details-completed-date').textContent = 
+            new Date(task.completed_date).toLocaleString();
+          document.getElementById('details-actual-minutes').textContent = 
+            `${task.actual_minutes || 0} minutes`;
+          const accuracy = task.estimation_accuracy ? 
+            Math.round(task.estimation_accuracy * 100) : 0;
+          document.getElementById('details-accuracy').textContent = `${accuracy}%`;
+        } else {
+          completionSection.style.display = 'none';
+        }
+      },
+
+      openCompleteTaskModal(taskId) {
+        const task = this.state.tasks.find(t => t.action_id === taskId) || 
+                     this.cache.tasks.get(taskId);
+        
+        if (task) {
+          document.getElementById('complete-task-id').value = task.action_id;
+          document.getElementById('complete-task-title').value = task.title;
+          document.getElementById('complete-task-estimated').value = task.estimated_minutes || 30;
+          document.getElementById('complete-task-actual').value = '';
+          document.getElementById('complete-task-notes').value = '';
+          document.getElementById('estimation-accuracy').textContent = '0%';
+          
+          document.getElementById('complete-task-actual').addEventListener('input', (e) => {
+            const actual = parseInt(e.target.value) || 0;
+            const estimated = parseInt(task.estimated_minutes) || 30;
+            const accuracy = Math.round((estimated / actual) * 100) || 0;
+            document.getElementById('estimation-accuracy').textContent = `${accuracy}%`;
+          });
+          
+          this.openModal('modal-complete-task');
+        }
+      },
+
+      submitCompleteTask() {
+        const taskId = document.getElementById('complete-task-id').value;
+        const actualMinutes = parseInt(document.getElementById('complete-task-actual').value);
+        const notes = document.getElementById('complete-task-notes').value;
+        
+        if (!actualMinutes) {
+          this.showToast('Please enter actual minutes taken', 'error');
+          return;
+        }
+        
+        this.queueOfflineAction(() => {
+          google.script.run
+            .withSuccessHandler(response => {
+              if (response.success) {
+                this.showToast('Task completed!', 'success');
+                this.closeModal('modal-complete-task');
+                this.invalidateCache('tasks');
+                this.invalidateCache('dashboard');
+                this.invalidateCache('calendar');
+                this.loadTasks({ force: true });
+                this.loadDashboard({ force: true });
+              } else {
+                this.showToast(response.error || 'Failed to complete task', 'error');
+              }
+            })
+            .withFailureHandler(error => {
+              this.showToast('Error completing task: ' + error.message, 'error');
+            })
+            .appsheet_completeTask({ 
+              taskId: taskId,
+              actualMinutes: actualMinutes,
+              notes: notes
+            });
+        });
+      },
+
+      openSnoozeModal(taskId) {
+        const task = this.state.tasks.find(t => t.action_id === taskId) || 
+                     this.cache.tasks.get(taskId);
+        
+        if (task) {
+          document.getElementById('snooze-task-id').value = task.action_id;
+          document.getElementById('snooze-task-title').value = task.title;
+          this.openModal('modal-snooze-task');
+        }
+      },
+
+      snoozeTask(minutes) {
+        const taskId = document.getElementById('snooze-task-id').value;
+        const newStart = new Date(Date.now() + minutes * 60000);
+        
+        this.queueOfflineAction(() => {
+          google.script.run
+            .withSuccessHandler(response => {
+              if (response.success) {
+                this.showToast(`Task snoozed for ${minutes} minutes`, 'success');
+                this.closeModal('modal-snooze-task');
+                this.invalidateCache('tasks');
+                this.invalidateCache('dashboard');
+                this.invalidateCache('calendar');
+                this.loadTasks({ force: true });
+                this.loadDashboard({ force: true });
+              }
+            })
+            .withFailureHandler(error => {
+              this.showToast('Error snoozing task: ' + error.message, 'error');
+            })
+            .appsheet_rescheduleTask({ 
+              taskId: taskId,
+              newStart: newStart.toISOString()
+            });
+        });
+      },
+
+      snoozeTillTomorrow() {
+        const taskId = document.getElementById('snooze-task-id').value;
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(9, 0, 0, 0);
+        
+        this.queueOfflineAction(() => {
+          google.script.run
+            .withSuccessHandler(response => {
+              if (response.success) {
+                this.showToast('Task snoozed till tomorrow morning', 'success');
+                this.closeModal('modal-snooze-task');
+                this.invalidateCache('tasks');
+                this.invalidateCache('dashboard');
+                this.invalidateCache('calendar');
+                this.loadTasks({ force: true });
+                this.loadDashboard({ force: true });
+              }
+            })
+            .withFailureHandler(error => {
+              this.showToast('Error snoozing task: ' + error.message, 'error');
+            })
+            .appsheet_rescheduleTask({ 
+              taskId: taskId,
+              newStart: tomorrow.toISOString()
+            });
+        });
+      },
+
+      snoozeCustom() {
+        const taskId = document.getElementById('snooze-task-id').value;
+        const customTime = document.getElementById('snooze-custom-time').value;
+        
+        if (!customTime) {
+          this.showToast('Please select a custom time', 'error');
+          return;
+        }
+        
+        this.queueOfflineAction(() => {
+          google.script.run
+            .withSuccessHandler(response => {
+              if (response.success) {
+                this.showToast('Task snoozed to custom time', 'success');
+                this.closeModal('modal-snooze-task');
+                this.invalidateCache('tasks');
+                this.invalidateCache('dashboard');
+                this.invalidateCache('calendar');
+                this.loadTasks({ force: true });
+                this.loadDashboard({ force: true });
+              }
+            })
+            .withFailureHandler(error => {
+              this.showToast('Error snoozing task: ' + error.message, 'error');
+            })
+            .appsheet_rescheduleTask({ 
+              taskId: taskId,
+              newStart: new Date(customTime).toISOString()
+            });
+        });
+      },
+
+      openEditTaskModal(taskId) {
+        const task = this.state.tasks.find(t => t.action_id === taskId) || 
+                     this.cache.tasks.get(taskId) ||
+                     this.state.currentTaskDetails;
+        
+        if (task) {
+          document.getElementById('edit-task-id').value = task.action_id;
+          document.getElementById('edit-task-title').value = task.title || '';
+          document.getElementById('edit-task-description').value = task.description || '';
+          document.getElementById('edit-task-priority').value = task.priority || 'MEDIUM';
+          document.getElementById('edit-task-lane').value = task.lane || 'ops';
+          document.getElementById('edit-task-duration').value = task.estimated_minutes || 30;
+          document.getElementById('edit-task-energy').value = task.energy_required || 'MEDIUM';
+          document.getElementById('edit-task-focus').value = task.focus_required || 'MEDIUM';
+          document.getElementById('edit-task-deadline').value = 
+            task.deadline ? new Date(task.deadline).toISOString().slice(0, 16) : '';
+          document.getElementById('edit-task-start').value = 
+            task.scheduled_start ? new Date(task.scheduled_start).toISOString().slice(0, 16) : '';
+          document.getElementById('edit-task-end').value = 
+            task.scheduled_end ? new Date(task.scheduled_end).toISOString().slice(0, 16) : '';
+          
+          this.openModal('modal-edit-task');
+        }
+      },
+
+      submitEditTask() {
+        const taskId = document.getElementById('edit-task-id').value;
+        const updates = {
+          taskId: taskId,
+          title: document.getElementById('edit-task-title').value,
+          description: document.getElementById('edit-task-description').value,
+          priority: document.getElementById('edit-task-priority').value,
+          lane: document.getElementById('edit-task-lane').value,
+          estimated_minutes: parseInt(document.getElementById('edit-task-duration').value),
+          energy_required: document.getElementById('edit-task-energy').value,
+          focus_required: document.getElementById('edit-task-focus').value,
+          deadline: document.getElementById('edit-task-deadline').value || null,
+          scheduled_start: document.getElementById('edit-task-start').value || null,
+          scheduled_end: document.getElementById('edit-task-end').value || null
+        };
+        
+        this.queueOfflineAction(() => {
+          google.script.run
+            .withSuccessHandler(response => {
+              if (response.success) {
+                this.showToast('Task updated successfully', 'success');
+                this.closeModal('modal-edit-task');
+                this.closeModal('modal-task-details');
+                this.invalidateCache('tasks');
+                this.invalidateCache('dashboard');
+                this.invalidateCache('calendar');
+                this.loadTasks({ force: true });
+                this.loadDashboard({ force: true });
+              } else {
+                this.showToast(response.error || 'Failed to update task', 'error');
+              }
+            })
+            .withFailureHandler(error => {
+              this.showToast('Error updating task: ' + error.message, 'error');
+            })
+            .appsheet_updateTask(updates);
+        });
+      },
+
+      deleteTask(taskId) {
+        if (!taskId) {
+          taskId = document.getElementById('edit-task-id').value;
+        }
+        
+        if (confirm('Are you sure you want to delete this task?')) {
+          this.queueOfflineAction(() => {
+            google.script.run
+              .withSuccessHandler(response => {
+                if (response.success) {
+                  this.showToast('Task deleted', 'success');
+                  this.closeModal('modal-edit-task');
+                  this.closeModal('modal-task-details');
+                  this.invalidateCache('tasks');
+                  this.invalidateCache('dashboard');
+                  this.invalidateCache('calendar');
+                  this.loadTasks({ force: true });
+                  this.loadDashboard({ force: true });
+                }
+              })
+              .withFailureHandler(error => {
+                this.showToast('Error deleting task: ' + error.message, 'error');
+              })
+              .appsheet_deleteTask({ taskId: taskId });
+          });
+        }
+      },
+
+      duplicateTask(taskId) {
+        const task = this.state.tasks.find(t => t.action_id === taskId);
+        if (task) {
+          const newTask = { ...task };
+          delete newTask.action_id;
+          newTask.title = `Copy of ${task.title}`;
+          newTask.status = 'PENDING';
+          delete newTask.completed_date;
+          delete newTask.actual_minutes;
+          
+          google.script.run
+            .withSuccessHandler(response => {
+              if (response.success) {
+                this.showToast('Task duplicated', 'success');
+                this.invalidateCache('tasks');
+                this.invalidateCache('dashboard');
+                this.invalidateCache('calendar');
+                this.loadTasks({ force: true });
+                this.loadDashboard({ force: true });
+              }
+            })
+            .withFailureHandler(error => {
+              this.showToast('Error duplicating task: ' + error.message, 'error');
+            })
+            .appsheet_createTask(newTask);
+        }
+      },
+
+      openEditTaskModalFromDetails() {
+        const taskId = document.getElementById('details-task-id').value;
+        this.openEditTaskModal(taskId);
+      },
+
+      openCompleteModalFromDetails() {
+        const taskId = document.getElementById('details-task-id').value;
+        this.openCompleteTaskModal(taskId);
+      },
+
+      openSnoozeModalFromDetails() {
+        const taskId = document.getElementById('details-task-id').value;
+        this.openSnoozeModal(taskId);
+      },
+
+      completeTask(taskId) {
+        this.openCompleteTaskModal(taskId);
+      },
+
+      rescheduleTask(taskId) {
+        const task = this.state.tasks.find(t => t.action_id === taskId);
+        if (task) {
+          const newStart = prompt('Enter new start date and time (YYYY-MM-DD HH:MM):');
+          if (newStart) {
+            google.script.run
+              .withSuccessHandler(response => {
+                if (response.success) {
+                  this.showToast('Task rescheduled', 'success');
+                  this.invalidateCache('tasks');
+                  this.invalidateCache('dashboard');
+                  this.invalidateCache('calendar');
+                  this.loadTasks({ force: true });
+                  this.loadDashboard({ force: true });
+                }
+              })
+              .withFailureHandler(error => {
+                this.showToast('Error rescheduling: ' + error.message, 'error');
+              })
+              .appsheet_rescheduleTask({
+                taskId: taskId,
+                newStart: new Date(newStart).toISOString()
+              });
+          }
+        }
+      },
+
+      startTask(taskId) {
+        google.script.run
+          .withSuccessHandler(response => {
+            if (response.success) {
+              this.showToast('Task started!', 'success');
+              this.invalidateCache('tasks');
+              this.invalidateCache('dashboard');
+              this.invalidateCache('calendar');
+              this.loadTasks({ force: true });
+              this.loadDashboard({ force: true });
+            }
+          })
+          .withFailureHandler(error => {
+            this.showToast('Error starting task: ' + error.message, 'error');
+          })
+          .appsheet_updateTask({
+            taskId: taskId,
+            status: 'IN_PROGRESS'
+          });
+      },
+
+      archiveTask(taskId) {
+        if (confirm('Are you sure you want to archive this task?')) {
+          this.queueOfflineAction(() => {
+            google.script.run
+              .withSuccessHandler(response => {
+                if (response.success) {
+                  this.showToast('Task archived successfully', 'success');
+                  this.invalidateCache('tasks');
+                  this.invalidateCache('dashboard');
+                  this.invalidateCache('calendar');
+                  this.loadTasks({ force: true });
+                  this.loadDashboard({ force: true });
+                } else {
+                  this.showToast(response.error || 'Failed to archive task', 'error');
+                }
+              })
+              .withFailureHandler(error => {
+                this.showToast('Error archiving task: ' + error.message, 'error');
+              })
+              .appsheet_archiveTask({ taskId: taskId });
+          });
+        }
+      },
+
+      runIntelligentScheduler() {
+        this.showToast('Running intelligent scheduler...', 'info');
+        
+        google.script.run
+          .withSuccessHandler(response => {
+            if (response.success) {
+              this.showToast(`Scheduler completed! ${response.scheduled || 0} tasks scheduled, ${response.conflicts || 0} conflicts found.`, 'success');
+              this.invalidateCache('tasks');
+              this.invalidateCache('dashboard');
+              this.invalidateCache('calendar');
+              this.invalidateCache('scheduler');
+              this.loadTasks({ force: true });
+              this.loadDashboard({ force: true });
+              this.refreshSchedulerHealth({ force: true });
+            } else {
+              this.showToast(response.error || 'Scheduler failed', 'error');
+            }
+          })
+          .withFailureHandler(error => {
+            this.showToast('Error running scheduler: ' + error.message, 'error');
+          })
+          .appsheet_runScheduling({});
+      },
+
+      refreshSchedulerHealth(options = { force: false }) {
+        if (!options.force && this.isCacheFresh('scheduler')) {
+          this.updateSchedulerStatus(this.cache.scheduler.data);
+          return;
+        }
+
+        this.state.isRefreshing.scheduler = true;
+        google.script.run
+          .withSuccessHandler(response => {
+            this.state.isRefreshing.scheduler = false;
+            if (response.success) {
+              this.setCache('scheduler', response.data);
+              this.updateSchedulerStatus(response.data);
+              this.showToast('Scheduler status updated', 'success');
+            } else {
+              this.showToast(response.error || 'Failed to fetch scheduler status', 'error');
+            }
+          })
+          .withFailureHandler(error => {
+            this.state.isRefreshing.scheduler = false;
+            this.showToast('Error fetching scheduler status: ' + error.message, 'error');
+          })
+          .appsheet_getSystemStatus();
+      },
+
+      updateSchedulerStatus(data) {
+        if (!data) {
+          console.warn('updateSchedulerStatus called with no data');
+          return;
+        }
+        const statusEl = document.getElementById('scheduler-status');
+        const lastRunEl = document.getElementById('scheduler-last-run');
+        const tasksCountEl = document.getElementById('scheduler-tasks-count');
+        const healthEl = document.getElementById('scheduler-health');
+        
+        if (statusEl) {
+          const isHealthy = data.health === 'HEALTHY' || data.scheduled > 0;
+          statusEl.innerHTML = isHealthy ? 
+            '<i class="fas fa-circle" style="color: var(--success);"></i> Active' :
+            '<i class="fas fa-circle" style="color: var(--warning);"></i> Inactive';
+        }
+        
+        if (lastRunEl && data.timestamp) {
+          lastRunEl.textContent = new Date(data.timestamp).toLocaleString();
+        }
+        
+        if (tasksCountEl) {
+          tasksCountEl.textContent = data.scheduled || '0';
+        }
+        
+        if (healthEl) {
+          const healthScore = data.health_score || 100;
+          healthEl.textContent = healthScore + '%';
+        }
+        
+        localStorage.setItem('scheduler_last_run', new Date().toISOString());
+      },
+
+      loadTasksForLane(lane) {
+        document.querySelectorAll('.lane-filter-btn').forEach(btn => {
+          btn.classList.remove('btn-primary');
+          btn.classList.add('btn-secondary');
+        });
+        
+        event.target.closest('.lane-filter-btn').classList.remove('btn-secondary');
+        event.target.closest('.lane-filter-btn').classList.add('btn-primary');
+        
+        this.state.filters.lane = lane === 'all' ? '' : lane;
+        this.renderTaskList(this.applyTaskFilters(this.getCachedTasks()));
+      },
+
+      updateLaneCounts() {
+        if (!this.state.tasks || this.state.tasks.length === 0) return;
+        
+        const lanes = ['ops', 'admin', 'creative', 'client', 'growth', 'deep_focus'];
+        const laneCounts = {};
+        
+        lanes.forEach(lane => {
+          laneCounts[lane] = 0;
+        });
+        
+        this.state.tasks.forEach(task => {
+          if (task.lane && laneCounts.hasOwnProperty(task.lane)) {
+            laneCounts[task.lane]++;
+          }
+        });
+        
+        lanes.forEach(lane => {
+          const badge = document.getElementById(`lane-count-${lane}`);
+          if (badge) {
+            if (laneCounts[lane] > 0) {
+              badge.textContent = laneCounts[lane];
+              badge.style.display = 'inline-block';
+            } else {
+              badge.style.display = 'none';
+            }
+          }
+        });
+      },
+
+      openConflictResolutionModal(taskId) {
+        const task = this.state.tasks.find(t => t.action_id === taskId) || 
+                     this.cache.tasks.get(taskId);
+        
+        if (task) {
+          document.getElementById('conflict-task-id').value = task.action_id;
+          document.getElementById('conflict-task-title').value = task.title;
+          document.getElementById('conflict-type').value = 'TIME_OVERLAP';
+          
+          this.loadAlternativeSlots(taskId);
+          this.openModal('modal-conflict-resolution');
+        }
+      },
+
+      loadAlternativeSlots(taskId) {
+        const slotsContainer = document.getElementById('alternative-slots');
+        slotsContainer.innerHTML = '<div class="loading">Finding available slots...</div>';
+
+        google.script.run
+            .withSuccessHandler(response => {
+                if (response.success && Array.isArray(response.data) && response.data.length > 0) {
+                    slotsContainer.innerHTML = response.data.map(slot => `
+                        <div class="card" style="padding: 8px; margin-bottom: 8px; cursor: pointer;" 
+                             onclick="APP.selectAlternativeSlot('${taskId}', '${slot.iso}')">
+                          <i class="fas fa-clock"></i> ${new Date(slot.iso).toLocaleString()} (${slot.duration} min available)
+                        </div>
+                    `).join('');
+                } else {
+                    slotsContainer.innerHTML = '<div class="empty-state"><p>No alternative slots found in the next 3 days.</p></div>';
+                }
+            })
+            .withFailureHandler(error => {
+                slotsContainer.innerHTML = '<div class="empty-state"><p>Error finding slots.</p></div>';
+                this.showToast('Error finding alternative slots: ' + error.message, 'error');
+            })
+            .appsheet_findAvailableSlots({ taskId: taskId });
+      },
+
+      selectAlternativeSlot(taskId, time) {
+        this.showToast(`Selected time slot: ${time}`, 'info');
+        this.resolveConflict('RESCHEDULE');
+      },
+
+      resolveConflict(resolution) {
+        const taskId = document.getElementById('conflict-task-id').value;
+        const conflictType = document.getElementById('conflict-type').value || 'TIME_OVERLAP';
+        
+        this.queueOfflineAction(() => {
+          google.script.run
+            .withSuccessHandler(response => {
+              if (response.success) {
+                this.showToast(`Conflict resolved using ${resolution} strategy`, 'success');
+                this.closeModal('modal-conflict-resolution');
+                this.invalidateCache('tasks');
+                this.invalidateCache('dashboard');
+                this.invalidateCache('calendar');
+                this.loadTasks({ force: true });
+                this.loadDashboard({ force: true });
+              } else {
+                this.showToast(response.error || 'Failed to resolve conflict', 'error');
+              }
+            })
+            .withFailureHandler(error => {
+              this.showToast('Error resolving conflict: ' + error.message, 'error');
+            })
+            .appsheet_resolveConflict({
+              taskId: taskId,
+              conflictType: conflictType,
+              resolution: resolution
+            });
+        });
+      },
+
+      updateProposalCountBadge() {
+        const count = this.cache.triage?.data?.count || 0;
+        const badge = document.getElementById('triage-badge');
+        const countText = document.getElementById('triage-count');
+        
+        if (badge) {
+          if (count > 0) {
+            badge.textContent = count;
+            badge.style.display = 'block';
+          } else {
+            badge.style.display = 'none';
+          }
+        }
+        
+        if (countText) {
+          countText.textContent = `(${count} pending)`;
+        }
+      },
+
+      runScheduler() {
+        this.runIntelligentScheduler();
+      },
+
+      forceRefreshDashboard() {
+        this.loadDashboard({ force: true });
+      },
+
+      forceRefreshTasks() {
+        this.loadTasks({ force: true });
+      },
+
+      forceRefreshTriage() {
+        this.loadTriage({ force: true });
+      },
+
+      forceRefreshCalendar() {
+        this.loadCalendar({ force: true });
+      },
+
+      forceRefreshScheduler() {
+        this.refreshSchedulerHealth({ force: true });
+      },
+
+      updateClock() {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          second: '2-digit'
+        });
+        const clockElement = document.getElementById('clock');
+        if (clockElement) {
+          clockElement.textContent = timeStr;
+        }
+      },
+
+      renderTriageFromCache() {
+        const data = this.cache.triage.data;
+        if (!data) return;
+
+        this.state.proposals = data.proposals || [];
+        this.renderTriageQueue(this.state.proposals);
+        this.updateProposalCountBadge();
+      },
+
+      renderDashboardFromCache() {
+        const data = this.cache.dashboard.data;
+        if (!data) return;
+
+        this.renderEnergyGauge('energy-gauge', data.currentEnergy?.energy_level || 5, 10);
+        this.renderEnergyGauge('focus-gauge', data.currentEnergy?.focus_level || 5, 10);
+        this.renderEnergyGauge('completion-gauge', data.completionProbability || 75, 100);
+        this.renderTodaySchedule(data.todaySchedule || []);
+      },
+
+      renderCalendarFromCache() {
+        if (!this.calendar) {
+          this.initializeCalendar();
+        }
+        const events = this.cache.calendar.data || [];
+        this.calendar.getEvents().forEach(event => event.remove());
+        events.forEach(event => this.calendar.addEvent(event));
+      },
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      APP.init();
+    });
+  </script>
+</body>
+</html>

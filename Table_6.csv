@@ -1,0 +1,9 @@
+Column Name,AppSheet Type,Base Type,Required,Description
+-------------,---------------,-----------,----------,-------------
+`event_id`,Text,Text,Yes,Unique event identifier
+`start`,DateTime,DateTime,Yes,Event start time
+`end`,DateTime,DateTime,Yes,Event end time
+`type`,Text,Text,No,"Event type: ""calendar"", ""scheduled_task"", ""blocked"""
+`busy`,Yes/No,Boolean,Yes,Whether time is busy/blocked
+`title`,Text,Text,No,Event title
+`description`,LongText,Text,No,Event description

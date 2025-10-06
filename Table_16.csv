@@ -1,0 +1,9 @@
+Column Name,AppSheet Type,Base Type,Required,Description
+-------------,---------------,-----------,----------,-------------
+`row_id`,Text,Text,Yes,Unique row identifier
+`category`,Text,Text,No,Config category
+`subcategory`,Text,Text,No,Config subcategory
+`item`,Text,Text,No,Config item name
+`key`,Text,Text,Yes,Config key (unique)
+`value`,Text,Text,No,Config value (any type)
+`description`,LongText,Text,No,Config description

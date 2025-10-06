@@ -1,0 +1,9 @@
+Column Name,AppSheet Type,Base Type,Required,Description
+-------------,---------------,-----------,----------,-------------
+`timestamp`,DateTime,DateTime,Yes,State capture timestamp
+`energy_level`,Number,Integer,No,Energy level (1-5)
+`focus_level`,Number,Integer,No,Focus level (1-5)
+`mood`,Enum,Text,No,Current mood
+`stress_level`,Number,Integer,No,Stress level (1-5)
+`current_context`,Text,Text,No,What user is doing
+`notes`,LongText,Text,No,Additional notes

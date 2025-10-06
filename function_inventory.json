@@ -1,0 +1,5898 @@
+{
+  "src/EXECUTE_ALL_TESTS_NOW.gs": [
+    {
+      "type": "function",
+      "name": "EXECUTE_ALL_TESTS_IMMEDIATELY",
+      "line": 6,
+      "signature": "function EXECUTE_ALL_TESTS_IMMEDIATELY() {"
+    }
+  ],
+  "src/EXECUTE_FULL_INITIALIZATION.gs": [
+    {
+      "type": "function",
+      "name": "initializeSystemComplete",
+      "line": 14,
+      "signature": "function initializeSystemComplete() {"
+    },
+    {
+      "type": "function",
+      "name": "executeFullInitialization",
+      "line": 160,
+      "signature": "function executeFullInitialization() {"
+    },
+    {
+      "type": "function",
+      "name": "verifySheetPopulation",
+      "line": 328,
+      "signature": "function verifySheetPopulation() {"
+    }
+  ],
+  "src/ExecuteAllNow.gs": [
+    {
+      "type": "function",
+      "name": "EXECUTE_ALL_FUNCTIONS_VIA_TRIGGER",
+      "line": 5,
+      "signature": "function EXECUTE_ALL_FUNCTIONS_VIA_TRIGGER() {"
+    },
+    {
+      "type": "function",
+      "name": "INSTALL_IMMEDIATE_TRIGGER",
+      "line": 24,
+      "signature": "function INSTALL_IMMEDIATE_TRIGGER() {"
+    }
+  ],
+  "src/RUN_EVERYTHING.gs": [
+    {
+      "type": "function",
+      "name": "RUN_EVERYTHING_NOW",
+      "line": 5,
+      "signature": "function RUN_EVERYTHING_NOW() {"
+    }
+  ],
+  "src/RUN_SHEET_HEALER.gs": [
+    {
+      "type": "function",
+      "name": "runSheetHealing",
+      "line": 5,
+      "signature": "function runSheetHealing() {"
+    }
+  ],
+  "src/RemoteControl.gs": [
+    {
+      "type": "function",
+      "name": "START",
+      "line": 10,
+      "signature": "function START() {"
+    },
+    {
+      "type": "function",
+      "name": "STOP",
+      "line": 23,
+      "signature": "function STOP() {"
+    },
+    {
+      "type": "function",
+      "name": "RESET",
+      "line": 35,
+      "signature": "function RESET() {"
+    },
+    {
+      "type": "function",
+      "name": "EMAIL",
+      "line": 45,
+      "signature": "function EMAIL() {"
+    },
+    {
+      "type": "function",
+      "name": "SCHEDULE",
+      "line": 54,
+      "signature": "function SCHEDULE() {"
+    },
+    {
+      "type": "function",
+      "name": "SYNC",
+      "line": 63,
+      "signature": "function SYNC() {"
+    },
+    {
+      "type": "function",
+      "name": "FIX",
+      "line": 75,
+      "signature": "function FIX() {"
+    },
+    {
+      "type": "function",
+      "name": "CHECK",
+      "line": 84,
+      "signature": "function CHECK() {"
+    },
+    {
+      "type": "function",
+      "name": "TEST",
+      "line": 93,
+      "signature": "function TEST() {"
+    },
+    {
+      "type": "function",
+      "name": "GET_STATUS",
+      "line": 103,
+      "signature": "function GET_STATUS() {"
+    },
+    {
+      "type": "function",
+      "name": "CONFIG",
+      "line": 114,
+      "signature": "function CONFIG(key, value) {"
+    },
+    {
+      "type": "function",
+      "name": "BACKUP",
+      "line": 128,
+      "signature": "function BACKUP() {"
+    },
+    {
+      "type": "function",
+      "name": "INSTALL",
+      "line": 139,
+      "signature": "function INSTALL() {"
+    },
+    {
+      "type": "function",
+      "name": "UNINSTALL",
+      "line": 148,
+      "signature": "function UNINSTALL() {"
+    },
+    {
+      "type": "function",
+      "name": "LIST",
+      "line": 156,
+      "signature": "function LIST() {"
+    },
+    {
+      "type": "function",
+      "name": "ensureInitialized",
+      "line": 165,
+      "signature": "function ensureInitialized() {"
+    },
+    {
+      "type": "function",
+      "name": "HELP",
+      "line": 175,
+      "signature": "function HELP() {"
+    }
+  ],
+  "src/SYSTEM_PERFECTION_TEST.gs": [
+    {
+      "type": "function",
+      "name": "SYSTEM_PERFECTION_TEST",
+      "line": 8,
+      "signature": "function SYSTEM_PERFECTION_TEST() {"
+    },
+    {
+      "type": "function",
+      "name": "QUICK_PERFECTION_CHECK",
+      "line": 366,
+      "signature": "function QUICK_PERFECTION_CHECK() {"
+    }
+  ],
+  "src/SYSTEM_TEST_FINAL.gs": [
+    {
+      "type": "function",
+      "name": "SYSTEM_TEST_FINAL",
+      "line": 12,
+      "signature": "function SYSTEM_TEST_FINAL() {"
+    },
+    {
+      "type": "function",
+      "name": "QUICK_TEST",
+      "line": 184,
+      "signature": "function QUICK_TEST() {"
+    }
+  ],
+  "src/TEST.gs": [
+    {
+      "type": "function",
+      "name": "test",
+      "line": 10,
+      "signature": "function test() {"
+    },
+    {
+      "type": "function",
+      "name": "runTest",
+      "line": 108,
+      "signature": "function runTest() {"
+    },
+    {
+      "type": "function",
+      "name": "testSystem",
+      "line": 112,
+      "signature": "function testSystem() {"
+    },
+    {
+      "type": "function",
+      "name": "RUN_ALL_TESTS_SIMPLE",
+      "line": 116,
+      "signature": "function RUN_ALL_TESTS_SIMPLE() {"
+    }
+  ],
+  "src/TEST_RUNNER.gs": [
+    {
+      "type": "function",
+      "name": "TEST_SYSTEM",
+      "line": 11,
+      "signature": "function TEST_SYSTEM() {"
+    },
+    {
+      "type": "function",
+      "name": "QUICK_CHECK",
+      "line": 135,
+      "signature": "function QUICK_CHECK() {"
+    }
+  ],
+  "src/verify_sheet_creation.gs": [
+    {
+      "type": "function",
+      "name": "VERIFY_SHEET_CREATION",
+      "line": 11,
+      "signature": "function VERIFY_SHEET_CREATION() {"
+    },
+    {
+      "type": "function",
+      "name": "RUN_VERIFICATION",
+      "line": 90,
+      "signature": "function RUN_VERIFICATION() {"
+    }
+  ],
+  "src/5_web/AppSheetBridge.gs": [
+    {
+      "type": "class",
+      "name": "AppSheetBridge",
+      "line": 11,
+      "signature": "class AppSheetBridge {"
+    },
+    {
+      "type": "constructor",
+      "name": "AppSheetBridge.constructor",
+      "line": 12,
+      "signature": "constructor(configManager, systemManager) {"
+    },
+    {
+      "type": "method",
+      "name": "AppSheetBridge.doGet",
+      "line": 17,
+      "signature": "doGet(e) {"
+    },
+    {
+      "type": "method",
+      "name": "AppSheetBridge._handleConfigRequest",
+      "line": 34,
+      "signature": "_handleConfigRequest() {"
+    },
+    {
+      "type": "method",
+      "name": "AppSheetBridge._handleStatusRequest",
+      "line": 46,
+      "signature": "_handleStatusRequest() {"
+    },
+    {
+      "type": "method",
+      "name": "AppSheetBridge._createResponse",
+      "line": 51,
+      "signature": "_createResponse(data, statusCode = 200) {"
+    }
+  ],
+  "src/5_web/ChatEngine.gs": [
+    {
+      "type": "class",
+      "name": "ChatEngine",
+      "line": 11,
+      "signature": "class ChatEngine {"
+    },
+    {
+      "type": "constructor",
+      "name": "ChatEngine.constructor",
+      "line": 12,
+      "signature": "constructor(configManager, batchOperations, logger, cache, errorHandler, archiveManager) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._parseCommand",
+      "line": 34,
+      "signature": "_parseCommand(text, context) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._handleCreateTask",
+      "line": 55,
+      "signature": "_handleCreateTask(match, context) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._handleStatusQuery",
+      "line": 89,
+      "signature": "_handleStatusQuery() {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._handleHelp",
+      "line": 183,
+      "signature": "_handleHelp() {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._parseTaskParameters",
+      "line": 190,
+      "signature": "_parseTaskParameters(text, context) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._extractKeyValueParameters",
+      "line": 203,
+      "signature": "_extractKeyValueParameters(text) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._handleFollowUpPriority",
+      "line": 213,
+      "signature": "_handleFollowUpPriority(match, context) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._handleFollowUpLane",
+      "line": 237,
+      "signature": "_handleFollowUpLane(match, context) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._handleFollowUpDuration",
+      "line": 261,
+      "signature": "_handleFollowUpDuration(match, context) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._handleCancelTask",
+      "line": 285,
+      "signature": "_handleCancelTask(match, context) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._handleCompleteTask",
+      "line": 316,
+      "signature": "_handleCompleteTask(match, context) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._handleStartTask",
+      "line": 351,
+      "signature": "_handleStartTask(match, context) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._handleCreateDependency",
+      "line": 367,
+      "signature": "_handleCreateDependency(match, context) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._handleExplainScheduling",
+      "line": 388,
+      "signature": "_handleExplainScheduling(match, context) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._createDisambiguationCard",
+      "line": 406,
+      "signature": "_createDisambiguationCard(matches, operation, identifier) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._executeDisambiguationOperation",
+      "line": 452,
+      "signature": "_executeDisambiguationOperation(operation, actionId) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._findTaskByTitle",
+      "line": 496,
+      "signature": "_findTaskByTitle(title) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._updateTaskInSheet",
+      "line": 520,
+      "signature": "_updateTaskInSheet(actionId, updates) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._storeRecentTaskContext",
+      "line": 557,
+      "signature": "_storeRecentTaskContext(task, context) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._getRecentTaskContext",
+      "line": 562,
+      "signature": "_getRecentTaskContext(context) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._createSimpleResponse",
+      "line": 573,
+      "signature": "_createSimpleResponse(message) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._createTaskCreatedResponse",
+      "line": 580,
+      "signature": "_createTaskCreatedResponse(task) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._createHelpResponse",
+      "line": 588,
+      "signature": "_createHelpResponse() {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._calculateWorkloadPressure",
+      "line": 607,
+      "signature": "_calculateWorkloadPressure(highPriorityCount, urgentCount, pendingCount) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._calculateAvailabilityInsight",
+      "line": 613,
+      "signature": "_calculateAvailabilityInsight() {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine._createStrategicStatusResponse",
+      "line": 622,
+      "signature": "_createStrategicStatusResponse(data) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine.doPost",
+      "line": 651,
+      "signature": "doPost(e) {"
+    },
+    {
+      "type": "function",
+      "name": "processChatHumanStateCommand",
+      "line": 682,
+      "signature": "function processChatHumanStateCommand(command, parameters) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine.if",
+      "line": 685,
+      "signature": "if (!humanStateManager) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine.for",
+      "line": 692,
+      "signature": "for (const param of parameters) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine.if",
+      "line": 710,
+      "signature": "if (notes.length > 0) {"
+    },
+    {
+      "type": "method",
+      "name": "ChatEngine.if",
+      "line": 716,
+      "signature": "if (success) {"
+    },
+    {
+      "type": "function",
+      "name": "handleDisambiguation",
+      "line": 731,
+      "signature": "function handleDisambiguation(e) {"
+    }
+  ],
+  "src/5_web/SecureWebAppAuth.gs": [
+    {
+      "type": "class",
+      "name": "SecureWebAppAuth",
+      "line": 11,
+      "signature": "class SecureWebAppAuth {"
+    },
+    {
+      "type": "constructor",
+      "name": "SecureWebAppAuth.constructor",
+      "line": 12,
+      "signature": "constructor(smartLogger) {"
+    },
+    {
+      "type": "method",
+      "name": "SecureWebAppAuth.verifyGoogleChatAuth",
+      "line": 21,
+      "signature": "verifyGoogleChatAuth(e) {"
+    },
+    {
+      "type": "method",
+      "name": "SecureWebAppAuth._checkRateLimit",
+      "line": 108,
+      "signature": "_checkRateLimit(remoteAddr) {"
+    },
+    {
+      "type": "method",
+      "name": "SecureWebAppAuth.createAuthErrorResponse",
+      "line": 135,
+      "signature": "createAuthErrorResponse(reason = 'Authentication failed') {"
+    },
+    {
+      "type": "method",
+      "name": "SecureWebAppAuth.verifyWebAppToken",
+      "line": 150,
+      "signature": "verifyWebAppToken(e) {"
+    }
+  ],
+  "src/5_web/TriggerOrchestrator.gs": [
+    {
+      "type": "class",
+      "name": "TriggerOrchestrator",
+      "line": 11,
+      "signature": "class TriggerOrchestrator {"
+    },
+    {
+      "type": "constructor",
+      "name": "TriggerOrchestrator.constructor",
+      "line": 12,
+      "signature": "constructor(emailEngine, scheduler, archiveManager, foundationBlocksManager,"
+    },
+    {
+      "type": "method",
+      "name": "TriggerOrchestrator._runTrigger",
+      "line": 21,
+      "signature": "_runTrigger(triggerName, logicFunction, lockTimeout = 15000, context = this) {"
+    },
+    {
+      "type": "method",
+      "name": "TriggerOrchestrator.runEmailProcessing",
+      "line": 45,
+      "signature": "runEmailProcessing() {"
+    },
+    {
+      "type": "method",
+      "name": "TriggerOrchestrator.runSchedulingCycle",
+      "line": 57,
+      "signature": "runSchedulingCycle() {"
+    },
+    {
+      "type": "method",
+      "name": "TriggerOrchestrator.runCalendarSync",
+      "line": 60,
+      "signature": "runCalendarSync() {"
+    },
+    {
+      "type": "method",
+      "name": "TriggerOrchestrator.runCalendarProjection",
+      "line": 63,
+      "signature": "runCalendarProjection() {"
+    },
+    {
+      "type": "method",
+      "name": "TriggerOrchestrator.runFoundationBlocks",
+      "line": 66,
+      "signature": "runFoundationBlocks() {"
+    },
+    {
+      "type": "method",
+      "name": "TriggerOrchestrator.runScheduleReconciliation",
+      "line": 72,
+      "signature": "runScheduleReconciliation() {"
+    },
+    {
+      "type": "method",
+      "name": "TriggerOrchestrator.runHealthCheck",
+      "line": 75,
+      "signature": "runHealthCheck() {"
+    },
+    {
+      "type": "method",
+      "name": "TriggerOrchestrator.runDataArchiving",
+      "line": 78,
+      "signature": "runDataArchiving() {"
+    },
+    {
+      "type": "method",
+      "name": "TriggerOrchestrator.runProposalLearningCycle",
+      "line": 81,
+      "signature": "runProposalLearningCycle() {"
+    },
+    {
+      "type": "method",
+      "name": "TriggerOrchestrator.selfTest",
+      "line": 89,
+      "signature": "selfTest() {"
+    }
+  ],
+  "src/5_web/WebAppManager.gs": [
+    {
+      "type": "class",
+      "name": "WebAppManager",
+      "line": 11,
+      "signature": "class WebAppManager {"
+    },
+    {
+      "type": "constructor",
+      "name": "WebAppManager.constructor",
+      "line": 12,
+      "signature": "constructor(appSheetBridge, chatEngine, systemManager, secureAuth, logger) {"
+    },
+    {
+      "type": "method",
+      "name": "WebAppManager.handleDoGet",
+      "line": 17,
+      "signature": "handleDoGet(e) {"
+    },
+    {
+      "type": "method",
+      "name": "WebAppManager.handleDoPost",
+      "line": 39,
+      "signature": "handleDoPost(e) {"
+    },
+    {
+      "type": "method",
+      "name": "WebAppManager.selfTest",
+      "line": 68,
+      "signature": "selfTest() {"
+    }
+  ],
+  "src/1_globals/TimeZoneUtils.gs": [
+    {
+      "type": "class",
+      "name": "TimeZoneAwareDate",
+      "line": 8,
+      "signature": "class TimeZoneAwareDate {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.toISOString",
+      "line": 14,
+      "signature": "static toISOString(date) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.parseISO",
+      "line": 76,
+      "signature": "static parseISO(dateString) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.now",
+      "line": 134,
+      "signature": "static now() {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.startOfDay",
+      "line": 141,
+      "signature": "static startOfDay(date = new Date()) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.endOfDay",
+      "line": 150,
+      "signature": "static endOfDay(date = new Date()) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.addDays",
+      "line": 159,
+      "signature": "static addDays(date, days) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.isTimeForTrigger",
+      "line": 172,
+      "signature": "static isTimeForTrigger(targetHour, targetMinute = 0) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.compare",
+      "line": 182,
+      "signature": "static compare(date1, date2) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.addHours",
+      "line": 197,
+      "signature": "static addHours(date, hours) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.addMinutes",
+      "line": 210,
+      "signature": "static addMinutes(date, minutes) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.daysBetween",
+      "line": 223,
+      "signature": "static daysBetween(date1, date2) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.hoursBetween",
+      "line": 233,
+      "signature": "static hoursBetween(date1, date2) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.minutesBetween",
+      "line": 241,
+      "signature": "static minutesBetween(date1, date2) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.isSameDay",
+      "line": 249,
+      "signature": "static isSameDay(date1, date2) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.isToday",
+      "line": 260,
+      "signature": "static isToday(date) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.isPast",
+      "line": 267,
+      "signature": "static isPast(date) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.isFuture",
+      "line": 274,
+      "signature": "static isFuture(date) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.formatForDisplay",
+      "line": 281,
+      "signature": "static formatForDisplay(date, format = 'yyyy-MM-dd HH:mm') {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.formatTime",
+      "line": 298,
+      "signature": "static formatTime(date) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.formatDate",
+      "line": 305,
+      "signature": "static formatDate(date) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.combineDateTime",
+      "line": 312,
+      "signature": "static combineDateTime(date, timeString) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate._getTimezoneOffset",
+      "line": 332,
+      "signature": "static _getTimezoneOffset() {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate._addToCache",
+      "line": 340,
+      "signature": "static _addToCache(key, value) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.getCacheStats",
+      "line": 354,
+      "signature": "static getCacheStats() {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.clearCache",
+      "line": 367,
+      "signature": "static clearCache() {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.getWeekBoundaries",
+      "line": 376,
+      "signature": "static getWeekBoundaries(date = new Date()) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.getMonthBoundaries",
+      "line": 391,
+      "signature": "static getMonthBoundaries(date = new Date()) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.isBusinessHours",
+      "line": 401,
+      "signature": "static isBusinessHours(date) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.getNextBusinessDay",
+      "line": 409,
+      "signature": "static getNextBusinessDay(date = new Date()) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeZoneAwareDate.createDate",
+      "line": 423,
+      "signature": "static createDate(year, month, day, hour = 0, minute = 0, second = 0) {"
+    },
+    {
+      "type": "function",
+      "name": "getCurrentTimestamp",
+      "line": 451,
+      "signature": "function getCurrentTimestamp() {"
+    },
+    {
+      "type": "function",
+      "name": "formatTimestamp",
+      "line": 455,
+      "signature": "function formatTimestamp(date) {"
+    },
+    {
+      "type": "function",
+      "name": "parseTimestamp",
+      "line": 459,
+      "signature": "function parseTimestamp(dateString) {"
+    }
+  ],
+  "src/1_globals/Utilities.gs": [
+    {
+      "type": "function",
+      "name": "generateId",
+      "line": 14,
+      "signature": "function generateId() {"
+    },
+    {
+      "type": "function",
+      "name": "safeJsonParse",
+      "line": 24,
+      "signature": "function safeJsonParse(jsonString, defaultValue = null) {"
+    },
+    {
+      "type": "function",
+      "name": "ensureArray",
+      "line": 38,
+      "signature": "function ensureArray(value) {"
+    },
+    {
+      "type": "function",
+      "name": "calculateConfigurableAgingMultiplier",
+      "line": 51,
+      "signature": "function calculateConfigurableAgingMultiplier(rolloverCount, config) {"
+    },
+    {
+      "type": "function",
+      "name": "sanitizeString",
+      "line": 91,
+      "signature": "function sanitizeString(input) {"
+    },
+    {
+      "type": "function",
+      "name": "calculateConfigurablePriorityDecay",
+      "line": 125,
+      "signature": "function calculateConfigurablePriorityDecay(daysSinceCreation, basePriority, config) {"
+    },
+    {
+      "type": "function",
+      "name": "calculateConfigurableUrgencyScore",
+      "line": 175,
+      "signature": "function calculateConfigurableUrgencyScore(deadline, scheduledTime, currentTime, config) {"
+    },
+    {
+      "type": "function",
+      "name": "triggerCascadeRecalculation",
+      "line": 225,
+      "signature": "function triggerCascadeRecalculation(delayedTask, currentTime, headers, updates) {"
+    },
+    {
+      "type": "function",
+      "name": "isValidEmail",
+      "line": 414,
+      "signature": "function isValidEmail(email) {"
+    },
+    {
+      "type": "function",
+      "name": "isValidISODate",
+      "line": 421,
+      "signature": "function isValidISODate(dateString) {"
+    },
+    {
+      "type": "function",
+      "name": "isValidPositiveInteger",
+      "line": 428,
+      "signature": "function isValidPositiveInteger(value) {"
+    },
+    {
+      "type": "function",
+      "name": "isValidDecimal",
+      "line": 435,
+      "signature": "function isValidDecimal(value) {"
+    },
+    {
+      "type": "function",
+      "name": "isValidTime24H",
+      "line": 442,
+      "signature": "function isValidTime24H(timeString) {"
+    },
+    {
+      "type": "function",
+      "name": "safeJSONParse",
+      "line": 449,
+      "signature": "function safeJSONParse(jsonString, fallback = null) {"
+    },
+    {
+      "type": "function",
+      "name": "safeJSONStringify",
+      "line": 469,
+      "signature": "function safeJSONStringify(obj, fallback = '{}') {"
+    },
+    {
+      "type": "function",
+      "name": "truncateString",
+      "line": 489,
+      "signature": "function truncateString(str, maxLength, suffix = '...') {"
+    },
+    {
+      "type": "function",
+      "name": "generateRandomString",
+      "line": 504,
+      "signature": "function generateRandomString(length = 8, charset = 'abcdefghijklmnopqrstuvwxyz0123456789') {"
+    },
+    {
+      "type": "function",
+      "name": "deepClone",
+      "line": 515,
+      "signature": "function deepClone(obj) {"
+    },
+    {
+      "type": "function",
+      "name": "safePercentage",
+      "line": 541,
+      "signature": "function safePercentage(numerator, denominator, decimals = 1) {"
+    },
+    {
+      "type": "function",
+      "name": "formatDuration",
+      "line": 553,
+      "signature": "function formatDuration(minutes) {"
+    },
+    {
+      "type": "function",
+      "name": "calculateMovingAverage",
+      "line": 571,
+      "signature": "function calculateMovingAverage(values, windowSize = 5) {"
+    },
+    {
+      "type": "function",
+      "name": "retryWithBackoff",
+      "line": 590,
+      "signature": "function retryWithBackoff(fn, maxRetries = 3, baseDelay = 1000) {"
+    },
+    {
+      "type": "function",
+      "name": "debounce",
+      "line": 621,
+      "signature": "function debounce(func, wait) {"
+    },
+    {
+      "type": "function",
+      "name": "throttle",
+      "line": 636,
+      "signature": "function throttle(func, limit) {"
+    },
+    {
+      "type": "function",
+      "name": "getPerformanceStatus",
+      "line": 650,
+      "signature": "function getPerformanceStatus(metric, value) {"
+    },
+    {
+      "type": "function",
+      "name": "parseDateValue",
+      "line": 672,
+      "signature": "function parseDateValue(dateInput) {"
+    }
+  ],
+  "src/4_services/ArchiveManager.gs": [
+    {
+      "type": "class",
+      "name": "ArchiveManager",
+      "line": 11,
+      "signature": "class ArchiveManager {"
+    },
+    {
+      "type": "constructor",
+      "name": "ArchiveManager.constructor",
+      "line": 12,
+      "signature": "constructor(configManager, logger, batchOperations) {"
+    },
+    {
+      "type": "method",
+      "name": "ArchiveManager.getArchiveSpreadsheetId",
+      "line": 26,
+      "signature": "getArchiveSpreadsheetId() {"
+    },
+    {
+      "type": "method",
+      "name": "ArchiveManager.getArchiveStatus",
+      "line": 63,
+      "signature": "getArchiveStatus() {"
+    },
+    {
+      "type": "method",
+      "name": "ArchiveManager.getOrCreateArchiveSheet",
+      "line": 97,
+      "signature": "getOrCreateArchiveSheet(sheetName, headers) {"
+    },
+    {
+      "type": "method",
+      "name": "ArchiveManager.archiveCompletedTasks",
+      "line": 151,
+      "signature": "archiveCompletedTasks(tasks = []) {"
+    },
+    {
+      "type": "method",
+      "name": "ArchiveManager.archiveProcessedProposals",
+      "line": 208,
+      "signature": "archiveProcessedProposals(proposals = []) {"
+    },
+    {
+      "type": "method",
+      "name": "ArchiveManager.appendToArchive",
+      "line": 265,
+      "signature": "appendToArchive(sheetName, rows) {"
+    },
+    {
+      "type": "method",
+      "name": "ArchiveManager._taskToArchiveRow",
+      "line": 325,
+      "signature": "_taskToArchiveRow(task, headers) {"
+    },
+    {
+      "type": "method",
+      "name": "ArchiveManager._proposalToArchiveRow",
+      "line": 344,
+      "signature": "_proposalToArchiveRow(proposal, headers) {"
+    },
+    {
+      "type": "method",
+      "name": "ArchiveManager.getArchiveStatistics",
+      "line": 360,
+      "signature": "getArchiveStatistics() {"
+    },
+    {
+      "type": "method",
+      "name": "ArchiveManager._getSheetLastModified",
+      "line": 418,
+      "signature": "_getSheetLastModified(sheet) {"
+    },
+    {
+      "type": "method",
+      "name": "ArchiveManager.cleanupOldArchives",
+      "line": 432,
+      "signature": "cleanupOldArchives(retentionPolicy = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "ArchiveManager.selfTest",
+      "line": 471,
+      "signature": "selfTest() {"
+    }
+  ],
+  "src/4_services/AuditProtocol.gs": [
+    {
+      "type": "class",
+      "name": "AuditProtocol",
+      "line": 8,
+      "signature": "class AuditProtocol {"
+    },
+    {
+      "type": "constructor",
+      "name": "AuditProtocol.constructor",
+      "line": 9,
+      "signature": "constructor(batchOperations, logger, persistentStore) {"
+    },
+    {
+      "type": "method",
+      "name": "AuditProtocol.logAuditEvent",
+      "line": 23,
+      "signature": "logAuditEvent(eventType, details) {"
+    },
+    {
+      "type": "method",
+      "name": "AuditProtocol._flushAuditCache",
+      "line": 68,
+      "signature": "_flushAuditCache() {"
+    },
+    {
+      "type": "method",
+      "name": "AuditProtocol._determineSeverity",
+      "line": 86,
+      "signature": "_determineSeverity(eventType) {"
+    },
+    {
+      "type": "method",
+      "name": "AuditProtocol.getAuditTrail",
+      "line": 109,
+      "signature": "getAuditTrail(filters = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "AuditProtocol.generateAuditReport",
+      "line": 137,
+      "signature": "generateAuditReport(startDate, endDate) {"
+    },
+    {
+      "type": "method",
+      "name": "AuditProtocol.selfTest",
+      "line": 177,
+      "signature": "selfTest() {"
+    }
+  ],
+  "src/4_services/BusinessLogicValidation.gs": [
+    {
+      "type": "class",
+      "name": "BusinessLogicValidation",
+      "line": 8,
+      "signature": "class BusinessLogicValidation {"
+    },
+    {
+      "type": "constructor",
+      "name": "BusinessLogicValidation.constructor",
+      "line": 9,
+      "signature": "constructor(batchOperations, logger, errorHandler) {"
+    },
+    {
+      "type": "method",
+      "name": "BusinessLogicValidation.validateTaskCreation",
+      "line": 20,
+      "signature": "validateTaskCreation(taskData) {"
+    },
+    {
+      "type": "method",
+      "name": "BusinessLogicValidation.validateStateTransition",
+      "line": 70,
+      "signature": "validateStateTransition(currentStatus, newStatus) {"
+    },
+    {
+      "type": "method",
+      "name": "BusinessLogicValidation.validateScheduleConflict",
+      "line": 89,
+      "signature": "validateScheduleConflict(task, existingTasks) {"
+    },
+    {
+      "type": "method",
+      "name": "BusinessLogicValidation.validatePriority",
+      "line": 118,
+      "signature": "validatePriority(task) {"
+    },
+    {
+      "type": "method",
+      "name": "BusinessLogicValidation.selfTest",
+      "line": 143,
+      "signature": "selfTest() {"
+    }
+  ],
+  "src/4_services/CalendarSyncManager.gs": [
+    {
+      "type": "class",
+      "name": "CalendarSyncManager",
+      "line": 11,
+      "signature": "class CalendarSyncManager {"
+    },
+    {
+      "type": "constructor",
+      "name": "CalendarSyncManager.constructor",
+      "line": 12,
+      "signature": "constructor(batchOperations, configManager, errorHandler, logger) {"
+    },
+    {
+      "type": "method",
+      "name": "CalendarSyncManager.prepareSyncOperations",
+      "line": 27,
+      "signature": "prepareSyncOperations(actions = []) {"
+    },
+    {
+      "type": "method",
+      "name": "CalendarSyncManager.refreshCalendarProjection",
+      "line": 80,
+      "signature": "refreshCalendarProjection(daysAhead = 7) {"
+    },
+    {
+      "type": "method",
+      "name": "CalendarSyncManager._getCalendarEvents",
+      "line": 127,
+      "signature": "_getCalendarEvents(startDate, endDate) {"
+    },
+    {
+      "type": "method",
+      "name": "CalendarSyncManager._eventToProjectionRow",
+      "line": 160,
+      "signature": "_eventToProjectionRow(event, headers) {"
+    },
+    {
+      "type": "method",
+      "name": "CalendarSyncManager._categorizeEvent",
+      "line": 198,
+      "signature": "_categorizeEvent(event) {"
+    },
+    {
+      "type": "method",
+      "name": "CalendarSyncManager._getEventVisibility",
+      "line": 226,
+      "signature": "_getEventVisibility(event) {"
+    },
+    {
+      "type": "method",
+      "name": "CalendarSyncManager.syncActionsToCalendar",
+      "line": 240,
+      "signature": "syncActionsToCalendar(actions = []) {"
+    },
+    {
+      "type": "method",
+      "name": "CalendarSyncManager._createCalendarEvent",
+      "line": 294,
+      "signature": "_createCalendarEvent(action) {"
+    },
+    {
+      "type": "method",
+      "name": "CalendarSyncManager._updateCalendarEvent",
+      "line": 333,
+      "signature": "_updateCalendarEvent(eventId, action) {"
+    },
+    {
+      "type": "method",
+      "name": "CalendarSyncManager._buildEventDescription",
+      "line": 374,
+      "signature": "_buildEventDescription(action) {"
+    },
+    {
+      "type": "method",
+      "name": "CalendarSyncManager._updateActionCalendarId",
+      "line": 408,
+      "signature": "_updateActionCalendarId(actionId, eventId) {"
+    },
+    {
+      "type": "method",
+      "name": "CalendarSyncManager.checkCalendarConflicts",
+      "line": 449,
+      "signature": "checkCalendarConflicts(startTime, endTime) {"
+    },
+    {
+      "type": "method",
+      "name": "CalendarSyncManager.findFreeTimeSlots",
+      "line": 475,
+      "signature": "findFreeTimeSlots(startDate, endDate, durationMinutes) {"
+    },
+    {
+      "type": "method",
+      "name": "CalendarSyncManager._formatDate",
+      "line": 521,
+      "signature": "_formatDate(date) {"
+    },
+    {
+      "type": "method",
+      "name": "CalendarSyncManager.selfTest",
+      "line": 529,
+      "signature": "selfTest() {"
+    }
+  ],
+  "src/4_services/DynamicLaneManager.gs": [
+    {
+      "type": "class",
+      "name": "DynamicLaneManager",
+      "line": 11,
+      "signature": "class DynamicLaneManager {"
+    },
+    {
+      "type": "constructor",
+      "name": "DynamicLaneManager.constructor",
+      "line": 12,
+      "signature": "constructor(configManager, errorHandler, batchOperations, foundationBlocksManager, logger, crossExecutionCache) {"
+    },
+    {
+      "type": "method",
+      "name": "DynamicLaneManager.loadLanes",
+      "line": 26,
+      "signature": "loadLanes() {"
+    },
+    {
+      "type": "method",
+      "name": "DynamicLaneManager.parseRowToLane",
+      "line": 60,
+      "signature": "parseRowToLane(row, headers) {"
+    },
+    {
+      "type": "method",
+      "name": "DynamicLaneManager.validateLanes",
+      "line": 104,
+      "signature": "validateLanes(lanes) {"
+    },
+    {
+      "type": "method",
+      "name": "DynamicLaneManager.normalizeLaneWeights",
+      "line": 169,
+      "signature": "normalizeLaneWeights(lanes) {"
+    },
+    {
+      "type": "method",
+      "name": "DynamicLaneManager.allocateLaneBlocks",
+      "line": 200,
+      "signature": "allocateLaneBlocks(foundationBlocks, lanes) {"
+    },
+    {
+      "type": "method",
+      "name": "DynamicLaneManager.createLaneBlock",
+      "line": 240,
+      "signature": "createLaneBlock(lane, capacity, foundationBlocks) {"
+    },
+    {
+      "type": "method",
+      "name": "DynamicLaneManager.findSuitableFoundationBlocks",
+      "line": 288,
+      "signature": "findSuitableFoundationBlocks(lane, foundationBlocks) {"
+    },
+    {
+      "type": "method",
+      "name": "DynamicLaneManager.allocateTaskToLane",
+      "line": 327,
+      "signature": "allocateTaskToLane(laneBlock, task, estimatedMinutes) {"
+    },
+    {
+      "type": "method",
+      "name": "DynamicLaneManager.getLaneUtilization",
+      "line": 387,
+      "signature": "getLaneUtilization(laneBlocks) {"
+    },
+    {
+      "type": "method",
+      "name": "DynamicLaneManager.rebalanceLanes",
+      "line": 429,
+      "signature": "rebalanceLanes(laneBlocks, lanes) {"
+    },
+    {
+      "type": "method",
+      "name": "DynamicLaneManager.getLaneRecommendations",
+      "line": 486,
+      "signature": "getLaneRecommendations(tasks, lanes) {"
+    },
+    {
+      "type": "method",
+      "name": "DynamicLaneManager.selfTest",
+      "line": 570,
+      "signature": "selfTest() {"
+    },
+    {
+      "type": "method",
+      "name": "DynamicLaneManager.logEvent",
+      "line": 644,
+      "signature": "logEvent(event, message, details = null) {"
+    },
+    {
+      "type": "method",
+      "name": "DynamicLaneManager.getDefaultLaneMetrics",
+      "line": 659,
+      "signature": "getDefaultLaneMetrics(lane) {"
+    }
+  ],
+  "src/4_services/EmailIngestionEngine.gs": [
+    {
+      "type": "class",
+      "name": "EmailIngestionEngine",
+      "line": 11,
+      "signature": "class EmailIngestionEngine {"
+    },
+    {
+      "type": "constructor",
+      "name": "EmailIngestionEngine.constructor",
+      "line": 12,
+      "signature": "constructor(configManager, errorHandler, batchOperations, logger, persistentStore) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine.processUnreadEmails",
+      "line": 42,
+      "signature": "processUnreadEmails() {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._processLabelBasedEmails",
+      "line": 68,
+      "signature": "_processLabelBasedEmails() {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._processMessage",
+      "line": 171,
+      "signature": "_processMessage(message) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._quarantinePoisonPill",
+      "line": 226,
+      "signature": "_quarantinePoisonPill(message, error) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._createTaskProposals",
+      "line": 260,
+      "signature": "_createTaskProposals(proposalDataArray, newCursorTimestamp) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._getLastProcessedCursor",
+      "line": 290,
+      "signature": "_getLastProcessedCursor() {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._updateLastProcessedCursor",
+      "line": 304,
+      "signature": "_updateLastProcessedCursor(timestamp) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._isSystemGeneratedContent",
+      "line": 321,
+      "signature": "_isSystemGeneratedContent(subject, body, senderEmail) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._convertTriageResultsToLegacyFormat",
+      "line": 387,
+      "signature": "_convertTriageResultsToLegacyFormat(triageResults) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine.runProposalLearningCycle",
+      "line": 403,
+      "signature": "runProposalLearningCycle() {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._initializeLearningSystem",
+      "line": 435,
+      "signature": "_initializeLearningSystem() {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._persistLearningData",
+      "line": 509,
+      "signature": "_persistLearningData(patterns, confidence) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._generateRecommendation",
+      "line": 520,
+      "signature": "_generateRecommendation(email, patterns, confidence) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine.recordUserFeedback",
+      "line": 553,
+      "signature": "recordUserFeedback(proposalId, action, originalProposal, correctedData = null) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._updateSenderReputationScore",
+      "line": 574,
+      "signature": "_updateSenderReputationScore(senderEmail) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._learnKeywordLaneAssociation",
+      "line": 591,
+      "signature": "_learnKeywordLaneAssociation(content, originalLane, correctedLane, learningPatterns) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._learnTimeEstimateCorrection",
+      "line": 608,
+      "signature": "_learnTimeEstimateCorrection(content, originalMinutes, correctedMinutes, learningPatterns) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._calculateActionabilityScoreWithLearning",
+      "line": 624,
+      "signature": "_calculateActionabilityScoreWithLearning(emailData) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine.parseTaskFromEmailWithLearning",
+      "line": 673,
+      "signature": "parseTaskFromEmailWithLearning(emailData) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._extractSignificantKeywords",
+      "line": 735,
+      "signature": "_extractSignificantKeywords(content) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._extractDateEntities",
+      "line": 751,
+      "signature": "_extractDateEntities(text) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._inferLane",
+      "line": 774,
+      "signature": "_inferLane(emailData) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._estimateTimeRequirement",
+      "line": 809,
+      "signature": "_estimateTimeRequirement(emailData) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._inferPriority",
+      "line": 839,
+      "signature": "_inferPriority(emailData) {"
+    },
+    {
+      "type": "method",
+      "name": "EmailIngestionEngine._generateTaskDescription",
+      "line": 858,
+      "signature": "_generateTaskDescription(emailData) {"
+    }
+  ],
+  "src/4_services/FoundationBlocksManager.gs": [
+    {
+      "type": "class",
+      "name": "FoundationBlocksManager",
+      "line": 11,
+      "signature": "class FoundationBlocksManager {"
+    },
+    {
+      "type": "constructor",
+      "name": "FoundationBlocksManager.constructor",
+      "line": 13,
+      "signature": "constructor(configManager, errorHandler, logger) {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager.generateDailyBlocks",
+      "line": 23,
+      "signature": "generateDailyBlocks(date) {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager.generateEnergyBlocks",
+      "line": 76,
+      "signature": "generateEnergyBlocks(date) {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager.generateBufferBlocks",
+      "line": 127,
+      "signature": "generateBufferBlocks(date) {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager.getEnergyWindows",
+      "line": 171,
+      "signature": "getEnergyWindows() {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager.getBufferConfiguration",
+      "line": 227,
+      "signature": "getBufferConfiguration() {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager.getOptimalContextForEnergy",
+      "line": 260,
+      "signature": "getOptimalContextForEnergy(energyLevel) {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager.validateBlocks",
+      "line": 273,
+      "signature": "validateBlocks(blocks) {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager.isValidWorkDay",
+      "line": 341,
+      "signature": "isValidWorkDay(date) {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager.parseTimeInDate",
+      "line": 357,
+      "signature": "parseTimeInDate(date, timeString) {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager.formatDate",
+      "line": 385,
+      "signature": "formatDate(date) {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager._generateBlockId",
+      "line": 393,
+      "signature": "_generateBlockId() {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager.getBlocksForDate",
+      "line": 400,
+      "signature": "getBlocksForDate(date) {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager.findAvailableCapacity",
+      "line": 434,
+      "signature": "findAvailableCapacity(blocks, requiredMinutes, energyLevel = null, contextType = null) {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager.allocateTimeInBlock",
+      "line": 475,
+      "signature": "allocateTimeInBlock(block, minutes, taskId = null) {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager.getBlocksStatistics",
+      "line": 523,
+      "signature": "getBlocksStatistics(blocks) {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager.selfTest",
+      "line": 565,
+      "signature": "selfTest() {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager.logEvent",
+      "line": 622,
+      "signature": "logEvent(event, message, details = null) {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager.hasFoundationBlocksForDate",
+      "line": 659,
+      "signature": "hasFoundationBlocksForDate(date) {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager.createDailyFoundationBlocks",
+      "line": 676,
+      "signature": "createDailyFoundationBlocks(date) {"
+    },
+    {
+      "type": "method",
+      "name": "FoundationBlocksManager._blockToRow",
+      "line": 721,
+      "signature": "_blockToRow(block, headers) {"
+    }
+  ],
+  "src/4_services/HumanStateManager.gs": [
+    {
+      "type": "class",
+      "name": "HumanStateManager",
+      "line": 11,
+      "signature": "class HumanStateManager {"
+    },
+    {
+      "type": "constructor",
+      "name": "HumanStateManager.constructor",
+      "line": 12,
+      "signature": "constructor(batchOperations, smartLogger, configManager) {"
+    },
+    {
+      "type": "method",
+      "name": "HumanStateManager.recordHumanState",
+      "line": 30,
+      "signature": "recordHumanState(state) {"
+    },
+    {
+      "type": "method",
+      "name": "HumanStateManager.getCurrentHumanState",
+      "line": 68,
+      "signature": "getCurrentHumanState() {"
+    },
+    {
+      "type": "method",
+      "name": "HumanStateManager._getDefaultHumanState",
+      "line": 125,
+      "signature": "_getDefaultHumanState() {"
+    },
+    {
+      "type": "method",
+      "name": "HumanStateManager._mapStateToNumber",
+      "line": 143,
+      "signature": "_mapStateToNumber(state, type) {"
+    },
+    {
+      "type": "method",
+      "name": "HumanStateManager._mapNumberToState",
+      "line": 175,
+      "signature": "_mapNumberToState(value, type) {"
+    },
+    {
+      "type": "method",
+      "name": "HumanStateManager._ensureHumanStateSheet",
+      "line": 211,
+      "signature": "_ensureHumanStateSheet() {"
+    },
+    {
+      "type": "method",
+      "name": "HumanStateManager.calculateTaskSuitability",
+      "line": 227,
+      "signature": "calculateTaskSuitability(task, humanState = null) {"
+    },
+    {
+      "type": "method",
+      "name": "HumanStateManager._calculateEnergyMatch",
+      "line": 284,
+      "signature": "_calculateEnergyMatch(currentEnergy, requiredEnergy) {"
+    },
+    {
+      "type": "method",
+      "name": "HumanStateManager._calculateFocusMatch",
+      "line": 305,
+      "signature": "_calculateFocusMatch(currentFocus, requiredFocus) {"
+    },
+    {
+      "type": "method",
+      "name": "HumanStateManager._calculateMoodImpact",
+      "line": 325,
+      "signature": "_calculateMoodImpact(currentMood, taskComplexity) {"
+    },
+    {
+      "type": "method",
+      "name": "HumanStateManager._getTaskRecommendation",
+      "line": 347,
+      "signature": "_getTaskRecommendation(score) {"
+    },
+    {
+      "type": "method",
+      "name": "HumanStateManager._getTaskSuitabilityReason",
+      "line": 363,
+      "signature": "_getTaskSuitabilityReason(task, humanState, score) {"
+    },
+    {
+      "type": "method",
+      "name": "HumanStateManager.getSchedulingRecommendations",
+      "line": 378,
+      "signature": "getSchedulingRecommendations(tasks) {"
+    },
+    {
+      "type": "method",
+      "name": "HumanStateManager._getStateGuidance",
+      "line": 437,
+      "signature": "_getStateGuidance(state) {"
+    },
+    {
+      "type": "method",
+      "name": "HumanStateManager.selfTest",
+      "line": 474,
+      "signature": "selfTest() {"
+    }
+  ],
+  "src/4_services/IntelligentScheduler.gs": [
+    {
+      "type": "class",
+      "name": "IntelligentScheduler",
+      "line": 19,
+      "signature": "class IntelligentScheduler {"
+    },
+    {
+      "type": "constructor",
+      "name": "IntelligentScheduler.constructor",
+      "line": 20,
+      "signature": "constructor(foundationManager, calendarManager, errorHandler, logger, configManager, humanStateManager, batchOperations, crossExecutionCache, dynamicLaneManager) {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler.getScoringWeights",
+      "line": 48,
+      "signature": "getScoringWeights() {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler.runSchedulingCycle",
+      "line": 60,
+      "signature": "runSchedulingCycle(options = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler.scheduleActions",
+      "line": 124,
+      "signature": "scheduleActions(actions, timeBlocks) {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler._getLearnedEstimationFactors",
+      "line": 202,
+      "signature": "_getLearnedEstimationFactors() {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler._applyEstimationLearning",
+      "line": 270,
+      "signature": "_applyEstimationLearning(actions, learnedFactors) {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler._sortActionsBySchedulingPriority",
+      "line": 305,
+      "signature": "_sortActionsBySchedulingPriority(actions) {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler._findBestAvailableSlot",
+      "line": 321,
+      "signature": "_findBestAvailableSlot(action, availableBlocks, previousContext, contextMatchBonus, remainingActions) {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler.priorityToScore",
+      "line": 359,
+      "signature": "priorityToScore(priority) {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler._calculateSchedulingEfficiency",
+      "line": 375,
+      "signature": "_calculateSchedulingEfficiency() {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler._calculateActiveHours",
+      "line": 422,
+      "signature": "_calculateActiveHours() {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler._calculateTotalAvailableHours",
+      "line": 435,
+      "signature": "_calculateTotalAvailableHours() {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler.getLaneEnergyMapping",
+      "line": 439,
+      "signature": "getLaneEnergyMapping() {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler.getOptimalEnergyForLane",
+      "line": 455,
+      "signature": "getOptimalEnergyForLane(lane) {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler.getOptimalContextForLane",
+      "line": 460,
+      "signature": "getOptimalContextForLane(lane, effortMinutes) {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler.getLaneBlockPreferences",
+      "line": 480,
+      "signature": "getLaneBlockPreferences() {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler.getCompatibilityMatrix",
+      "line": 518,
+      "signature": "getCompatibilityMatrix() {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler.getLaneCompatibility",
+      "line": 532,
+      "signature": "getLaneCompatibility() {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler.calculateEnergyMatch",
+      "line": 541,
+      "signature": "calculateEnergyMatch(action, block) {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler._calculateEnergyDistance",
+      "line": 557,
+      "signature": "_calculateEnergyDistance(currentEnergy, requiredEnergy) {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler.calculateContextMatch",
+      "line": 568,
+      "signature": "calculateContextMatch(action, block) {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler.calculateDeadlineUrgency",
+      "line": 583,
+      "signature": "calculateDeadlineUrgency(action, slotTime) {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler.calculateLanePreference",
+      "line": 599,
+      "signature": "calculateLanePreference(action, block) {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler._identifyDependencyChains",
+      "line": 615,
+      "signature": "_identifyDependencyChains(actions) {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler._buildDependencyChain",
+      "line": 651,
+      "signature": "_buildDependencyChain(actionId, dependsOn, blocks, actionMap, visited, chain) {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler._persistTimeBlocks",
+      "line": 675,
+      "signature": "_persistTimeBlocks(blocks) {"
+    },
+    {
+      "type": "method",
+      "name": "IntelligentScheduler._blockToRow",
+      "line": 713,
+      "signature": "_blockToRow(block, headers) {"
+    }
+  ],
+  "src/4_services/SenderReputationManager.gs": [
+    {
+      "type": "class",
+      "name": "SenderReputationManager",
+      "line": 11,
+      "signature": "class SenderReputationManager {"
+    },
+    {
+      "type": "constructor",
+      "name": "SenderReputationManager.constructor",
+      "line": 12,
+      "signature": "constructor(batchOperations, logger, configManager, cache) {"
+    },
+    {
+      "type": "method",
+      "name": "SenderReputationManager.getSenderReputation",
+      "line": 37,
+      "signature": "getSenderReputation(senderEmail) {"
+    },
+    {
+      "type": "method",
+      "name": "SenderReputationManager.recordFeedback",
+      "line": 85,
+      "signature": "recordFeedback(senderEmail, feedbackType, additionalContext = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "SenderReputationManager._getReputationTableFromCache",
+      "line": 148,
+      "signature": "_getReputationTableFromCache() {"
+    },
+    {
+      "type": "method",
+      "name": "SenderReputationManager._createNewSenderRecordInCache",
+      "line": 205,
+      "signature": "_createNewSenderRecordInCache(normalizedEmail, reputationTable) {"
+    },
+    {
+      "type": "method",
+      "name": "SenderReputationManager._calculateBayesianScore",
+      "line": 238,
+      "signature": "_calculateBayesianScore(approvedCount, rejectedCount) {"
+    },
+    {
+      "type": "method",
+      "name": "SenderReputationManager._getNeutralReputation",
+      "line": 256,
+      "signature": "_getNeutralReputation(senderEmail) {"
+    },
+    {
+      "type": "method",
+      "name": "SenderReputationManager._stagePendingUpdate",
+      "line": 276,
+      "signature": "_stagePendingUpdate(senderEmail, updatedData) {"
+    },
+    {
+      "type": "method",
+      "name": "SenderReputationManager.flushPendingUpdates",
+      "line": 289,
+      "signature": "flushPendingUpdates() {"
+    },
+    {
+      "type": "method",
+      "name": "SenderReputationManager._senderDataToRow",
+      "line": 365,
+      "signature": "_senderDataToRow(senderData, headers) {"
+    },
+    {
+      "type": "method",
+      "name": "SenderReputationManager.getReputationMultiplier",
+      "line": 382,
+      "signature": "getReputationMultiplier(senderEmail) {"
+    },
+    {
+      "type": "method",
+      "name": "SenderReputationManager.isSenderBlocked",
+      "line": 406,
+      "signature": "isSenderBlocked(senderEmail) {"
+    },
+    {
+      "type": "method",
+      "name": "SenderReputationManager.blockSender",
+      "line": 420,
+      "signature": "blockSender(senderEmail, reason = 'Manual block') {"
+    },
+    {
+      "type": "method",
+      "name": "SenderReputationManager.unblockSender",
+      "line": 451,
+      "signature": "unblockSender(senderEmail) {"
+    },
+    {
+      "type": "method",
+      "name": "SenderReputationManager.getReputationStats",
+      "line": 480,
+      "signature": "getReputationStats() {"
+    },
+    {
+      "type": "method",
+      "name": "SenderReputationManager.selfTest",
+      "line": 518,
+      "signature": "selfTest() {"
+    }
+  ],
+  "src/4_services/SystemManager.gs": [
+    {
+      "type": "class",
+      "name": "SystemManager",
+      "line": 11,
+      "signature": "class SystemManager {"
+    },
+    {
+      "type": "constructor",
+      "name": "SystemManager.constructor",
+      "line": 12,
+      "signature": "constructor(batchOperations, smartLogger, configManager, errorHandler, archiveManager) {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager.checkSchemaStatus",
+      "line": 24,
+      "signature": "checkSchemaStatus() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager.initializeSchema",
+      "line": 60,
+      "signature": "initializeSchema() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager.runHealthCheck",
+      "line": 83,
+      "signature": "runHealthCheck() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager.getSystemStatus",
+      "line": 159,
+      "signature": "getSystemStatus() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager._checkDatabaseHealth",
+      "line": 195,
+      "signature": "_checkDatabaseHealth() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager._checkServiceHealth",
+      "line": 261,
+      "signature": "_checkServiceHealth() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager._checkDataIntegrity",
+      "line": 323,
+      "signature": "_checkDataIntegrity() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager._checkConfigurationHealth",
+      "line": 388,
+      "signature": "_checkConfigurationHealth() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager._calculateOverallHealth",
+      "line": 458,
+      "signature": "_calculateOverallHealth(checks) {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager._writeHealthResults",
+      "line": 481,
+      "signature": "_writeHealthResults(healthResults) {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager.runSystemMaintenance",
+      "line": 518,
+      "signature": "runSystemMaintenance() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager._basicSchemaHealthCheck",
+      "line": 623,
+      "signature": "_basicSchemaHealthCheck() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager._basicSchemaRepair",
+      "line": 644,
+      "signature": "_basicSchemaRepair() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager._getRequiredSheetDefinitions",
+      "line": 675,
+      "signature": "_getRequiredSheetDefinitions() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager._getRequiredSheetNames",
+      "line": 687,
+      "signature": "_getRequiredSheetNames() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager.getSystemMetrics",
+      "line": 704,
+      "signature": "getSystemMetrics() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager.selfTest",
+      "line": 764,
+      "signature": "selfTest() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager.createRequiredLabels",
+      "line": 809,
+      "signature": "createRequiredLabels() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager.runCompleteSetup",
+      "line": 837,
+      "signature": "runCompleteSetup() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager.runScheduleReconciliation",
+      "line": 862,
+      "signature": "runScheduleReconciliation() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager.archiveOldRecords",
+      "line": 871,
+      "signature": "archiveOldRecords() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager._verifyDatabaseSchema",
+      "line": 890,
+      "signature": "_verifyDatabaseSchema() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager.checkSheetHealth",
+      "line": 939,
+      "signature": "checkSheetHealth() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager.healSheets",
+      "line": 983,
+      "signature": "healSheets() {"
+    },
+    {
+      "type": "method",
+      "name": "SystemManager.getActiveSystemSpreadsheet",
+      "line": 1027,
+      "signature": "getActiveSystemSpreadsheet() {"
+    }
+  ],
+  "src/4_services/ZeroTrustTriageEngine.gs": [
+    {
+      "type": "class",
+      "name": "ZeroTrustTriageEngine",
+      "line": 11,
+      "signature": "class ZeroTrustTriageEngine {"
+    },
+    {
+      "type": "constructor",
+      "name": "ZeroTrustTriageEngine.constructor",
+      "line": 12,
+      "signature": "constructor(senderReputationManager, batchOperations, logger, configManager, errorHandler) {"
+    },
+    {
+      "type": "method",
+      "name": "ZeroTrustTriageEngine.runInboxTriageCycle",
+      "line": 46,
+      "signature": "runInboxTriageCycle() {"
+    },
+    {
+      "type": "method",
+      "name": "ZeroTrustTriageEngine._executeSieveStage",
+      "line": 132,
+      "signature": "_executeSieveStage() {"
+    },
+    {
+      "type": "method",
+      "name": "ZeroTrustTriageEngine._buildSieveSearchQuery",
+      "line": 174,
+      "signature": "_buildSieveSearchQuery(maxDaysBack) {"
+    },
+    {
+      "type": "method",
+      "name": "ZeroTrustTriageEngine._processEmailThroughPipeline",
+      "line": 210,
+      "signature": "_processEmailThroughPipeline(email) {"
+    },
+    {
+      "type": "method",
+      "name": "ZeroTrustTriageEngine._executeTechnicalFilter",
+      "line": 246,
+      "signature": "_executeTechnicalFilter(email) {"
+    },
+    {
+      "type": "method",
+      "name": "ZeroTrustTriageEngine._isAutoGenerated",
+      "line": 284,
+      "signature": "_isAutoGenerated(email, subject, body, sender) {"
+    },
+    {
+      "type": "method",
+      "name": "ZeroTrustTriageEngine._hasSpamIndicators",
+      "line": 324,
+      "signature": "_hasSpamIndicators(subject, body) {"
+    },
+    {
+      "type": "method",
+      "name": "ZeroTrustTriageEngine._executeReputationCheck",
+      "line": 354,
+      "signature": "_executeReputationCheck(email) {"
+    },
+    {
+      "type": "method",
+      "name": "ZeroTrustTriageEngine._executeNLPAnalysis",
+      "line": 391,
+      "signature": "_executeNLPAnalysis(email) {"
+    },
+    {
+      "type": "method",
+      "name": "ZeroTrustTriageEngine._markEmailApproved",
+      "line": 466,
+      "signature": "_markEmailApproved(email) {"
+    },
+    {
+      "type": "method",
+      "name": "ZeroTrustTriageEngine._markEmailIgnored",
+      "line": 485,
+      "signature": "_markEmailIgnored(email, stage, reason) {"
+    },
+    {
+      "type": "method",
+      "name": "ZeroTrustTriageEngine._batchCreateProposals",
+      "line": 505,
+      "signature": "_batchCreateProposals(proposalsData) {"
+    },
+    {
+      "type": "method",
+      "name": "ZeroTrustTriageEngine.getEngineStats",
+      "line": 556,
+      "signature": "getEngineStats() {"
+    },
+    {
+      "type": "method",
+      "name": "ZeroTrustTriageEngine._countEmailsWithLabel",
+      "line": 585,
+      "signature": "_countEmailsWithLabel(labelName) {"
+    },
+    {
+      "type": "method",
+      "name": "ZeroTrustTriageEngine._verifyLabelsExist",
+      "line": 599,
+      "signature": "_verifyLabelsExist() {"
+    },
+    {
+      "type": "method",
+      "name": "ZeroTrustTriageEngine.selfTest",
+      "line": 620,
+      "signature": "selfTest() {"
+    }
+  ],
+  "src/0_bootstrap/AA_Container.gs": [
+    {
+      "type": "class",
+      "name": "DependencyContainer",
+      "line": 8,
+      "signature": "class DependencyContainer {"
+    },
+    {
+      "type": "constructor",
+      "name": "DependencyContainer.constructor",
+      "line": 9,
+      "signature": "constructor() {"
+    },
+    {
+      "type": "method",
+      "name": "DependencyContainer._log",
+      "line": 30,
+      "signature": "_log(level, message, context) {"
+    },
+    {
+      "type": "method",
+      "name": "DependencyContainer.register",
+      "line": 46,
+      "signature": "register(name, factory, options = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "DependencyContainer.get",
+      "line": 133,
+      "signature": "get(name) {"
+    },
+    {
+      "type": "method",
+      "name": "DependencyContainer._initializeLazyService",
+      "line": 184,
+      "signature": "_initializeLazyService(name, lazy) {"
+    },
+    {
+      "type": "method",
+      "name": "DependencyContainer._createStandardService",
+      "line": 260,
+      "signature": "_createStandardService(name) {"
+    },
+    {
+      "type": "method",
+      "name": "DependencyContainer._createInstance",
+      "line": 294,
+      "signature": "_createInstance(name, factory, options = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "DependencyContainer._validateDependencies",
+      "line": 319,
+      "signature": "_validateDependencies(serviceName, dependencies) {"
+    },
+    {
+      "type": "method",
+      "name": "DependencyContainer.has",
+      "line": 330,
+      "signature": "has(name) {"
+    },
+    {
+      "type": "method",
+      "name": "DependencyContainer._getFallbackService",
+      "line": 339,
+      "signature": "_getFallbackService(name) {"
+    },
+    {
+      "type": "method",
+      "name": "DependencyContainer.clear",
+      "line": 388,
+      "signature": "clear() {"
+    },
+    {
+      "type": "method",
+      "name": "DependencyContainer.destroy",
+      "line": 423,
+      "signature": "destroy() {"
+    },
+    {
+      "type": "method",
+      "name": "DependencyContainer.hasRegistrations",
+      "line": 433,
+      "signature": "hasRegistrations() {"
+    },
+    {
+      "type": "method",
+      "name": "DependencyContainer.isServiceRegistered",
+      "line": 444,
+      "signature": "isServiceRegistered(name) {"
+    },
+    {
+      "type": "method",
+      "name": "DependencyContainer.isServiceInitialized",
+      "line": 455,
+      "signature": "isServiceInitialized(name) {"
+    },
+    {
+      "type": "method",
+      "name": "DependencyContainer.getInitializationReport",
+      "line": 462,
+      "signature": "getInitializationReport() {"
+    },
+    {
+      "type": "method",
+      "name": "DependencyContainer.getServiceStatus",
+      "line": 490,
+      "signature": "getServiceStatus(serviceName) {"
+    },
+    {
+      "type": "method",
+      "name": "DependencyContainer.getAllServiceStatuses",
+      "line": 527,
+      "signature": "getAllServiceStatuses() {"
+    },
+    {
+      "type": "method",
+      "name": "DependencyContainer.getHealthStatus",
+      "line": 546,
+      "signature": "getHealthStatus() {"
+    },
+    {
+      "type": "function",
+      "name": "getService",
+      "line": 574,
+      "signature": "function getService(name) {"
+    },
+    {
+      "type": "function",
+      "name": "hasService",
+      "line": 578,
+      "signature": "function hasService(name) {"
+    },
+    {
+      "type": "function",
+      "name": "getContainerStatus",
+      "line": 582,
+      "signature": "function getContainerStatus() {"
+    },
+    {
+      "type": "function",
+      "name": "clearContainer",
+      "line": 586,
+      "signature": "function clearContainer() {"
+    },
+    {
+      "type": "function",
+      "name": "emergencyContainerReset",
+      "line": 593,
+      "signature": "function emergencyContainerReset() {"
+    }
+  ],
+  "src/0_bootstrap/AB_Constants.gs": [
+    {
+      "type": "function",
+      "name": "getConstant",
+      "line": 287,
+      "signature": "function getConstant(key, defaultValue = null) {"
+    },
+    {
+      "type": "function",
+      "name": "getSheetName",
+      "line": 304,
+      "signature": "function getSheetName(key) {"
+    },
+    {
+      "type": "function",
+      "name": "getServiceName",
+      "line": 315,
+      "signature": "function getServiceName(key) {"
+    },
+    {
+      "type": "function",
+      "name": "validatePattern",
+      "line": 326,
+      "signature": "function validatePattern(value, patternKey) {"
+    },
+    {
+      "type": "function",
+      "name": "getAllConstants",
+      "line": 337,
+      "signature": "function getAllConstants() {"
+    }
+  ],
+  "src/0_bootstrap/AC_Enums.gs": [
+    {
+      "type": "function",
+      "name": "isValidEnumValue",
+      "line": 241,
+      "signature": "function isValidEnumValue(enumObject, value) {"
+    },
+    {
+      "type": "function",
+      "name": "getValidEnumValue",
+      "line": 248,
+      "signature": "function getValidEnumValue(enumObject, value, defaultValue) {"
+    },
+    {
+      "type": "function",
+      "name": "normalizeStatus",
+      "line": 264,
+      "signature": "function normalizeStatus(status) {"
+    },
+    {
+      "type": "function",
+      "name": "normalizePriority",
+      "line": 271,
+      "signature": "function normalizePriority(priority) {"
+    },
+    {
+      "type": "function",
+      "name": "normalizeLane",
+      "line": 278,
+      "signature": "function normalizeLane(lane) {"
+    },
+    {
+      "type": "function",
+      "name": "normalizeEnergyLevel",
+      "line": 285,
+      "signature": "function normalizeEnergyLevel(energyLevel) {"
+    },
+    {
+      "type": "function",
+      "name": "canTransitionStatus",
+      "line": 292,
+      "signature": "function canTransitionStatus(currentStatus, newStatus) {"
+    },
+    {
+      "type": "function",
+      "name": "getPriorityScore",
+      "line": 336,
+      "signature": "function getPriorityScore(priority) {"
+    },
+    {
+      "type": "function",
+      "name": "getEnergyScore",
+      "line": 352,
+      "signature": "function getEnergyScore(energyLevel) {"
+    },
+    {
+      "type": "function",
+      "name": "getAllEnums",
+      "line": 367,
+      "signature": "function getAllEnums() {"
+    }
+  ],
+  "src/0_bootstrap/LoggerFacade.gs": [
+    {
+      "type": "function",
+      "name": "formatLogMessage",
+      "line": 15,
+      "signature": "function formatLogMessage(level, component, message, data) {"
+    },
+    {
+      "type": "function",
+      "name": "getLogger",
+      "line": 95,
+      "signature": "function getLogger() {"
+    }
+  ],
+  "src/0_bootstrap/Preload.gs": [
+    {
+      "type": "function",
+      "name": "safeLog",
+      "line": 11,
+      "signature": "function safeLog(level, message, context) {"
+    },
+    {
+      "type": "function",
+      "name": "globalErrorHandler",
+      "line": 42,
+      "signature": "function globalErrorHandler(error, context = {}) {"
+    },
+    {
+      "type": "function",
+      "name": "initializeMissingGlobals",
+      "line": 83,
+      "signature": "function initializeMissingGlobals() {"
+    },
+    {
+      "type": "function",
+      "name": "safeGetService",
+      "line": 131,
+      "signature": "function safeGetService(serviceName, fallback = null) {"
+    },
+    {
+      "type": "function",
+      "name": "getActiveSystemSpreadsheet",
+      "line": 161,
+      "signature": "function getActiveSystemSpreadsheet() {"
+    },
+    {
+      "type": "function",
+      "name": "resetSpreadsheetCache",
+      "line": 207,
+      "signature": "function resetSpreadsheetCache() {"
+    },
+    {
+      "type": "function",
+      "name": "wrapWithErrorBoundary",
+      "line": 214,
+      "signature": "function wrapWithErrorBoundary(fn, context = {}) {"
+    },
+    {
+      "type": "function",
+      "name": "getCriticalInitStatus",
+      "line": 235,
+      "signature": "function getCriticalInitStatus() {"
+    },
+    {
+      "type": "function",
+      "name": "installGlobalErrorHandlers",
+      "line": 249,
+      "signature": "function installGlobalErrorHandlers() {"
+    }
+  ],
+  "src/0_bootstrap/RunAllTests.gs": [
+    {
+      "type": "function",
+      "name": "RUN_ALL_TESTS",
+      "line": 11,
+      "signature": "function RUN_ALL_TESTS() {"
+    },
+    {
+      "type": "function",
+      "name": "QUICK_SYSTEM_CHECK",
+      "line": 252,
+      "signature": "function QUICK_SYSTEM_CHECK() {"
+    },
+    {
+      "type": "function",
+      "name": "MANUAL_TEST_ENTRY",
+      "line": 286,
+      "signature": "function MANUAL_TEST_ENTRY() {"
+    }
+  ],
+  "src/0_bootstrap/SheetHealer.gs": [
+    {
+      "type": "class",
+      "name": "SheetHealer",
+      "line": 8,
+      "signature": "class SheetHealer {"
+    },
+    {
+      "type": "static_method",
+      "name": "SheetHealer.validateAndRepair",
+      "line": 13,
+      "signature": "static validateAndRepair() {"
+    },
+    {
+      "type": "static_method",
+      "name": "SheetHealer.createSheet",
+      "line": 76,
+      "signature": "static createSheet(spreadsheet, sheetName, schema) {"
+    },
+    {
+      "type": "static_method",
+      "name": "SheetHealer.validateSheetStructure",
+      "line": 113,
+      "signature": "static validateSheetStructure(sheet, schema) {"
+    },
+    {
+      "type": "static_method",
+      "name": "SheetHealer.applyDataValidations",
+      "line": 180,
+      "signature": "static applyDataValidations(sheet, validations) {"
+    },
+    {
+      "type": "static_method",
+      "name": "SheetHealer._getValidationVersion",
+      "line": 200,
+      "signature": "static _getValidationVersion(sheet) {"
+    },
+    {
+      "type": "static_method",
+      "name": "SheetHealer._setValidationVersion",
+      "line": 217,
+      "signature": "static _setValidationVersion(sheet, version) {"
+    },
+    {
+      "type": "static_method",
+      "name": "SheetHealer.getRequiredSheets",
+      "line": 236,
+      "signature": "static getRequiredSheets() {"
+    },
+    {
+      "type": "static_method",
+      "name": "SheetHealer.getValidationStatus",
+      "line": 441,
+      "signature": "static getValidationStatus() {"
+    },
+    {
+      "type": "static_method",
+      "name": "SheetHealer.quickHealthCheck",
+      "line": 448,
+      "signature": "static quickHealthCheck() {"
+    },
+    {
+      "type": "function",
+      "name": "healSheets",
+      "line": 483,
+      "signature": "function healSheets() {"
+    },
+    {
+      "type": "function",
+      "name": "checkSheetHealth",
+      "line": 490,
+      "signature": "function checkSheetHealth() {"
+    },
+    {
+      "type": "function",
+      "name": "resetSpreadsheetCacheFull",
+      "line": 498,
+      "signature": "function resetSpreadsheetCacheFull() {"
+    }
+  ],
+  "src/7_support/MockBatchOperations.gs": [
+    {
+      "type": "class",
+      "name": "MockBatchOperations",
+      "line": 11,
+      "signature": "class MockBatchOperations {"
+    },
+    {
+      "type": "constructor",
+      "name": "MockBatchOperations.constructor",
+      "line": 12,
+      "signature": "constructor(cache, logger) {"
+    },
+    {
+      "type": "method",
+      "name": "MockBatchOperations.initializeMockSheets",
+      "line": 24,
+      "signature": "initializeMockSheets() {"
+    },
+    {
+      "type": "method",
+      "name": "MockBatchOperations.getHeaders",
+      "line": 67,
+      "signature": "getHeaders(sheetName) {"
+    },
+    {
+      "type": "method",
+      "name": "MockBatchOperations.getAllSheetData",
+      "line": 87,
+      "signature": "getAllSheetData(sheetName) {"
+    },
+    {
+      "type": "method",
+      "name": "MockBatchOperations.getRowsWithPosition",
+      "line": 101,
+      "signature": "getRowsWithPosition(sheetName, criteria = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "MockBatchOperations.batchUpdate",
+      "line": 131,
+      "signature": "batchUpdate(sheetName, updates) {"
+    },
+    {
+      "type": "method",
+      "name": "MockBatchOperations.addTestData",
+      "line": 193,
+      "signature": "addTestData(sheetName, testData) {"
+    },
+    {
+      "type": "method",
+      "name": "MockBatchOperations.clearTestData",
+      "line": 206,
+      "signature": "clearTestData() {"
+    },
+    {
+      "type": "method",
+      "name": "MockBatchOperations._columnA1ToIndex",
+      "line": 221,
+      "signature": "_columnA1ToIndex(columnA1) {"
+    },
+    {
+      "type": "method",
+      "name": "MockBatchOperations.performAtomicSwapOrFallback",
+      "line": 233,
+      "signature": "performAtomicSwapOrFallback(originalSheetName, newData, configManager, logger) {"
+    },
+    {
+      "type": "method",
+      "name": "MockBatchOperations._performLegacyClearAndSet",
+      "line": 268,
+      "signature": "_performLegacyClearAndSet(sheetName, newData, logger) {"
+    }
+  ],
+  "src/7_support/MockService.gs": [
+    {
+      "type": "class",
+      "name": "MockService",
+      "line": 11,
+      "signature": "class MockService {"
+    },
+    {
+      "type": "constructor",
+      "name": "MockService.constructor",
+      "line": 12,
+      "signature": "constructor() {"
+    },
+    {
+      "type": "method",
+      "name": "MockService.createMockAction",
+      "line": 23,
+      "signature": "createMockAction(overrides = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "MockService.createMockActionsForScenario",
+      "line": 51,
+      "signature": "createMockActionsForScenario(scenario) {"
+    },
+    {
+      "type": "method",
+      "name": "MockService.createMockCalendarEvents",
+      "line": 126,
+      "signature": "createMockCalendarEvents(count = 5) {"
+    },
+    {
+      "type": "method",
+      "name": "MockService.createMockProposedTasks",
+      "line": 153,
+      "signature": "createMockProposedTasks(count = 3) {"
+    },
+    {
+      "type": "method",
+      "name": "MockService.createMockTimeBlocks",
+      "line": 181,
+      "signature": "createMockTimeBlocks(scenario = 'work_hours') {"
+    },
+    {
+      "type": "method",
+      "name": "MockService.reset",
+      "line": 260,
+      "signature": "reset() {"
+    }
+  ],
+  "src/7_support/SafeColumnAccess.gs": [
+    {
+      "type": "class",
+      "name": "SafeColumnAccess",
+      "line": 11,
+      "signature": "class SafeColumnAccess {"
+    },
+    {
+      "type": "constructor",
+      "name": "SafeColumnAccess.constructor",
+      "line": 12,
+      "signature": "constructor(headers) {"
+    },
+    {
+      "type": "method",
+      "name": "SafeColumnAccess.buildColumnMap",
+      "line": 18,
+      "signature": "buildColumnMap() {"
+    },
+    {
+      "type": "method",
+      "name": "SafeColumnAccess.getColumnIndex",
+      "line": 26,
+      "signature": "getColumnIndex(columnName) {"
+    },
+    {
+      "type": "method",
+      "name": "SafeColumnAccess.getValue",
+      "line": 31,
+      "signature": "getValue(row, columnName) {"
+    },
+    {
+      "type": "method",
+      "name": "SafeColumnAccess.setValue",
+      "line": 36,
+      "signature": "setValue(row, columnName, value) {"
+    },
+    {
+      "type": "method",
+      "name": "SafeColumnAccess.createEmptyRow",
+      "line": 47,
+      "signature": "createEmptyRow() {"
+    },
+    {
+      "type": "method",
+      "name": "SafeColumnAccess.validateRow",
+      "line": 51,
+      "signature": "validateRow(row) {"
+    },
+    {
+      "type": "method",
+      "name": "SafeColumnAccess.mapRowToObject",
+      "line": 56,
+      "signature": "mapRowToObject(row) {"
+    },
+    {
+      "type": "method",
+      "name": "SafeColumnAccess.mapObjectToRow",
+      "line": 66,
+      "signature": "mapObjectToRow(obj) {"
+    }
+  ],
+  "src/7_support/TestSeeder.gs": [
+    {
+      "type": "class",
+      "name": "TestSeeder",
+      "line": 11,
+      "signature": "class TestSeeder {"
+    },
+    {
+      "type": "constructor",
+      "name": "TestSeeder.constructor",
+      "line": 12,
+      "signature": "constructor(batchOperations, logger) {"
+    },
+    {
+      "type": "method",
+      "name": "TestSeeder.seedTestData",
+      "line": 23,
+      "signature": "seedTestData(scenario, options = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "TestSeeder._cleanAllTestData",
+      "line": 88,
+      "signature": "_cleanAllTestData() {"
+    },
+    {
+      "type": "method",
+      "name": "TestSeeder._seedBasicWorkflowData",
+      "line": 117,
+      "signature": "_seedBasicWorkflowData(batchOps) {"
+    },
+    {
+      "type": "method",
+      "name": "TestSeeder._seedLargeBacklogData",
+      "line": 134,
+      "signature": "_seedLargeBacklogData(batchOps) {"
+    },
+    {
+      "type": "method",
+      "name": "TestSeeder._seedEmailIngestionData",
+      "line": 162,
+      "signature": "_seedEmailIngestionData(batchOps) {"
+    },
+    {
+      "type": "method",
+      "name": "TestSeeder._seedCalendarIntegrationData",
+      "line": 181,
+      "signature": "_seedCalendarIntegrationData(batchOps) {"
+    },
+    {
+      "type": "method",
+      "name": "TestSeeder._seedMixedScenarioData",
+      "line": 200,
+      "signature": "_seedMixedScenarioData(batchOps) {"
+    }
+  ],
+  "src/3_core/0_BaseError.gs": [
+    {
+      "type": "class",
+      "name": "BaseError",
+      "line": 13,
+      "signature": "class BaseError extends Error {"
+    },
+    {
+      "type": "constructor",
+      "name": "BaseError.constructor",
+      "line": 14,
+      "signature": "constructor(message, context = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "BaseError.toObject",
+      "line": 37,
+      "signature": "toObject() {"
+    },
+    {
+      "type": "method",
+      "name": "BaseError.toJSON",
+      "line": 55,
+      "signature": "toJSON() {"
+    },
+    {
+      "type": "method",
+      "name": "BaseError.log",
+      "line": 62,
+      "signature": "log() {"
+    }
+  ],
+  "src/3_core/BatchOperations.gs": [
+    {
+      "type": "class",
+      "name": "BatchOperations",
+      "line": 11,
+      "signature": "class BatchOperations {"
+    },
+    {
+      "type": "constructor",
+      "name": "BatchOperations.constructor",
+      "line": 16,
+      "signature": "constructor(cache, logger) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations.generateVersion",
+      "line": 30,
+      "signature": "generateVersion() {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations.deepClone",
+      "line": 37,
+      "signature": "deepClone(value) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations.chunkArray",
+      "line": 44,
+      "signature": "chunkArray(array, chunkSize) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations.appendRows",
+      "line": 59,
+      "signature": "appendRows(sheetName, rows) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations.clearSheetData",
+      "line": 108,
+      "signature": "clearSheetData(sheetName) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations.appendRowsToExternalSheet",
+      "line": 133,
+      "signature": "appendRowsToExternalSheet(spreadsheetId, sheetName, rows) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations._getSpreadsheet",
+      "line": 170,
+      "signature": "_getSpreadsheet() {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations._getSheet",
+      "line": 179,
+      "signature": "_getSheet(sheetName) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations.getHeaders",
+      "line": 200,
+      "signature": "getHeaders(sheetName) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations.getAllSheetData",
+      "line": 243,
+      "signature": "getAllSheetData(sheetName) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations.batchUpdate",
+      "line": 271,
+      "signature": "batchUpdate(sheetName, data) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations.getRowsByFilter",
+      "line": 343,
+      "signature": "getRowsByFilter(sheetName, filterObject = {}, options = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations.getRowsByPredicate",
+      "line": 453,
+      "signature": "getRowsByPredicate(sheetName, predicate, options = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations.getRowsWithPosition",
+      "line": 500,
+      "signature": "getRowsWithPosition(sheetName, filterObject = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations.updateActionWithOptimisticLocking",
+      "line": 581,
+      "signature": "updateActionWithOptimisticLocking(sheetName, actionId, updatedAction) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations._handleVersionConflictWithRetry",
+      "line": 643,
+      "signature": "_handleVersionConflictWithRetry(sheetName, actionId, updatedAction, expectedDbVersion, attempt) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations._attemptRetryUpdate",
+      "line": 706,
+      "signature": "_attemptRetryUpdate(sheetName, actionId, updatedAction, attempt) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations._attemptMergeResolution",
+      "line": 758,
+      "signature": "_attemptMergeResolution(sheetName, actionId, updatedAction) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations._intelligentMerge",
+      "line": 819,
+      "signature": "_intelligentMerge(currentTask, updatedTask) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations.transaction",
+      "line": 891,
+      "signature": "transaction(operations) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations.performAtomicSwapOrFallback",
+      "line": 995,
+      "signature": "performAtomicSwapOrFallback(originalSheetName, newData, configManager, logger) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations.rollback",
+      "line": 1052,
+      "signature": "rollback(transactionId) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations._performRollback",
+      "line": 1088,
+      "signature": "_performRollback(rollbackData) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations.selfTest",
+      "line": 1122,
+      "signature": "selfTest() {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations.batchWrite",
+      "line": 1187,
+      "signature": "batchWrite(sheetName, rows, options = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "BatchOperations.batchRead",
+      "line": 1220,
+      "signature": "batchRead(sheetName, options = {}) {"
+    }
+  ],
+  "src/3_core/ConfigManager.gs": [
+    {
+      "type": "class",
+      "name": "HardenedConfigManager",
+      "line": 30,
+      "signature": "class HardenedConfigManager {"
+    },
+    {
+      "type": "constructor",
+      "name": "HardenedConfigManager.constructor",
+      "line": 31,
+      "signature": "constructor(cache, persistentStore, batchOperations, logger) {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager._ensureConfigurationLoaded",
+      "line": 45,
+      "signature": "_ensureConfigurationLoaded() {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager._getRawConfig",
+      "line": 61,
+      "signature": "_getRawConfig(key) {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.get",
+      "line": 79,
+      "signature": "get(key, defaultValue = null) {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.getString",
+      "line": 97,
+      "signature": "getString(key, defaultValue = '') {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.getBoolean",
+      "line": 105,
+      "signature": "getBoolean(key, defaultValue = false) {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.getArray",
+      "line": 113,
+      "signature": "getArray(key, defaultValue = []) {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.getNumber",
+      "line": 126,
+      "signature": "getNumber(key, defaultValue = 0, constraints = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.getJSON",
+      "line": 156,
+      "signature": "getJSON(key, defaultValue = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.setString",
+      "line": 169,
+      "signature": "setString(key, value) {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.setBoolean",
+      "line": 181,
+      "signature": "setBoolean(key, value) {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.setNumber",
+      "line": 188,
+      "signature": "setNumber(key, value) {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.setArray",
+      "line": 195,
+      "signature": "setArray(key, value) {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.setJSON",
+      "line": 205,
+      "signature": "setJSON(key, value) {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager._loadConfigurationFromSheet",
+      "line": 213,
+      "signature": "_loadConfigurationFromSheet() {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager._handleConfigurationFailure",
+      "line": 261,
+      "signature": "_handleConfigurationFailure(originalError) {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.getConfigurationHealth",
+      "line": 283,
+      "signature": "getConfigurationHealth() {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.reloadConfiguration",
+      "line": 301,
+      "signature": "reloadConfiguration() {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.validateConfiguration",
+      "line": 320,
+      "signature": "validateConfiguration() {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.setTestOverrides",
+      "line": 373,
+      "signature": "setTestOverrides(overrides) {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.clearTestOverrides",
+      "line": 381,
+      "signature": "clearTestOverrides() {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.getAllKeys",
+      "line": 390,
+      "signature": "getAllKeys() {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.deleteKey",
+      "line": 422,
+      "signature": "deleteKey(key) {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.selfTest",
+      "line": 458,
+      "signature": "selfTest() {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.getConfig",
+      "line": 529,
+      "signature": "getConfig(key, defaultValue = null) {"
+    },
+    {
+      "type": "method",
+      "name": "HardenedConfigManager.updateConfig",
+      "line": 539,
+      "signature": "updateConfig(key, value) {"
+    }
+  ],
+  "src/3_core/CrossExecutionCache.gs": [
+    {
+      "type": "class",
+      "name": "CrossExecutionCache",
+      "line": 10,
+      "signature": "class CrossExecutionCache {"
+    },
+    {
+      "type": "constructor",
+      "name": "CrossExecutionCache.constructor",
+      "line": 11,
+      "signature": "constructor(persistentStore) {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache.get",
+      "line": 35,
+      "signature": "get(key) {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache._checkPersistent",
+      "line": 62,
+      "signature": "_checkPersistent(key) {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache.set",
+      "line": 89,
+      "signature": "set(key, value, ttl = null) {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache.getOrCompute",
+      "line": 113,
+      "signature": "getOrCompute(key, computeFn, ttl = null) {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache._addToMemory",
+      "line": 142,
+      "signature": "_addToMemory(key, value, ttl = null) {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache._updateAccessOrder",
+      "line": 186,
+      "signature": "_updateAccessOrder(key) {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache._addToAccessOrder",
+      "line": 194,
+      "signature": "_addToAccessOrder(key) {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache._removeFromAccessOrder",
+      "line": 201,
+      "signature": "_removeFromAccessOrder(key) {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache._evictLRU",
+      "line": 208,
+      "signature": "_evictLRU() {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache.delete",
+      "line": 233,
+      "signature": "delete(key) {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache.has",
+      "line": 258,
+      "signature": "has(key) {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache.clear",
+      "line": 276,
+      "signature": "clear() {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache.clearAll",
+      "line": 287,
+      "signature": "clearAll() {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache.cleanup",
+      "line": 303,
+      "signature": "cleanup() {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache.warmUp",
+      "line": 325,
+      "signature": "warmUp(keyValuePairs, ttl = null) {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache.getMultiple",
+      "line": 338,
+      "signature": "getMultiple(keys) {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache.setMultiple",
+      "line": 389,
+      "signature": "setMultiple(keyValuePairs, ttl = null) {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache.getStats",
+      "line": 425,
+      "signature": "getStats() {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache.getCacheInfo",
+      "line": 443,
+      "signature": "getCacheInfo() {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache.optimize",
+      "line": 466,
+      "signature": "optimize() {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache.healthCheck",
+      "line": 507,
+      "signature": "healthCheck() {"
+    },
+    {
+      "type": "method",
+      "name": "CrossExecutionCache.destroy",
+      "line": 558,
+      "signature": "destroy() {"
+    }
+  ],
+  "src/3_core/CustomErrors.gs": [
+    {
+      "type": "class",
+      "name": "DatabaseError",
+      "line": 15,
+      "signature": "class DatabaseError extends BaseError {"
+    },
+    {
+      "type": "constructor",
+      "name": "DatabaseError.constructor",
+      "line": 16,
+      "signature": "constructor(message, context = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "DatabaseError.getErrorType",
+      "line": 24,
+      "signature": "getErrorType() {"
+    },
+    {
+      "type": "method",
+      "name": "DatabaseError.isRetryable",
+      "line": 28,
+      "signature": "isRetryable() {"
+    },
+    {
+      "type": "static_method",
+      "name": "DatabaseError.sheetNotFound",
+      "line": 32,
+      "signature": "static sheetNotFound(sheetName) {"
+    },
+    {
+      "type": "static_method",
+      "name": "DatabaseError.columnNotFound",
+      "line": 40,
+      "signature": "static columnNotFound(columnName, sheetName) {"
+    },
+    {
+      "type": "static_method",
+      "name": "DatabaseError.invalidData",
+      "line": 49,
+      "signature": "static invalidData(data, reason) {"
+    },
+    {
+      "type": "static_method",
+      "name": "DatabaseError.atomicOperationFailed",
+      "line": 58,
+      "signature": "static atomicOperationFailed(operation, reason) {"
+    },
+    {
+      "type": "class",
+      "name": "ValidationError",
+      "line": 71,
+      "signature": "class ValidationError extends BaseError {"
+    },
+    {
+      "type": "constructor",
+      "name": "ValidationError.constructor",
+      "line": 72,
+      "signature": "constructor(message, context = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "ValidationError.getErrorType",
+      "line": 84,
+      "signature": "getErrorType() {"
+    },
+    {
+      "type": "static_method",
+      "name": "ValidationError.required",
+      "line": 88,
+      "signature": "static required(field) {"
+    },
+    {
+      "type": "static_method",
+      "name": "ValidationError.invalid",
+      "line": 95,
+      "signature": "static invalid(field, value, constraint) {"
+    },
+    {
+      "type": "static_method",
+      "name": "ValidationError.outOfRange",
+      "line": 103,
+      "signature": "static outOfRange(field, value, min, max) {"
+    },
+    {
+      "type": "static_method",
+      "name": "ValidationError.invalidEnum",
+      "line": 113,
+      "signature": "static invalidEnum(field, value, validValues) {"
+    },
+    {
+      "type": "static_method",
+      "name": "ValidationError.invalidFormat",
+      "line": 122,
+      "signature": "static invalidFormat(field, value, expectedFormat) {"
+    },
+    {
+      "type": "class",
+      "name": "ApiError",
+      "line": 135,
+      "signature": "class ApiError extends BaseError {"
+    },
+    {
+      "type": "constructor",
+      "name": "ApiError.constructor",
+      "line": 136,
+      "signature": "constructor(message, context = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "ApiError.getErrorType",
+      "line": 149,
+      "signature": "getErrorType() {"
+    },
+    {
+      "type": "method",
+      "name": "ApiError.isRetryable",
+      "line": 153,
+      "signature": "isRetryable() {"
+    },
+    {
+      "type": "static_method",
+      "name": "ApiError.quotaExceeded",
+      "line": 167,
+      "signature": "static quotaExceeded(service, quotaType) {"
+    },
+    {
+      "type": "static_method",
+      "name": "ApiError.unauthorized",
+      "line": 177,
+      "signature": "static unauthorized(service, operation) {"
+    },
+    {
+      "type": "static_method",
+      "name": "ApiError.serviceUnavailable",
+      "line": 186,
+      "signature": "static serviceUnavailable(service) {"
+    },
+    {
+      "type": "static_method",
+      "name": "ApiError.timeout",
+      "line": 194,
+      "signature": "static timeout(service, operation, timeoutMs) {"
+    },
+    {
+      "type": "static_method",
+      "name": "ApiError.rateLimitExceeded",
+      "line": 203,
+      "signature": "static rateLimitExceeded(service, limit, window) {"
+    },
+    {
+      "type": "class",
+      "name": "ConfigurationError",
+      "line": 217,
+      "signature": "class ConfigurationError extends BaseError {"
+    },
+    {
+      "type": "constructor",
+      "name": "ConfigurationError.constructor",
+      "line": 218,
+      "signature": "constructor(message, context = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "ConfigurationError.getErrorType",
+      "line": 230,
+      "signature": "getErrorType() {"
+    },
+    {
+      "type": "static_method",
+      "name": "ConfigurationError.missing",
+      "line": 234,
+      "signature": "static missing(key, source = 'unknown') {"
+    },
+    {
+      "type": "static_method",
+      "name": "ConfigurationError.invalid",
+      "line": 242,
+      "signature": "static invalid(key, value, reason) {"
+    },
+    {
+      "type": "static_method",
+      "name": "ConfigurationError.parseError",
+      "line": 251,
+      "signature": "static parseError(key, value, format) {"
+    },
+    {
+      "type": "class",
+      "name": "AuthenticationError",
+      "line": 264,
+      "signature": "class AuthenticationError extends BaseError {"
+    },
+    {
+      "type": "constructor",
+      "name": "AuthenticationError.constructor",
+      "line": 265,
+      "signature": "constructor(message, context = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "AuthenticationError.getErrorType",
+      "line": 277,
+      "signature": "getErrorType() {"
+    },
+    {
+      "type": "static_method",
+      "name": "AuthenticationError.accessDenied",
+      "line": 281,
+      "signature": "static accessDenied(user, resource) {"
+    },
+    {
+      "type": "static_method",
+      "name": "AuthenticationError.sessionExpired",
+      "line": 289,
+      "signature": "static sessionExpired(user) {"
+    },
+    {
+      "type": "static_method",
+      "name": "AuthenticationError.invalidCredentials",
+      "line": 296,
+      "signature": "static invalidCredentials(user) {"
+    },
+    {
+      "type": "class",
+      "name": "NetworkError",
+      "line": 307,
+      "signature": "class NetworkError extends BaseError {"
+    },
+    {
+      "type": "constructor",
+      "name": "NetworkError.constructor",
+      "line": 308,
+      "signature": "constructor(message, context = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "NetworkError.getErrorType",
+      "line": 320,
+      "signature": "getErrorType() {"
+    },
+    {
+      "type": "static_method",
+      "name": "NetworkError.connectionFailed",
+      "line": 324,
+      "signature": "static connectionFailed(url, reason) {"
+    },
+    {
+      "type": "static_method",
+      "name": "NetworkError.timeout",
+      "line": 332,
+      "signature": "static timeout(url, method, timeoutMs) {"
+    },
+    {
+      "type": "class",
+      "name": "TimeoutError",
+      "line": 345,
+      "signature": "class TimeoutError extends BaseError {"
+    },
+    {
+      "type": "constructor",
+      "name": "TimeoutError.constructor",
+      "line": 346,
+      "signature": "constructor(message, context = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "TimeoutError.getErrorType",
+      "line": 357,
+      "signature": "getErrorType() {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeoutError.operationTimeout",
+      "line": 361,
+      "signature": "static operationTimeout(operation, timeoutMs) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeoutError.executionTimeout",
+      "line": 368,
+      "signature": "static executionTimeout(timeoutMs) {"
+    },
+    {
+      "type": "class",
+      "name": "ErrorFactory",
+      "line": 380,
+      "signature": "class ErrorFactory {"
+    },
+    {
+      "type": "static_method",
+      "name": "ErrorFactory.fromError",
+      "line": 384,
+      "signature": "static fromError(error, context = {}) {"
+    },
+    {
+      "type": "static_method",
+      "name": "ErrorFactory.categorizeError",
+      "line": 415,
+      "signature": "static categorizeError(message) {"
+    },
+    {
+      "type": "static_method",
+      "name": "ErrorFactory.isRetryable",
+      "line": 452,
+      "signature": "static isRetryable(error) {"
+    },
+    {
+      "type": "static_method",
+      "name": "ErrorFactory.getRetryDelay",
+      "line": 466,
+      "signature": "static getRetryDelay(error, attempt = 1) {"
+    },
+    {
+      "type": "function",
+      "name": "registerGlobalErrorHandlers",
+      "line": 484,
+      "signature": "function registerGlobalErrorHandlers() {"
+    },
+    {
+      "type": "function",
+      "name": "wrapWithErrorHandling",
+      "line": 525,
+      "signature": "function wrapWithErrorHandling(fn, errorHandler) {"
+    },
+    {
+      "type": "function",
+      "name": "safeExecute",
+      "line": 544,
+      "signature": "function safeExecute(fn, fallback = null, context = {}) {"
+    },
+    {
+      "type": "class",
+      "name": "BusinessLogicError",
+      "line": 576,
+      "signature": "class BusinessLogicError extends BaseError {"
+    },
+    {
+      "type": "constructor",
+      "name": "BusinessLogicError.constructor",
+      "line": 577,
+      "signature": "constructor(message, details = {}) {"
+    },
+    {
+      "type": "static_method",
+      "name": "BusinessLogicError.validation",
+      "line": 590,
+      "signature": "static validation(errors, entity = 'entity') {"
+    },
+    {
+      "type": "static_method",
+      "name": "BusinessLogicError.invalidStateTransition",
+      "line": 604,
+      "signature": "static invalidStateTransition(currentState, targetState, entity = 'entity') {"
+    },
+    {
+      "type": "static_method",
+      "name": "BusinessLogicError.constraintViolation",
+      "line": 620,
+      "signature": "static constraintViolation(constraint, value, entity = 'entity') {"
+    },
+    {
+      "type": "method",
+      "name": "BusinessLogicError.toUserString",
+      "line": 635,
+      "signature": "toUserString() {"
+    },
+    {
+      "type": "method",
+      "name": "BusinessLogicError.toJSON",
+      "line": 645,
+      "signature": "toJSON() {"
+    },
+    {
+      "type": "class",
+      "name": "SchedulingError",
+      "line": 661,
+      "signature": "class SchedulingError extends BaseError {"
+    },
+    {
+      "type": "constructor",
+      "name": "SchedulingError.constructor",
+      "line": 662,
+      "signature": "constructor(message, details = {}) {"
+    },
+    {
+      "type": "static_method",
+      "name": "SchedulingError.timeConflict",
+      "line": 676,
+      "signature": "static timeConflict(task, conflictingTasks) {"
+    },
+    {
+      "type": "static_method",
+      "name": "SchedulingError.resourceUnavailable",
+      "line": 692,
+      "signature": "static resourceUnavailable(resource, requestedTime) {"
+    },
+    {
+      "type": "static_method",
+      "name": "SchedulingError.constraintViolation",
+      "line": 708,
+      "signature": "static constraintViolation(constraint, details) {"
+    },
+    {
+      "type": "static_method",
+      "name": "SchedulingError.capacityExceeded",
+      "line": 724,
+      "signature": "static capacityExceeded(date, currentLoad, maxCapacity) {"
+    },
+    {
+      "type": "method",
+      "name": "SchedulingError.getSuggestions",
+      "line": 740,
+      "signature": "getSuggestions() {"
+    },
+    {
+      "type": "method",
+      "name": "SchedulingError.toJSON",
+      "line": 761,
+      "signature": "toJSON() {"
+    },
+    {
+      "type": "class",
+      "name": "TriageError",
+      "line": 779,
+      "signature": "class TriageError extends BaseError {"
+    },
+    {
+      "type": "constructor",
+      "name": "TriageError.constructor",
+      "line": 780,
+      "signature": "constructor(message, details = {}) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TriageError.parsingFailed",
+      "line": 795,
+      "signature": "static parsingFailed(email, reason) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TriageError.classificationFailed",
+      "line": 813,
+      "signature": "static classificationFailed(email, reason) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TriageError.suspiciousContent",
+      "line": 832,
+      "signature": "static suspiciousContent(email, suspicionReasons) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TriageError.lowSenderReputation",
+      "line": 852,
+      "signature": "static lowSenderReputation(email, reputationScore) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TriageError.processingTimeout",
+      "line": 872,
+      "signature": "static processingTimeout(email, timeoutMs) {"
+    },
+    {
+      "type": "method",
+      "name": "TriageError.shouldRetry",
+      "line": 890,
+      "signature": "shouldRetry() {"
+    },
+    {
+      "type": "method",
+      "name": "TriageError.getRecommendedAction",
+      "line": 897,
+      "signature": "getRecommendedAction() {"
+    },
+    {
+      "type": "method",
+      "name": "TriageError.toJSON",
+      "line": 910,
+      "signature": "toJSON() {"
+    }
+  ],
+  "src/3_core/DistributedLockManager.gs": [
+    {
+      "type": "class",
+      "name": "DistributedLockManager",
+      "line": 15,
+      "signature": "class DistributedLockManager {"
+    },
+    {
+      "type": "constructor",
+      "name": "DistributedLockManager.constructor",
+      "line": 16,
+      "signature": "constructor(persistentStore, logger) {"
+    },
+    {
+      "type": "method",
+      "name": "DistributedLockManager.tryAcquireLock",
+      "line": 38,
+      "signature": "tryAcquireLock(lockName, timeoutMs, holderId) {"
+    },
+    {
+      "type": "method",
+      "name": "DistributedLockManager.releaseLock",
+      "line": 128,
+      "signature": "releaseLock(lockHandle) {"
+    },
+    {
+      "type": "method",
+      "name": "DistributedLockManager.isLocked",
+      "line": 172,
+      "signature": "isLocked(lockName) {"
+    },
+    {
+      "type": "method",
+      "name": "DistributedLockManager.forceRelease",
+      "line": 194,
+      "signature": "forceRelease(lockName) {"
+    },
+    {
+      "type": "method",
+      "name": "DistributedLockManager._getLockKey",
+      "line": 224,
+      "signature": "_getLockKey(lockName) {"
+    },
+    {
+      "type": "method",
+      "name": "DistributedLockManager._cleanupStaleLock",
+      "line": 234,
+      "signature": "_cleanupStaleLock(lockKey, lockName) {"
+    },
+    {
+      "type": "method",
+      "name": "DistributedLockManager.getActiveLocks",
+      "line": 262,
+      "signature": "getActiveLocks() {"
+    },
+    {
+      "type": "method",
+      "name": "DistributedLockManager.getMetrics",
+      "line": 298,
+      "signature": "getMetrics() {"
+    },
+    {
+      "type": "method",
+      "name": "DistributedLockManager.healthCheck",
+      "line": 317,
+      "signature": "healthCheck() {"
+    },
+    {
+      "type": "method",
+      "name": "DistributedLockManager.cleanupAllStaleLocks",
+      "line": 341,
+      "signature": "cleanupAllStaleLocks() {"
+    },
+    {
+      "type": "method",
+      "name": "DistributedLockManager.selfTest",
+      "line": 380,
+      "signature": "selfTest() {"
+    }
+  ],
+  "src/3_core/ErrorHandler.gs": [
+    {
+      "type": "class",
+      "name": "ErrorHandler",
+      "line": 11,
+      "signature": "class ErrorHandler {"
+    },
+    {
+      "type": "constructor",
+      "name": "ErrorHandler.constructor",
+      "line": 12,
+      "signature": "constructor(logger) {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler.executeWithCircuitBreaker",
+      "line": 44,
+      "signature": "executeWithCircuitBreaker(serviceName, operation, options = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler.executeWithRetry",
+      "line": 89,
+      "signature": "executeWithRetry(operation, retryConfig = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler.withRetry",
+      "line": 134,
+      "signature": "withRetry(operation, contextName = 'operation', retryConfig = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler.getServiceStatus",
+      "line": 151,
+      "signature": "getServiceStatus(serviceName) {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler.executeWithProtection",
+      "line": 173,
+      "signature": "executeWithProtection(serviceName, operation, options = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler._getOrCreateCircuitBreaker",
+      "line": 189,
+      "signature": "_getOrCreateCircuitBreaker(serviceName, config = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler._isRetryableError",
+      "line": 203,
+      "signature": "_isRetryableError(error) {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler._calculateRetryDelay",
+      "line": 237,
+      "signature": "_calculateRetryDelay(attempt, config) {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler.getCircuitBreakerStatus",
+      "line": 248,
+      "signature": "getCircuitBreakerStatus() {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler.resetCircuitBreaker",
+      "line": 267,
+      "signature": "resetCircuitBreaker(serviceName) {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler.resetAllCircuitBreakers",
+      "line": 278,
+      "signature": "resetAllCircuitBreakers() {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler.executeWithAdaptiveRetry",
+      "line": 291,
+      "signature": "executeWithAdaptiveRetry(operation, options = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler.executeWithFallback",
+      "line": 349,
+      "signature": "executeWithFallback(serviceName, primaryOperation, fallbackOperation, options = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler.executeBatchWithTolerance",
+      "line": 388,
+      "signature": "executeBatchWithTolerance(serviceName, items, operation, options = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler.executeWithGracefulDegradation",
+      "line": 444,
+      "signature": "executeWithGracefulDegradation(serviceName, operation, degradedOperation, options = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler.getServiceStatus",
+      "line": 476,
+      "signature": "getServiceStatus(serviceName) {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler.getHealth",
+      "line": 488,
+      "signature": "getHealth() {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler.recordMetric",
+      "line": 520,
+      "signature": "recordMetric(metric, value) {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler.getCircuitState",
+      "line": 549,
+      "signature": "getCircuitState(service) {"
+    },
+    {
+      "type": "method",
+      "name": "ErrorHandler.selfTest",
+      "line": 574,
+      "signature": "selfTest() {"
+    },
+    {
+      "type": "class",
+      "name": "CircuitBreaker",
+      "line": 603,
+      "signature": "class CircuitBreaker {"
+    },
+    {
+      "type": "constructor",
+      "name": "CircuitBreaker.constructor",
+      "line": 604,
+      "signature": "constructor(serviceName, config, logger) {"
+    },
+    {
+      "type": "method",
+      "name": "CircuitBreaker.getState",
+      "line": 615,
+      "signature": "getState() {"
+    },
+    {
+      "type": "method",
+      "name": "CircuitBreaker.recordSuccess",
+      "line": 631,
+      "signature": "recordSuccess() {"
+    },
+    {
+      "type": "method",
+      "name": "CircuitBreaker.recordFailure",
+      "line": 644,
+      "signature": "recordFailure() {"
+    },
+    {
+      "type": "method",
+      "name": "CircuitBreaker.reset",
+      "line": 658,
+      "signature": "reset() {"
+    },
+    {
+      "type": "method",
+      "name": "CircuitBreaker._transitionToClosed",
+      "line": 669,
+      "signature": "_transitionToClosed() {"
+    },
+    {
+      "type": "method",
+      "name": "CircuitBreaker._transitionToOpen",
+      "line": 683,
+      "signature": "_transitionToOpen() {"
+    },
+    {
+      "type": "method",
+      "name": "CircuitBreaker._transitionToHalfOpen",
+      "line": 698,
+      "signature": "_transitionToHalfOpen() {"
+    }
+  ],
+  "src/3_core/PersistentStore.gs": [
+    {
+      "type": "class",
+      "name": "PersistentStore",
+      "line": 10,
+      "signature": "class PersistentStore {"
+    },
+    {
+      "type": "constructor",
+      "name": "PersistentStore.constructor",
+      "line": 11,
+      "signature": "constructor() {"
+    },
+    {
+      "type": "method",
+      "name": "PersistentStore.set",
+      "line": 32,
+      "signature": "set(key, value, ttl = null) {"
+    },
+    {
+      "type": "method",
+      "name": "PersistentStore.get",
+      "line": 117,
+      "signature": "get(key) {"
+    },
+    {
+      "type": "method",
+      "name": "PersistentStore.has",
+      "line": 194,
+      "signature": "has(key) {"
+    },
+    {
+      "type": "method",
+      "name": "PersistentStore.delete",
+      "line": 225,
+      "signature": "delete(key) {"
+    },
+    {
+      "type": "method",
+      "name": "PersistentStore.clear",
+      "line": 239,
+      "signature": "clear() {"
+    },
+    {
+      "type": "method",
+      "name": "PersistentStore.getMultiple",
+      "line": 271,
+      "signature": "getMultiple(keys) {"
+    },
+    {
+      "type": "method",
+      "name": "PersistentStore.setMultiple",
+      "line": 339,
+      "signature": "setMultiple(keyValuePairs, ttl = null) {"
+    },
+    {
+      "type": "method",
+      "name": "PersistentStore._sanitizeKey",
+      "line": 403,
+      "signature": "_sanitizeKey(key) {"
+    },
+    {
+      "type": "method",
+      "name": "PersistentStore._compress",
+      "line": 426,
+      "signature": "_compress(str) {"
+    },
+    {
+      "type": "method",
+      "name": "PersistentStore._decompress",
+      "line": 442,
+      "signature": "_decompress(compressedStr) {"
+    },
+    {
+      "type": "method",
+      "name": "PersistentStore._evictOldEntries",
+      "line": 458,
+      "signature": "_evictOldEntries() {"
+    },
+    {
+      "type": "method",
+      "name": "PersistentStore.getStats",
+      "line": 534,
+      "signature": "getStats() {"
+    },
+    {
+      "type": "method",
+      "name": "PersistentStore.getUsageInfo",
+      "line": 553,
+      "signature": "getUsageInfo() {"
+    },
+    {
+      "type": "method",
+      "name": "PersistentStore.cleanup",
+      "line": 600,
+      "signature": "cleanup() {"
+    },
+    {
+      "type": "method",
+      "name": "PersistentStore.healthCheck",
+      "line": 645,
+      "signature": "healthCheck() {"
+    },
+    {
+      "type": "method",
+      "name": "PersistentStore.expire",
+      "line": 679,
+      "signature": "expire(key, ttl) {"
+    },
+    {
+      "type": "method",
+      "name": "PersistentStore.ttl",
+      "line": 717,
+      "signature": "ttl(key) {"
+    },
+    {
+      "type": "method",
+      "name": "PersistentStore.scan",
+      "line": 764,
+      "signature": "scan(pattern) {"
+    },
+    {
+      "type": "method",
+      "name": "PersistentStore.destroy",
+      "line": 827,
+      "signature": "destroy() {"
+    }
+  ],
+  "src/3_core/SmartLogger.gs": [
+    {
+      "type": "class",
+      "name": "SmartLogger",
+      "line": 14,
+      "signature": "class SmartLogger {"
+    },
+    {
+      "type": "constructor",
+      "name": "SmartLogger.constructor",
+      "line": 15,
+      "signature": "constructor(cache) {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.setLogLevel",
+      "line": 36,
+      "signature": "setLogLevel(level) {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger._getSpreadsheet",
+      "line": 46,
+      "signature": "_getSpreadsheet() {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger._log",
+      "line": 57,
+      "signature": "_log(severity, component, message, context) {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger._writeToSheet",
+      "line": 144,
+      "signature": "_writeToSheet(sheet, logRow) {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger._flushBatchedLogs",
+      "line": 162,
+      "signature": "_flushBatchedLogs() {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.info",
+      "line": 192,
+      "signature": "info(component, message, context = null) {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.warn",
+      "line": 202,
+      "signature": "warn(component, message, context = null) {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.error",
+      "line": 212,
+      "signature": "error(component, message, context = null) {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.debug",
+      "line": 222,
+      "signature": "debug(component, message, context = null) {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.log",
+      "line": 232,
+      "signature": "log(component, message, context = null) {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.logActivity",
+      "line": 242,
+      "signature": "logActivity(component, activity, details = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.performance",
+      "line": 256,
+      "signature": "performance(component, operation, durationMs, additionalContext = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.userActivity",
+      "line": 274,
+      "signature": "userActivity(action, details = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.systemEvent",
+      "line": 287,
+      "signature": "systemEvent(event, details = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.flush",
+      "line": 298,
+      "signature": "flush() {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.getStats",
+      "line": 306,
+      "signature": "getStats() {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.clearBatch",
+      "line": 321,
+      "signature": "clearBatch() {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.setBatchSize",
+      "line": 329,
+      "signature": "setBatchSize(newSize) {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.setSuppressionWindow",
+      "line": 339,
+      "signature": "setSuppressionWindow(seconds) {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.healthCheck",
+      "line": 349,
+      "signature": "healthCheck() {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.metric",
+      "line": 398,
+      "signature": "metric(name, value, tags = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.audit",
+      "line": 414,
+      "signature": "audit(action, details = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.batch",
+      "line": 429,
+      "signature": "batch(logs) {"
+    },
+    {
+      "type": "method",
+      "name": "SmartLogger.selfTest",
+      "line": 451,
+      "signature": "selfTest() {"
+    }
+  ],
+  "src/8_setup/ServiceRegistration.gs": [
+    {
+      "type": "function",
+      "name": "registerAllServices",
+      "line": 15,
+      "signature": "function registerAllServices() {"
+    },
+    {
+      "type": "function",
+      "name": "validateServiceRegistrations",
+      "line": 267,
+      "signature": "function validateServiceRegistrations() {"
+    },
+    {
+      "type": "function",
+      "name": "createServiceDependencyMap",
+      "line": 410,
+      "signature": "function createServiceDependencyMap() {"
+    },
+    {
+      "type": "function",
+      "name": "validateServiceCallPatterns",
+      "line": 470,
+      "signature": "function validateServiceCallPatterns() {"
+    }
+  ],
+  "src/8_setup/SystemBootstrap.gs": [
+    {
+      "type": "function",
+      "name": "completeSetup",
+      "line": 13,
+      "signature": "function completeSetup() {"
+    },
+    {
+      "type": "function",
+      "name": "onOpen",
+      "line": 168,
+      "signature": "function onOpen(e) {"
+    },
+    {
+      "type": "function",
+      "name": "validateEnvironment",
+      "line": 185,
+      "signature": "function validateEnvironment() {"
+    },
+    {
+      "type": "function",
+      "name": "ensureBootstrapServices",
+      "line": 227,
+      "signature": "function ensureBootstrapServices() {"
+    },
+    {
+      "type": "function",
+      "name": "verifyCriticalServices",
+      "line": 254,
+      "signature": "function verifyCriticalServices() {"
+    },
+    {
+      "type": "function",
+      "name": "initializeSchema",
+      "line": 280,
+      "signature": "function initializeSchema() {"
+    },
+    {
+      "type": "function",
+      "name": "seedInitialData",
+      "line": 321,
+      "signature": "function seedInitialData() {"
+    },
+    {
+      "type": "function",
+      "name": "runSystemHealthCheck",
+      "line": 492,
+      "signature": "function runSystemHealthCheck() {"
+    },
+    {
+      "type": "function",
+      "name": "doGet",
+      "line": 522,
+      "signature": "function doGet(e) {"
+    },
+    {
+      "type": "function",
+      "name": "doPost",
+      "line": 551,
+      "signature": "function doPost(e) {"
+    },
+    {
+      "type": "function",
+      "name": "seedDefaultLanes",
+      "line": 571,
+      "signature": "function seedDefaultLanes() {"
+    }
+  ],
+  "src/8_setup/TriggerSetup.gs": [
+    {
+      "type": "function",
+      "name": "ensureServicesRegistered",
+      "line": 9,
+      "signature": "function ensureServicesRegistered() {"
+    },
+    {
+      "type": "function",
+      "name": "installAllTriggers",
+      "line": 23,
+      "signature": "function installAllTriggers() {"
+    },
+    {
+      "type": "function",
+      "name": "removeAllTriggers",
+      "line": 149,
+      "signature": "function removeAllTriggers() {"
+    },
+    {
+      "type": "function",
+      "name": "listCurrentTriggers",
+      "line": 194,
+      "signature": "function listCurrentTriggers() {"
+    },
+    {
+      "type": "function",
+      "name": "runEmailProcessing",
+      "line": 227,
+      "signature": "function runEmailProcessing() {"
+    },
+    {
+      "type": "function",
+      "name": "runSchedulingCycle",
+      "line": 233,
+      "signature": "function runSchedulingCycle() {"
+    },
+    {
+      "type": "function",
+      "name": "runCalendarSync",
+      "line": 239,
+      "signature": "function runCalendarSync() {"
+    },
+    {
+      "type": "function",
+      "name": "runCalendarProjection",
+      "line": 245,
+      "signature": "function runCalendarProjection() {"
+    },
+    {
+      "type": "function",
+      "name": "runFoundationBlocks",
+      "line": 251,
+      "signature": "function runFoundationBlocks() {"
+    },
+    {
+      "type": "function",
+      "name": "runScheduleReconciliation",
+      "line": 257,
+      "signature": "function runScheduleReconciliation() {"
+    },
+    {
+      "type": "function",
+      "name": "runHealthCheck",
+      "line": 263,
+      "signature": "function runHealthCheck() {"
+    },
+    {
+      "type": "function",
+      "name": "runDataArchiving",
+      "line": 269,
+      "signature": "function runDataArchiving() {"
+    },
+    {
+      "type": "function",
+      "name": "runProposalLearningCycle",
+      "line": 275,
+      "signature": "function runProposalLearningCycle() {"
+    }
+  ],
+  "src/2_models/MohTask.gs": [
+    {
+      "type": "class",
+      "name": "MohTask",
+      "line": 10,
+      "signature": "class MohTask {"
+    },
+    {
+      "type": "constructor",
+      "name": "MohTask.constructor",
+      "line": 12,
+      "signature": "constructor(data = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask._generateActionId",
+      "line": 70,
+      "signature": "_generateActionId() {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask._getCacheKey",
+      "line": 79,
+      "signature": "_getCacheKey(data) {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask._validateAndSetDefaults",
+      "line": 94,
+      "signature": "_validateAndSetDefaults() {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask._validateDates",
+      "line": 184,
+      "signature": "_validateDates(errors) {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask._validateSchedulingMetadata",
+      "line": 236,
+      "signature": "_validateSchedulingMetadata() {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask.toSheetRow",
+      "line": 256,
+      "signature": "toSheetRow(headers) {"
+    },
+    {
+      "type": "static_method",
+      "name": "MohTask.fromSheetRow",
+      "line": 309,
+      "signature": "static fromSheetRow(row, headers) {"
+    },
+    {
+      "type": "static_method",
+      "name": "MohTask._convertNumericFields",
+      "line": 353,
+      "signature": "static _convertNumericFields(data) {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask.calculatePriority",
+      "line": 382,
+      "signature": "calculatePriority(config = null) {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask._calculateAgingMultiplier",
+      "line": 442,
+      "signature": "_calculateAgingMultiplier(rolloverCount, config) {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask._calculateUrgencyScore",
+      "line": 476,
+      "signature": "_calculateUrgencyScore(config) {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask._getLaneBoost",
+      "line": 516,
+      "signature": "_getLaneBoost() {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask._getContextBonus",
+      "line": 532,
+      "signature": "_getContextBonus() {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask._calculatePriorityDecay",
+      "line": 552,
+      "signature": "_calculatePriorityDecay(daysSinceCreation, basePriority, config) {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask.isOverdue",
+      "line": 588,
+      "signature": "isOverdue() {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask.canTransitionTo",
+      "line": 605,
+      "signature": "canTransitionTo(newStatus) {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask.updateStatus",
+      "line": 612,
+      "signature": "updateStatus(newStatus, metadata = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask.toJSON",
+      "line": 652,
+      "signature": "toJSON() {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask.toDetailedJSON",
+      "line": 673,
+      "signature": "toDetailedJSON() {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask._cacheValidatedInstance",
+      "line": 693,
+      "signature": "_cacheValidatedInstance(cacheKey) {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask._markCacheHit",
+      "line": 713,
+      "signature": "_markCacheHit() {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask._trackCreationTime",
+      "line": 717,
+      "signature": "_trackCreationTime(duration) {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask.isVersionCurrent",
+      "line": 728,
+      "signature": "isVersionCurrent(dbVersion) {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask.prepareForUpdate",
+      "line": 747,
+      "signature": "prepareForUpdate() {"
+    },
+    {
+      "type": "static_method",
+      "name": "MohTask.fromObject",
+      "line": 757,
+      "signature": "static fromObject(obj) {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask.isValid",
+      "line": 767,
+      "signature": "isValid() {"
+    },
+    {
+      "type": "method",
+      "name": "MohTask.getValidationErrors",
+      "line": 774,
+      "signature": "getValidationErrors() {"
+    },
+    {
+      "type": "static_method",
+      "name": "MohTask.clearValidationCache",
+      "line": 781,
+      "signature": "static clearValidationCache() {"
+    },
+    {
+      "type": "static_method",
+      "name": "MohTask.getInstanceCount",
+      "line": 785,
+      "signature": "static getInstanceCount() {"
+    },
+    {
+      "type": "static_method",
+      "name": "MohTask.getCacheStats",
+      "line": 789,
+      "signature": "static getCacheStats() {"
+    }
+  ],
+  "src/2_models/TimeBlock.gs": [
+    {
+      "type": "class",
+      "name": "TimeBlock",
+      "line": 10,
+      "signature": "class TimeBlock {"
+    },
+    {
+      "type": "constructor",
+      "name": "TimeBlock.constructor",
+      "line": 12,
+      "signature": "constructor(data = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "TimeBlock._generateBlockId",
+      "line": 42,
+      "signature": "_generateBlockId() {"
+    },
+    {
+      "type": "method",
+      "name": "TimeBlock._parseTime",
+      "line": 51,
+      "signature": "_parseTime(timeInput) {"
+    },
+    {
+      "type": "method",
+      "name": "TimeBlock._calculateDuration",
+      "line": 74,
+      "signature": "_calculateDuration() {"
+    },
+    {
+      "type": "method",
+      "name": "TimeBlock._validate",
+      "line": 86,
+      "signature": "_validate() {"
+    },
+    {
+      "type": "method",
+      "name": "TimeBlock.overlaps",
+      "line": 129,
+      "signature": "overlaps(otherBlock) {"
+    },
+    {
+      "type": "method",
+      "name": "TimeBlock.contains",
+      "line": 141,
+      "signature": "contains(timestamp) {"
+    },
+    {
+      "type": "method",
+      "name": "TimeBlock.getOverlapDuration",
+      "line": 151,
+      "signature": "getOverlapDuration(otherBlock) {"
+    },
+    {
+      "type": "method",
+      "name": "TimeBlock.split",
+      "line": 165,
+      "signature": "split(durationMinutes) {"
+    },
+    {
+      "type": "method",
+      "name": "TimeBlock.merge",
+      "line": 192,
+      "signature": "merge(otherBlock) {"
+    },
+    {
+      "type": "method",
+      "name": "TimeBlock.isAdjacent",
+      "line": 215,
+      "signature": "isAdjacent(otherBlock) {"
+    },
+    {
+      "type": "method",
+      "name": "TimeBlock.shrink",
+      "line": 226,
+      "signature": "shrink(minutes, fromStart = false, fromEnd = false) {"
+    },
+    {
+      "type": "method",
+      "name": "TimeBlock.extend",
+      "line": 257,
+      "signature": "extend(minutes, toStart = false, toEnd = false) {"
+    },
+    {
+      "type": "method",
+      "name": "TimeBlock.isSuitableFor",
+      "line": 284,
+      "signature": "isSuitableFor(task) {"
+    },
+    {
+      "type": "method",
+      "name": "TimeBlock.calculateSuitabilityScore",
+      "line": 313,
+      "signature": "calculateSuitabilityScore(task) {"
+    },
+    {
+      "type": "method",
+      "name": "TimeBlock.toCalendarEvent",
+      "line": 350,
+      "signature": "toCalendarEvent() {"
+    },
+    {
+      "type": "method",
+      "name": "TimeBlock.toSheetRow",
+      "line": 366,
+      "signature": "toSheetRow(headers) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeBlock.fromSheetRow",
+      "line": 405,
+      "signature": "static fromSheetRow(row, headers) {"
+    },
+    {
+      "type": "method",
+      "name": "TimeBlock._getCloneData",
+      "line": 444,
+      "signature": "_getCloneData() {"
+    },
+    {
+      "type": "method",
+      "name": "TimeBlock.toJSON",
+      "line": 460,
+      "signature": "toJSON() {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeBlock.getInstanceCount",
+      "line": 479,
+      "signature": "static getInstanceCount() {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeBlock.fromTimeComponents",
+      "line": 486,
+      "signature": "static fromTimeComponents(date, startHour, startMinute, durationMinutes, options = {}) {"
+    },
+    {
+      "type": "static_method",
+      "name": "TimeBlock.createWorkDayBlocks",
+      "line": 504,
+      "signature": "static createWorkDayBlocks(date, schedule = null) {"
+    }
+  ],
+  "src/9_tests/ComprehensiveTests.gs": [
+    {
+      "type": "function",
+      "name": "test_RedFlagFixes",
+      "line": 16,
+      "signature": "function test_RedFlagFixes() {"
+    },
+    {
+      "type": "function",
+      "name": "test_PersistentStore",
+      "line": 140,
+      "signature": "function test_PersistentStore() {"
+    },
+    {
+      "type": "function",
+      "name": "test_CrossExecutionCache",
+      "line": 185,
+      "signature": "function test_CrossExecutionCache() {"
+    },
+    {
+      "type": "function",
+      "name": "test_ErrorHandler",
+      "line": 230,
+      "signature": "function test_ErrorHandler() {"
+    },
+    {
+      "type": "function",
+      "name": "test_SmartLogger",
+      "line": 285,
+      "signature": "function test_SmartLogger() {"
+    },
+    {
+      "type": "function",
+      "name": "runAllCoreTests",
+      "line": 324,
+      "signature": "function runAllCoreTests() {"
+    }
+  ],
+  "src/9_tests/ConsoleEliminationVerification.gs": [
+    {
+      "type": "function",
+      "name": "verifyConsoleElimination",
+      "line": 13,
+      "signature": "function verifyConsoleElimination() {"
+    },
+    {
+      "type": "function",
+      "name": "runConsoleEliminationVerification",
+      "line": 216,
+      "signature": "function runConsoleEliminationVerification() {"
+    },
+    {
+      "type": "function",
+      "name": "getConsoleEliminationStatus",
+      "line": 256,
+      "signature": "function getConsoleEliminationStatus() {"
+    }
+  ],
+  "src/9_tests/DeepUnitTestHarness.gs": [
+    {
+      "type": "class",
+      "name": "DeepUnitTestHarness",
+      "line": 18,
+      "signature": "class DeepUnitTestHarness {"
+    },
+    {
+      "type": "constructor",
+      "name": "DeepUnitTestHarness.constructor",
+      "line": 19,
+      "signature": "constructor() {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.runAllUnitTests",
+      "line": 28,
+      "signature": "runAllUnitTests() {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testErrorHandler",
+      "line": 72,
+      "signature": "testErrorHandler() {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testSmartLogger",
+      "line": 115,
+      "signature": "testSmartLogger() {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testBatchOperations",
+      "line": 152,
+      "signature": "testBatchOperations() {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testZeroTrustTriageEngine",
+      "line": 189,
+      "signature": "testZeroTrustTriageEngine() {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testCircuitBreakerStateTransitions",
+      "line": 226,
+      "signature": "testCircuitBreakerStateTransitions(errorHandler) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testExponentialBackoffCalculation",
+      "line": 273,
+      "signature": "testExponentialBackoffCalculation(errorHandler) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testAdaptiveRetryLogic",
+      "line": 318,
+      "signature": "testAdaptiveRetryLogic(errorHandler) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testFallbackChain",
+      "line": 358,
+      "signature": "testFallbackChain(errorHandler) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testBatchFailureTolerance",
+      "line": 400,
+      "signature": "testBatchFailureTolerance(errorHandler) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testGracefulDegradationPaths",
+      "line": 446,
+      "signature": "testGracefulDegradationPaths(errorHandler) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testErrorTypeClassification",
+      "line": 500,
+      "signature": "testErrorTypeClassification(errorHandler) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testCircuitBreakerReset",
+      "line": 534,
+      "signature": "testCircuitBreakerReset(errorHandler) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testLogLevelFiltering",
+      "line": 577,
+      "signature": "testLogLevelFiltering(logger) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testLogSuppression",
+      "line": 582,
+      "signature": "testLogSuppression(logger) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testContextSerialization",
+      "line": 587,
+      "signature": "testContextSerialization(logger) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testBatchLogging",
+      "line": 592,
+      "signature": "testBatchLogging(logger) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testPerformanceLogging",
+      "line": 597,
+      "signature": "testPerformanceLogging(logger) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testErrorObjectHandling",
+      "line": 602,
+      "signature": "testErrorObjectHandling(logger) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testHeaderCaching",
+      "line": 607,
+      "signature": "testHeaderCaching(batchOps) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testVersionGeneration",
+      "line": 612,
+      "signature": "testVersionGeneration(batchOps) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testDeepCloning",
+      "line": 640,
+      "signature": "testDeepCloning(batchOps) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testArrayChunking",
+      "line": 673,
+      "signature": "testArrayChunking(batchOps) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testDataValidation",
+      "line": 703,
+      "signature": "testDataValidation(batchOps) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testMergeConflictResolution",
+      "line": 708,
+      "signature": "testMergeConflictResolution(batchOps) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testSieveQueryGeneration",
+      "line": 714,
+      "signature": "testSieveQueryGeneration(triageEngine) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testTechnicalFilterAccuracy",
+      "line": 719,
+      "signature": "testTechnicalFilterAccuracy(triageEngine) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testBayesianReputationScoring",
+      "line": 724,
+      "signature": "testBayesianReputationScoring(triageEngine) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testNLPConfidenceAlgorithm",
+      "line": 729,
+      "signature": "testNLPConfidenceAlgorithm(triageEngine) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testPipelineStageIndependence",
+      "line": 734,
+      "signature": "testPipelineStageIndependence(triageEngine) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.summarizeServiceTests",
+      "line": 747,
+      "signature": "summarizeServiceTests(serviceName, tests) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.createFailedServiceTest",
+      "line": 768,
+      "signature": "createFailedServiceTest(serviceName, error) {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testConfigManager",
+      "line": 782,
+      "signature": "testConfigManager() {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testCrossExecutionCache",
+      "line": 786,
+      "signature": "testCrossExecutionCache() {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testPersistentStore",
+      "line": 790,
+      "signature": "testPersistentStore() {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testSenderReputationManager",
+      "line": 794,
+      "signature": "testSenderReputationManager() {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testFoundationBlocksManager",
+      "line": 798,
+      "signature": "testFoundationBlocksManager() {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testCalendarSyncManager",
+      "line": 802,
+      "signature": "testCalendarSyncManager() {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testIntelligentScheduler",
+      "line": 806,
+      "signature": "testIntelligentScheduler() {"
+    },
+    {
+      "type": "method",
+      "name": "DeepUnitTestHarness.testSystemManager",
+      "line": 810,
+      "signature": "testSystemManager() {"
+    }
+  ],
+  "src/9_tests/DeploymentValidation.gs": [
+    {
+      "type": "function",
+      "name": "validateSystemForDeployment",
+      "line": 14,
+      "signature": "function validateSystemForDeployment() {"
+    },
+    {
+      "type": "function",
+      "name": "validateEnvironmentForDeployment",
+      "line": 75,
+      "signature": "function validateEnvironmentForDeployment() {"
+    },
+    {
+      "type": "function",
+      "name": "validateAllServicesCanStart",
+      "line": 114,
+      "signature": "function validateAllServicesCanStart() {"
+    },
+    {
+      "type": "function",
+      "name": "validateSystemPerformance",
+      "line": 168,
+      "signature": "function validateSystemPerformance() {"
+    },
+    {
+      "type": "function",
+      "name": "validateSystemConfiguration",
+      "line": 230,
+      "signature": "function validateSystemConfiguration() {"
+    },
+    {
+      "type": "function",
+      "name": "validateDatabaseSchema",
+      "line": 278,
+      "signature": "function validateDatabaseSchema() {"
+    },
+    {
+      "type": "function",
+      "name": "validateSecurityConfiguration",
+      "line": 324,
+      "signature": "function validateSecurityConfiguration() {"
+    },
+    {
+      "type": "function",
+      "name": "isSystemReadyForDeployment",
+      "line": 365,
+      "signature": "function isSystemReadyForDeployment() {"
+    }
+  ],
+  "src/9_tests/FinalProductionTest.gs": [
+    {
+      "type": "function",
+      "name": "runFinalProductionTest",
+      "line": 11,
+      "signature": "function runFinalProductionTest() {"
+    },
+    {
+      "type": "function",
+      "name": "testBootstrapSystem",
+      "line": 140,
+      "signature": "function testBootstrapSystem() {"
+    },
+    {
+      "type": "function",
+      "name": "testLoggingInfrastructure",
+      "line": 167,
+      "signature": "function testLoggingInfrastructure() {"
+    },
+    {
+      "type": "function",
+      "name": "testServiceRegistration",
+      "line": 202,
+      "signature": "function testServiceRegistration() {"
+    },
+    {
+      "type": "function",
+      "name": "testErrorHandling",
+      "line": 237,
+      "signature": "function testErrorHandling() {"
+    },
+    {
+      "type": "function",
+      "name": "testEnumDefinitions",
+      "line": 265,
+      "signature": "function testEnumDefinitions() {"
+    },
+    {
+      "type": "function",
+      "name": "testCoreFunctions",
+      "line": 292,
+      "signature": "function testCoreFunctions() {"
+    },
+    {
+      "type": "function",
+      "name": "testAllFunctions",
+      "line": 329,
+      "signature": "function testAllFunctions() {"
+    }
+  ],
+  "src/9_tests/FinalSystemValidation.gs": [
+    {
+      "type": "function",
+      "name": "validateAllSystemFixes",
+      "line": 14,
+      "signature": "function validateAllSystemFixes() {"
+    },
+    {
+      "type": "function",
+      "name": "validateCriticalFixes",
+      "line": 53,
+      "signature": "function validateCriticalFixes() {"
+    },
+    {
+      "type": "function",
+      "name": "validateLoggingFixes",
+      "line": 170,
+      "signature": "function validateLoggingFixes() {"
+    },
+    {
+      "type": "function",
+      "name": "validateServiceWiring",
+      "line": 231,
+      "signature": "function validateServiceWiring() {"
+    },
+    {
+      "type": "function",
+      "name": "validateSystemIntegration",
+      "line": 298,
+      "signature": "function validateSystemIntegration() {"
+    },
+    {
+      "type": "function",
+      "name": "validateEdgeCases",
+      "line": 403,
+      "signature": "function validateEdgeCases() {"
+    },
+    {
+      "type": "function",
+      "name": "validatePerformance",
+      "line": 451,
+      "signature": "function validatePerformance() {"
+    },
+    {
+      "type": "function",
+      "name": "validateSSRBehavior",
+      "line": 495,
+      "signature": "function validateSSRBehavior() {"
+    },
+    {
+      "type": "function",
+      "name": "validateMobileResponsiveness",
+      "line": 517,
+      "signature": "function validateMobileResponsiveness() {"
+    },
+    {
+      "type": "function",
+      "name": "generateValidationSummary",
+      "line": 551,
+      "signature": "function generateValidationSummary(results, allPassed) {"
+    },
+    {
+      "type": "function",
+      "name": "quickValidation",
+      "line": 593,
+      "signature": "function quickValidation() {"
+    },
+    {
+      "type": "function",
+      "name": "exportValidationResults",
+      "line": 614,
+      "signature": "function exportValidationResults() {"
+    }
+  ],
+  "src/9_tests/MasterTestOrchestrator.gs": [
+    {
+      "type": "class",
+      "name": "MasterTestOrchestrator",
+      "line": 19,
+      "signature": "class MasterTestOrchestrator {"
+    },
+    {
+      "type": "constructor",
+      "name": "MasterTestOrchestrator.constructor",
+      "line": 20,
+      "signature": "constructor() {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator.runComprehensiveSuite",
+      "line": 37,
+      "signature": "runComprehensiveSuite(options = {}) {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator.runQuickValidation",
+      "line": 117,
+      "signature": "runQuickValidation() {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator.testService",
+      "line": 175,
+      "signature": "testService(serviceName) {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._initializeTestSuites",
+      "line": 249,
+      "signature": "_initializeTestSuites(config) {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._executeTestsWithTelemetry",
+      "line": 287,
+      "signature": "_executeTestsWithTelemetry(suites, config, testId) {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._runExistingCoreTests",
+      "line": 346,
+      "signature": "_runExistingCoreTests() {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._runDeploymentValidation",
+      "line": 362,
+      "signature": "_runDeploymentValidation() {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._runAllServiceSelfTests",
+      "line": 382,
+      "signature": "_runAllServiceSelfTests() {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._runSystemHealthCheck",
+      "line": 432,
+      "signature": "_runSystemHealthCheck() {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._captureMemorySnapshot",
+      "line": 448,
+      "signature": "_captureMemorySnapshot() {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._analyzeMemoryDelta",
+      "line": 465,
+      "signature": "_analyzeMemoryDelta(initial, final) {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._generateComprehensiveReport",
+      "line": 480,
+      "signature": "_generateComprehensiveReport(reportData) {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._calculateSummaryStatistics",
+      "line": 511,
+      "signature": "_calculateSummaryStatistics(results) {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._generateRecommendations",
+      "line": 553,
+      "signature": "_generateRecommendations(results, memoryDelta) {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._calculateHealthScore",
+      "line": 596,
+      "signature": "_calculateHealthScore(summary, memoryDelta) {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._initializePerformanceBaselines",
+      "line": 617,
+      "signature": "_initializePerformanceBaselines() {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._estimateCacheSize",
+      "line": 630,
+      "signature": "_estimateCacheSize() {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._countServiceInstances",
+      "line": 644,
+      "signature": "_countServiceInstances() {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._estimateActiveLocks",
+      "line": 657,
+      "signature": "_estimateActiveLocks() {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._generateQuickSummary",
+      "line": 668,
+      "signature": "_generateQuickSummary(quickTests) {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._testServiceInstantiation",
+      "line": 693,
+      "signature": "_testServiceInstantiation(serviceName) {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._testServiceDependencies",
+      "line": 716,
+      "signature": "_testServiceDependencies(serviceName) {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._testServiceMemoryUsage",
+      "line": 738,
+      "signature": "_testServiceMemoryUsage(service) {"
+    },
+    {
+      "type": "method",
+      "name": "MasterTestOrchestrator._testErrorHandlerSpecific",
+      "line": 761,
+      "signature": "_testErrorHandlerSpecific(errorHandler) {"
+    },
+    {
+      "type": "class",
+      "name": "TestAuthenticator",
+      "line": 788,
+      "signature": "class TestAuthenticator {"
+    },
+    {
+      "type": "method",
+      "name": "TestAuthenticator.generateTestSignature",
+      "line": 795,
+      "signature": "generateTestSignature(testId, testCode) {"
+    },
+    {
+      "type": "method",
+      "name": "TestAuthenticator.generateAuthenticityHash",
+      "line": 817,
+      "signature": "generateAuthenticityHash(results) {"
+    },
+    {
+      "type": "method",
+      "name": "TestAuthenticator.verifyTestAuthenticity",
+      "line": 832,
+      "signature": "verifyTestAuthenticity(testId, results) {"
+    },
+    {
+      "type": "function",
+      "name": "runQuickSystemValidation",
+      "line": 855,
+      "signature": "function runQuickSystemValidation() {"
+    },
+    {
+      "type": "function",
+      "name": "runComprehensiveTestSuite",
+      "line": 865,
+      "signature": "function runComprehensiveTestSuite(options = {}) {"
+    },
+    {
+      "type": "function",
+      "name": "testSpecificService",
+      "line": 875,
+      "signature": "function testSpecificService(serviceName) {"
+    },
+    {
+      "type": "function",
+      "name": "getSystemHealthDashboard",
+      "line": 884,
+      "signature": "function getSystemHealthDashboard() {"
+    }
+  ],
+  "src/9_tests/Phase3ComprehensiveValidation.gs": [
+    {
+      "type": "function",
+      "name": "validatePhase3Complete",
+      "line": 16,
+      "signature": "function validatePhase3Complete() {"
+    },
+    {
+      "type": "function",
+      "name": "validateServiceRegistrationFunction",
+      "line": 94,
+      "signature": "function validateServiceRegistrationFunction() {"
+    },
+    {
+      "type": "function",
+      "name": "validateCircularDependencyResolution",
+      "line": 142,
+      "signature": "function validateCircularDependencyResolution() {"
+    },
+    {
+      "type": "function",
+      "name": "validateGetServiceErrorHandling",
+      "line": 215,
+      "signature": "function validateGetServiceErrorHandling() {"
+    },
+    {
+      "type": "function",
+      "name": "validateServiceHealthChecks",
+      "line": 288,
+      "signature": "function validateServiceHealthChecks() {"
+    },
+    {
+      "type": "function",
+      "name": "validateServiceDependencyMapping",
+      "line": 349,
+      "signature": "function validateServiceDependencyMapping() {"
+    },
+    {
+      "type": "function",
+      "name": "validateFullServiceWiring",
+      "line": 420,
+      "signature": "function validateFullServiceWiring() {"
+    },
+    {
+      "type": "function",
+      "name": "quickPhase3Check",
+      "line": 498,
+      "signature": "function quickPhase3Check() {"
+    }
+  ],
+  "src/9_tests/Phase3ValidationTest.gs": [
+    {
+      "type": "function",
+      "name": "validatePhase3Implementation",
+      "line": 10,
+      "signature": "function validatePhase3Implementation() {"
+    },
+    {
+      "type": "function",
+      "name": "testValidateServiceRegistrationsExists",
+      "line": 88,
+      "signature": "function testValidateServiceRegistrationsExists() {"
+    },
+    {
+      "type": "function",
+      "name": "testServiceRegistrationValidation",
+      "line": 124,
+      "signature": "function testServiceRegistrationValidation() {"
+    },
+    {
+      "type": "function",
+      "name": "testCircularDependencyResolution",
+      "line": 168,
+      "signature": "function testCircularDependencyResolution() {"
+    },
+    {
+      "type": "function",
+      "name": "testGetServiceErrorHandling",
+      "line": 231,
+      "signature": "function testGetServiceErrorHandling() {"
+    },
+    {
+      "type": "function",
+      "name": "testServiceDependencyMap",
+      "line": 283,
+      "signature": "function testServiceDependencyMap() {"
+    },
+    {
+      "type": "function",
+      "name": "testServiceHealthChecks",
+      "line": 348,
+      "signature": "function testServiceHealthChecks() {"
+    },
+    {
+      "type": "function",
+      "name": "quickPhase3Validation",
+      "line": 395,
+      "signature": "function quickPhase3Validation() {"
+    }
+  ],
+  "src/9_tests/ValidationRunner.gs": [
+    {
+      "type": "function",
+      "name": "mockValidationEnvironment",
+      "line": 12,
+      "signature": "function mockValidationEnvironment() {"
+    },
+    {
+      "type": "function",
+      "name": "runValidationTests",
+      "line": 100,
+      "signature": "function runValidationTests() {"
+    },
+    {
+      "type": "function",
+      "name": "runCriticalFixesValidation",
+      "line": 175,
+      "signature": "function runCriticalFixesValidation() {"
+    },
+    {
+      "type": "function",
+      "name": "runLoggingValidation",
+      "line": 246,
+      "signature": "function runLoggingValidation() {"
+    },
+    {
+      "type": "function",
+      "name": "runServiceWiringValidation",
+      "line": 275,
+      "signature": "function runServiceWiringValidation(mockContainer, mockServices) {"
+    },
+    {
+      "type": "function",
+      "name": "generateValidationReport",
+      "line": 331,
+      "signature": "function generateValidationReport() {"
+    },
+    {
+      "type": "function",
+      "name": "executePhase4Validation",
+      "line": 373,
+      "signature": "function executePhase4Validation() {"
+    }
+  ]
+}

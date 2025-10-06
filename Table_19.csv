@@ -1,0 +1,7 @@
+Error Code,Meaning,Resolution
+------------,---------,------------
+`PERMISSION_DENIED`,OAuth scope missing,Re-authorize connection
+`FUNCTION_NOT_FOUND`,Function name typo,Check function spelling
+`EXECUTION_TIMEOUT`,Script took too long,Optimize or retry
+`QUOTA_EXCEEDED`,API quota limit hit,Wait and retry later
+`INVALID_PARAMETERS`,Wrong parameter format,Check parameter types
