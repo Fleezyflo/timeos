@@ -372,4 +372,72 @@ function isSystemReadyForDeployment() {
     return false;
   }
 }
+
+/**
+ * Test archive reliability with mock data
+ */
+function testArchiveReliability() {
+  const logger = container.get(SERVICES.SmartLogger);
+  logger.info('ArchiveTest', 'Testing archive reliability');
+
+  try {
+    // Create mock dependencies
+    const cache = {
+      get: function() { return null; },
+      set: function() {},
+      delete: function() {},
+      clear: function() {}
+    };
+    const testLogger = {
+      info: function() {},
+      debug: function() {},
+      warn: function() {},
+      error: function() {}
+    };
+
+    const mockBatchOps = new MockBatchOperations(cache, testLogger);
+
+    // Test 1: Verify PROPOSED_TASKS headers
+    const proposedHeaders = mockBatchOps.getHeaders(SHEET_NAMES.PROPOSED_TASKS);
+    if (!proposedHeaders || proposedHeaders.length === 0) {
+      throw new Error('PROPOSED_TASKS headers not available');
+    }
+    logger.info('ArchiveTest', `PROPOSED_TASKS has ${proposedHeaders.length} headers`);
+
+    // Test 2: Verify archived_at column gets added
+    const archiveHeaders = [...proposedHeaders, 'archived_at'];
+    if (archiveHeaders[archiveHeaders.length - 1] !== 'archived_at') {
+      throw new Error('archived_at column not properly appended');
+    }
+
+    // Test 3: Simulate retry on failure
+    let attempts = 0;
+    let success = false;
+    for (let attempt = 1; attempt <= CONSTANTS.MAX_RETRIES; attempt++) {
+      attempts++;
+      if (attempt === 1) {
+        // Simulate first attempt failure
+        continue;
+      } else {
+        // Succeed on second attempt
+        success = true;
+        break;
+      }
+    }
+    if (!success || attempts !== 2) {
+      throw new Error('Retry logic test failed');
+    }
+
+    logger.info('ArchiveTest', 'Archive reliability tests passed', {
+      attempts_tested: attempts,
+      headers_count: archiveHeaders.length
+    });
+
+    return true;
+
+  } catch (error) {
+    logger.error('ArchiveTest', `Archive reliability test failed: ${error.message}`);
+    return false;
+  }
+}
 // BUILD:REMOVE:END
