@@ -7,9 +7,14 @@ ArchiveManager handles archiving of completed tasks and processed proposals to e
 ## Phase 3 Fixes
 
 ### 1. PROPOSED Header Usage Fix
-- **Issue**: `archiveProcessedProposals` referenced undefined `sourceHeaders`
-- **Fix**: Added explicit header fetch: `this.batchOperations.getHeaders(SHEET_NAMES.PROPOSED_TASKS)`
-- **Location**: `src/4_services/ArchiveManager.gs:241`
+- **Issue**: `archiveProcessedProposals` passed sourceHeaders without appending `archived_at`
+- **Fix**: Added explicit header transformation:
+  ```javascript
+  const sourceHeaders = this.batchOperations.getHeaders(SHEET_NAMES.PROPOSED_TASKS);
+  const archiveHeaders = [...sourceHeaders, 'archived_at'];
+  ```
+- **Critical**: PROPOSED_TASKS schema doesn't include `archived_at` (unlike ACTIONS which has it), so it must be appended programmatically
+- **Location**: `src/4_services/ArchiveManager.gs:240-252`
 
 ### 2. Append Routing Logic
 - **Issue**: `appendToArchive` called wrong API signature

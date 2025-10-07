@@ -374,11 +374,11 @@ function isSystemReadyForDeployment() {
 }
 
 /**
- * Test archive reliability with mock data
+ * Test archive reliability with actual MockBatchOperations integration
  */
 function testArchiveReliability() {
   const logger = container.get(SERVICES.SmartLogger);
-  logger.info('ArchiveTest', 'Testing archive reliability');
+  logger.info('ArchiveTest', 'Testing archive reliability with integration');
 
   try {
     // Create mock dependencies
@@ -389,54 +389,150 @@ function testArchiveReliability() {
       clear: function() {}
     };
     const testLogger = {
-      info: function() {},
+      info: function(comp, msg, data) {
+        Logger.log('[' + comp + '] ' + msg + (data ? ' ' + JSON.stringify(data) : ''));
+      },
       debug: function() {},
-      warn: function() {},
-      error: function() {}
+      warn: function(comp, msg) {
+        Logger.log('[WARN][' + comp + '] ' + msg);
+      },
+      error: function(comp, msg, data) {
+        Logger.log('[ERROR][' + comp + '] ' + msg + (data ? ' ' + JSON.stringify(data) : ''));
+      }
     };
 
     const mockBatchOps = new MockBatchOperations(cache, testLogger);
+    const mockConfigManager = {
+      getString: function() { return ''; },
+      getNumber: function(key, def) { return def; }
+    };
 
-    // Test 1: Verify PROPOSED_TASKS headers
+    // Create ArchiveManager with mocks
+    const archiveManager = new ArchiveManager(mockConfigManager, testLogger, mockBatchOps);
+
+    // Stub getOrCreateArchiveSheet to avoid SpreadsheetApp calls
+    archiveManager.getOrCreateArchiveSheet = function(sheetName, headers) {
+      // Ensure mock sheet exists with provided headers
+      const mockSheet = mockBatchOps.mockSheets.get(sheetName);
+      if (!mockSheet) {
+        mockBatchOps.mockSheets.set(sheetName, {
+          headers: headers,
+          data: []
+        });
+      } else if (!mockSheet.headers || mockSheet.headers.length === 0) {
+        mockSheet.headers = headers;
+      }
+      return ''; // Return empty string to indicate current spreadsheet
+    };
+
+    // Test 1: Verify PROPOSED_TASKS headers don't include archived_at
     const proposedHeaders = mockBatchOps.getHeaders(SHEET_NAMES.PROPOSED_TASKS);
     if (!proposedHeaders || proposedHeaders.length === 0) {
       throw new Error('PROPOSED_TASKS headers not available');
     }
-    logger.info('ArchiveTest', `PROPOSED_TASKS has ${proposedHeaders.length} headers`);
-
-    // Test 2: Verify archived_at column gets added
-    const archiveHeaders = [...proposedHeaders, 'archived_at'];
-    if (archiveHeaders[archiveHeaders.length - 1] !== 'archived_at') {
-      throw new Error('archived_at column not properly appended');
+    if (proposedHeaders.indexOf('archived_at') !== -1) {
+      throw new Error('PROPOSED_TASKS should NOT have archived_at column in source schema');
     }
+    logger.info('ArchiveTest', 'PROPOSED_TASKS has ' + proposedHeaders.length + ' headers without archived_at');
 
-    // Test 3: Simulate retry on failure
-    let attempts = 0;
-    let success = false;
-    for (let attempt = 1; attempt <= CONSTANTS.MAX_RETRIES; attempt++) {
-      attempts++;
-      if (attempt === 1) {
-        // Simulate first attempt failure
-        continue;
-      } else {
-        // Succeed on second attempt
-        success = true;
-        break;
+    // Test 2: Archive proposals and verify archived_at is added
+    const testProposals = [
+      {
+        proposal_id: 'TEST_PROP_1',
+        status: 'PROCESSED',
+        source: 'test',
+        sender: 'test@example.com',
+        subject: 'Test proposal',
+        created_at: TimeZoneAwareDate.now()
       }
-    }
-    if (!success || attempts !== 2) {
-      throw new Error('Retry logic test failed');
+    ];
+
+    // Invoke actual archiveProcessedProposals
+    const archiveResult = archiveManager.archiveProcessedProposals(testProposals);
+
+    if (!archiveResult.success) {
+      throw new Error('Archive operation failed: ' + (archiveResult.error || 'unknown'));
     }
 
-    logger.info('ArchiveTest', 'Archive reliability tests passed', {
-      attempts_tested: attempts,
-      headers_count: archiveHeaders.length
+    logger.info('ArchiveTest', 'Archived ' + archiveResult.archived_proposals + ' proposals');
+
+    // Test 3: Verify archive sheet has archived_at column
+    const archiveSheetData = mockBatchOps.getAllSheetData('PROPOSED_ARCHIVE');
+    if (!archiveSheetData || archiveSheetData.length === 0) {
+      throw new Error('PROPOSED_ARCHIVE sheet not created');
+    }
+
+    const archiveHeaders = archiveSheetData[0];
+    const archivedAtIndex = archiveHeaders.indexOf('archived_at');
+
+    if (archivedAtIndex === -1) {
+      throw new Error('PROPOSED_ARCHIVE missing archived_at column in schema');
+    }
+
+    logger.info('ArchiveTest', 'PROPOSED_ARCHIVE has archived_at at index ' + archivedAtIndex);
+
+    // Test 4: Verify archived rows contain timestamp
+    if (archiveSheetData.length < 2) {
+      throw new Error('No archived rows found');
+    }
+
+    const archivedRow = archiveSheetData[1]; // First data row
+    const timestamp = archivedRow[archivedAtIndex];
+
+    if (!timestamp || timestamp === '') {
+      throw new Error('archived_at timestamp not written to row');
+    }
+
+    logger.info('ArchiveTest', 'Archived row has timestamp: ' + timestamp);
+
+    // Test 5: Simulate retry scenario with mock failure
+    let retryTestPassed = false;
+    const originalAppendRows = mockBatchOps.appendRows;
+    let attemptCount = 0;
+
+    // Mock appendRows to fail first attempt
+    mockBatchOps.appendRows = function(sheetName, rows) {
+      attemptCount++;
+      if (attemptCount === 1) {
+        throw new Error('Simulated transient failure');
+      }
+      return originalAppendRows.call(mockBatchOps, sheetName, rows);
+    };
+
+    try {
+      const retryResult = archiveManager.archiveProcessedProposals([{
+        proposal_id: 'TEST_RETRY',
+        status: 'PROCESSED',
+        source: 'retry-test',
+        created_at: TimeZoneAwareDate.now()
+      }]);
+
+      if (retryResult.success && attemptCount === 2) {
+        retryTestPassed = true;
+        logger.info('ArchiveTest', 'Retry logic succeeded on attempt ' + attemptCount);
+      }
+    } finally {
+      // Restore original method
+      mockBatchOps.appendRows = originalAppendRows;
+    }
+
+    if (!retryTestPassed) {
+      throw new Error('Retry test failed: attemptCount=' + attemptCount);
+    }
+
+    logger.info('ArchiveTest', 'All archive reliability tests passed', {
+      headers_validated: true,
+      timestamp_verified: true,
+      retry_tested: true,
+      total_tests: 5
     });
 
     return true;
 
   } catch (error) {
-    logger.error('ArchiveTest', `Archive reliability test failed: ${error.message}`);
+    logger.error('ArchiveTest', 'Archive reliability test failed: ' + error.message, {
+      stack: error.stack
+    });
     return false;
   }
 }

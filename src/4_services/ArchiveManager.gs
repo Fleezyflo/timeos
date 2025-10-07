@@ -239,16 +239,17 @@ class ArchiveManager {
 
       const archiveSheetName = 'PROPOSED_ARCHIVE';
       const sourceHeaders = this.batchOperations.getHeaders(SHEET_NAMES.PROPOSED_TASKS);
+      const archiveHeaders = [...sourceHeaders, 'archived_at'];
 
       // Ensure archive sheet exists
-      const archiveSpreadsheetId = this.getOrCreateArchiveSheet(archiveSheetName, sourceHeaders);
+      const archiveSpreadsheetId = this.getOrCreateArchiveSheet(archiveSheetName, archiveHeaders);
 
       // Prepare archive rows
       const archiveRows = proposals.map(proposal => {
-        const archiveRow = this._proposalToArchiveRow(proposal, sourceHeaders);
+        const archiveRow = this._proposalToArchiveRow(proposal, archiveHeaders);
 
         // Add archive timestamp
-        const archivedAtIndex = sourceHeaders.indexOf('archived_at');
+        const archivedAtIndex = archiveHeaders.indexOf('archived_at');
         if (archivedAtIndex !== -1) {
           archiveRow[archivedAtIndex] = TimeZoneAwareDate.now();
         }
