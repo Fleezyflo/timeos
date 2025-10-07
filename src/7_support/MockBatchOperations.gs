@@ -235,6 +235,88 @@ class MockBatchOperations {
   }
 
   /**
+   * Phase 2: Seed test data with malformed JSON and missing versions
+   * This data is used to test version backfill and JSON sanitization
+   */
+  seedPhase2TestData() {
+    const actionsHeaders = this.getHeaders(SHEET_NAMES.ACTIONS);
+    const versionColIndex = actionsHeaders.indexOf('version');
+    const dependenciesColIndex = actionsHeaders.indexOf('dependencies');
+    const tagsColIndex = actionsHeaders.indexOf('tags');
+    const schedulingMetadataColIndex = actionsHeaders.indexOf('scheduling_metadata');
+
+    // Create test rows with various issues
+    const testRows = [
+      // Row 1: Missing version, valid JSON
+      this._createTestActionRow(actionsHeaders, {
+        action_id: 'test_action_1',
+        title: 'Test Action 1 - Missing Version',
+        status: 'NOT_STARTED',
+        version: '', // Missing version
+        dependencies: '["dep1", "dep2"]',
+        tags: '["tag1"]'
+      }),
+      // Row 2: Missing version, invalid JSON in dependencies
+      this._createTestActionRow(actionsHeaders, {
+        action_id: 'test_action_2',
+        title: 'Test Action 2 - Bad JSON',
+        status: 'IN_PROGRESS',
+        version: '', // Missing version
+        dependencies: 'not valid json', // Invalid JSON
+        tags: '["tag2"]'
+      }),
+      // Row 3: Has version, blank JSON fields (mixed arrays and objects)
+      this._createTestActionRow(actionsHeaders, {
+        action_id: 'test_action_3',
+        title: 'Test Action 3 - Blank JSON',
+        status: 'COMPLETED',
+        version: '1',
+        dependencies: '', // Blank array - should become '[]'
+        tags: null, // Null array - should become '[]'
+        scheduling_metadata: '', // Blank object - should become '{}'
+        last_scheduled_metadata: null // Null object - should become '{}'
+      }),
+      // Row 4: Has version, all valid
+      this._createTestActionRow(actionsHeaders, {
+        action_id: 'test_action_4',
+        title: 'Test Action 4 - All Valid',
+        status: 'SCHEDULED',
+        version: '2',
+        dependencies: '[]',
+        tags: '["valid"]',
+        scheduling_metadata: '{}'
+      })
+    ];
+
+    this.addTestData(SHEET_NAMES.ACTIONS, testRows);
+    this.logger.info('MockBatchOperations', 'Seeded Phase 2 test data: 4 rows with various version/JSON issues');
+  }
+
+  /**
+   * Helper to create a test action row with defaults
+   * @private
+   */
+  _createTestActionRow(headers, values) {
+    const row = new Array(headers.length).fill('');
+    for (const [key, value] of Object.entries(values)) {
+      const colIndex = headers.indexOf(key);
+      if (colIndex !== -1) {
+        row[colIndex] = value;
+      }
+    }
+    // Set defaults for required fields if not provided
+    if (!values.created_at) {
+      const createdAtIndex = headers.indexOf('created_at');
+      if (createdAtIndex !== -1) row[createdAtIndex] = TimeZoneAwareDate.now();
+    }
+    if (!values.updated_at) {
+      const updatedAtIndex = headers.indexOf('updated_at');
+      if (updatedAtIndex !== -1) row[updatedAtIndex] = TimeZoneAwareDate.now();
+    }
+    return row;
+  }
+
+  /**
    * Clear all test data (for hermetic isolation)
    */
   clearTestData() {

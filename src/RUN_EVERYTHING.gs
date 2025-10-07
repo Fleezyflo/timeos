@@ -46,6 +46,7 @@ function RUN_EVERYTHING_NOW() {
   safeRun('verifyConsoleElimination', verifyConsoleElimination);
   safeRun('runValidationTests', runValidationTests);
   safeRun('RUN_SCHEMA_INTEGRITY_TESTS', RUN_SCHEMA_INTEGRITY_TESTS);
+  safeRun('RUN_PHASE2_VALIDATION_TESTS', RUN_PHASE2_VALIDATION_TESTS);
 
   // Trigger Functions
   safeRun('runEmailProcessing', runEmailProcessing);

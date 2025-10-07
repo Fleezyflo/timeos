@@ -442,6 +442,23 @@ function initializeSchema() {
 }
 
 /**
+ * Convert 0-based column index to A1 notation (A, B, ..., Z, AA, AB, ...)
+ * Used for Phase 2 JSON sanitization batchUpdate operations
+ * @param {number} index - 0-based column index
+ * @returns {string} A1 column notation
+ * @private
+ */
+function _columnIndexToA1(index) {
+  let column = '';
+  let temp = index;
+  while (temp >= 0) {
+    column = String.fromCharCode(65 + (temp % 26)) + column;
+    temp = Math.floor(temp / 26) - 1;
+  }
+  return column;
+}
+
+/**
  * Populate baseline configuration/status rows after schema creation
  */
 function seedInitialData() {
@@ -629,6 +646,173 @@ function seedInitialData() {
       });
 
       throw lanesError;
+    }
+
+    // Phase 2: Version Column Backfill
+    try {
+      const configManager = container.get(SERVICES.ConfigManager);
+      const versionBackfillGuard = 'PHASE2_VERSION_BACKFILL_COMPLETE';
+      const hasBackfilledVersion = configManager.getBoolean(versionBackfillGuard, false);
+
+      if (!hasBackfilledVersion) {
+        Logger.log('[SystemBootstrap] Starting Phase 2 version column backfill...');
+
+        const actionsHeaders = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+        const versionColIndex = actionsHeaders.indexOf('version');
+
+        if (versionColIndex === -1) {
+          Logger.log('[SystemBootstrap] Warning: version column not found in ACTIONS headers');
+        } else {
+          const allActionsRows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, {});
+          const rowsNeedingVersion = [];
+
+          for (const rowData of allActionsRows) {
+            const versionValue = rowData.row[versionColIndex];
+            if (!versionValue || versionValue === '' || versionValue === null) {
+              rowsNeedingVersion.push(rowData.sheetRowIndex);
+            }
+          }
+
+          if (rowsNeedingVersion.length > 0) {
+            Logger.log('[SystemBootstrap] Found ' + rowsNeedingVersion.length + ' rows needing version backfill');
+
+            // Batch update in chunks of 200
+            const batchSize = 200;
+            for (let i = 0; i < rowsNeedingVersion.length; i += batchSize) {
+              const batch = rowsNeedingVersion.slice(i, Math.min(i + batchSize, rowsNeedingVersion.length));
+              const updates = batch.map(function(rowIndex) {
+                const colLetter = String.fromCharCode(65 + versionColIndex);
+                return {
+                  rangeA1: colLetter + rowIndex + ':' + colLetter + rowIndex,
+                  values: [[1]]
+                };
+              });
+
+              batchOps.batchUpdate(SHEET_NAMES.ACTIONS, updates);
+              Logger.log('[SystemBootstrap] Backfilled version for batch ' + (Math.floor(i / batchSize) + 1));
+            }
+
+            Logger.log('[SystemBootstrap] Version backfill completed: ' + rowsNeedingVersion.length + ' rows updated');
+          } else {
+            Logger.log('[SystemBootstrap] No rows need version backfill');
+          }
+        }
+
+        configManager.set(versionBackfillGuard, true);
+        Logger.log('[SystemBootstrap] Phase 2 version backfill guard flag set');
+      } else {
+        Logger.log('[SystemBootstrap] Phase 2 version backfill already completed (guard flag set)');
+      }
+    } catch (versionBackfillError) {
+      LoggerFacade.error('SystemBootstrap', 'Version backfill failed', {
+        error: versionBackfillError.message,
+        stack: versionBackfillError.stack,
+        context: 'seedInitialData_versionBackfill'
+      });
+      // Don't throw - this is supplementary backfill
+      Logger.log('[SystemBootstrap] Warning: Version backfill failed but continuing: ' + versionBackfillError.message);
+    }
+
+    // Phase 2: JSON Column Sanitization
+    try {
+      const configManager = container.get(SERVICES.ConfigManager);
+      const jsonSanitizationGuard = 'PHASE2_JSON_SANITIZATION_COMPLETE';
+      const hasSanitizedJson = configManager.getBoolean(jsonSanitizationGuard, false);
+
+      if (!hasSanitizedJson) {
+        Logger.log('[SystemBootstrap] Starting Phase 2 JSON column sanitization...');
+
+        const jsonArrayColumns = ['dependencies', 'tags', 'last_scheduled_attachments'];
+        const jsonObjectColumns = ['scheduling_metadata', 'last_scheduled_metadata'];
+        const actionsHeaders = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+        const allActionsRows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, {});
+        const updates = [];
+
+        for (const rowData of allActionsRows) {
+          // Process array columns - default to '[]'
+          for (const columnName of jsonArrayColumns) {
+            const colIndex = actionsHeaders.indexOf(columnName);
+            if (colIndex !== -1) {
+              const cellValue = rowData.row[colIndex];
+              let needsUpdate = false;
+
+              if (!cellValue || cellValue === '' || cellValue === null) {
+                needsUpdate = true;
+              } else if (typeof cellValue === 'string') {
+                try {
+                  JSON.parse(cellValue);
+                } catch (e) {
+                  needsUpdate = true;
+                }
+              }
+
+              if (needsUpdate) {
+                const colLetter = _columnIndexToA1(colIndex);
+                updates.push({
+                  rangeA1: colLetter + rowData.sheetRowIndex + ':' + colLetter + rowData.sheetRowIndex,
+                  values: [['[]']]
+                });
+              }
+            }
+          }
+
+          // Process object columns - default to '{}'
+          for (const columnName of jsonObjectColumns) {
+            const colIndex = actionsHeaders.indexOf(columnName);
+            if (colIndex !== -1) {
+              const cellValue = rowData.row[colIndex];
+              let needsUpdate = false;
+
+              if (!cellValue || cellValue === '' || cellValue === null) {
+                needsUpdate = true;
+              } else if (typeof cellValue === 'string') {
+                try {
+                  JSON.parse(cellValue);
+                } catch (e) {
+                  needsUpdate = true;
+                }
+              }
+
+              if (needsUpdate) {
+                const colLetter = _columnIndexToA1(colIndex);
+                updates.push({
+                  rangeA1: colLetter + rowData.sheetRowIndex + ':' + colLetter + rowData.sheetRowIndex,
+                  values: [['{}']]
+                });
+              }
+            }
+          }
+        }
+
+        if (updates.length > 0) {
+          Logger.log('[SystemBootstrap] Found ' + updates.length + ' rows needing JSON sanitization');
+
+          // Batch update in chunks of 200
+          const batchSize = 200;
+          for (let i = 0; i < updates.length; i += batchSize) {
+            const batch = updates.slice(i, Math.min(i + batchSize, updates.length));
+            batchOps.batchUpdate(SHEET_NAMES.ACTIONS, batch);
+            Logger.log('[SystemBootstrap] Sanitized JSON for batch ' + (Math.floor(i / batchSize) + 1));
+          }
+
+          Logger.log('[SystemBootstrap] JSON sanitization completed: ' + updates.length + ' rows updated');
+        } else {
+          Logger.log('[SystemBootstrap] No rows need JSON sanitization');
+        }
+
+        configManager.set(jsonSanitizationGuard, true);
+        Logger.log('[SystemBootstrap] Phase 2 JSON sanitization guard flag set');
+      } else {
+        Logger.log('[SystemBootstrap] Phase 2 JSON sanitization already completed (guard flag set)');
+      }
+    } catch (jsonSanitizationError) {
+      LoggerFacade.error('SystemBootstrap', 'JSON sanitization failed', {
+        error: jsonSanitizationError.message,
+        stack: jsonSanitizationError.stack,
+        context: 'seedInitialData_jsonSanitization'
+      });
+      // Don't throw - this is supplementary sanitization
+      Logger.log('[SystemBootstrap] Warning: JSON sanitization failed but continuing: ' + jsonSanitizationError.message);
     }
 
   } catch (error) {
