@@ -20,20 +20,40 @@ class TriggerOrchestrator {
 
   _runTrigger(triggerName, logicFunction, lockTimeout = 15000, context = this) {
     const verificationId = Utilities.getUuid();
+
+    // Idempotency check via SystemManager
+    if (this.systemManager.shouldSkipTrigger(triggerName)) {
+      this.logger.warn('TriggerOrchestrator', `${triggerName} skipped - already in progress`, {
+        trigger: triggerName,
+        verification_id: verificationId
+      });
+      return;
+    }
+
     const lockHandle = this.lockManager.tryAcquireLock(triggerName, lockTimeout, verificationId);
 
     if (!lockHandle) {
-      this.logger.warn('TriggerOrchestrator', `${triggerName} skipped - lock unavailable`, { trigger: triggerName, verification_id: verificationId });
+      this.logger.warn('TriggerOrchestrator', `${triggerName} skipped - lock unavailable`, {
+        trigger: triggerName,
+        verification_id: verificationId
+      });
       return;
     }
 
     try {
-      this.logger.info('TriggerOrchestrator', `Starting ${triggerName}`, { trigger: triggerName, verification_id: verificationId });
+      this.systemManager.markTriggerStarted(triggerName);
+      this.logger.info('TriggerOrchestrator', `Starting ${triggerName}`, {
+        trigger: triggerName,
+        verification_id: verificationId
+      });
       const target = context || this;
       logicFunction.call(target);
+      this.systemManager.markTriggerCompleted(triggerName, 'SUCCESS');
     } catch (error) {
+      this.systemManager.markTriggerCompleted(triggerName, 'FAILURE');
       this.logger.error('TriggerOrchestrator', `${triggerName} failed`, {
-        trigger: triggerName, verification_id: verificationId,
+        trigger: triggerName,
+        verification_id: verificationId,
         error_message: error.message || String(error),
         stack_trace: error.stack ? error.stack.substring(0, 1000) : 'N/A'
       });

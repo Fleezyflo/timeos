@@ -169,6 +169,47 @@ class SystemManager {
       healthResults.partial_failure_mode = true;
     }
 
+    // Lock manager metrics
+    try {
+      if (container.has(SERVICES.DistributedLockManager)) {
+        const lockManager = container.get(SERVICES.DistributedLockManager);
+        const lockMetrics = lockManager.getMetrics();
+
+        const successRateNum = parseInt(lockMetrics.successRate);
+        let lockStatus = 'HEALTHY';
+        if (successRateNum < 80) lockStatus = 'DEGRADED';
+        if (successRateNum < 50) lockStatus = 'ERROR';
+
+        healthResults.checks.lock_manager = {
+          status: lockStatus,
+          details: lockMetrics
+        };
+      }
+    } catch (error) {
+      healthResults.checks.lock_manager = { status: 'ERROR', error: error.message };
+      healthResults.partial_failure_mode = true;
+    }
+
+    // Trigger status from existing STATUS data
+    try {
+      const status = this.getSystemStatus();
+      const triggerStatus = {};
+
+      for (const key in status) {
+        if (key.startsWith('trigger_')) {
+          triggerStatus[key] = status[key];
+        }
+      }
+
+      healthResults.checks.triggers = {
+        status: 'HEALTHY',
+        details: triggerStatus
+      };
+    } catch (error) {
+      healthResults.checks.triggers = { status: 'ERROR', error: error.message };
+      healthResults.partial_failure_mode = true;
+    }
+
     const overallHealth = this._calculateOverallHealth(healthResults.checks);
     healthResults.overall_status = overallHealth;
 
@@ -218,6 +259,126 @@ class SystemManager {
       this.logger.error('SystemManager', `Failed to get system status: ${error.message}`);
       return {};
     }
+  }
+
+  /**
+   * Update or create STATUS sheet row for a given key
+   * Implements in-place update pattern to avoid row proliferation
+   * @param {string} key - Status key (e.g., 'trigger_runEmail_state')
+   * @param {string} value - Status value
+   * @param {string} statusFlag - Status flag (e.g., 'SUCCESS', 'AUTO')
+   * @private
+   */
+  _updateStatusRow(key, value, statusFlag = 'AUTO') {
+    try {
+      const timestamp = TimeZoneAwareDate.toISOString(new Date());
+      const headers = this.batchOperations.getHeaders(SHEET_NAMES.STATUS);
+      const statusRows = this.batchOperations.getRowsByFilter(SHEET_NAMES.STATUS, {});
+
+      // Find existing row for this key
+      let existingRowIndex = -1;
+      for (let i = 0; i < statusRows.length; i++) {
+        if (statusRows[i][0] === key) {
+          existingRowIndex = i;
+          break;
+        }
+      }
+
+      const newRow = [key, value, timestamp, statusFlag];
+
+      if (existingRowIndex >= 0) {
+        // Update existing row in-place using SafeColumnAccess
+        const safeAccess = new SafeColumnAccess(headers);
+        const sheetRowIndex = existingRowIndex + 2; // +1 for header, +1 for 0-based index
+
+        this.batchOperations.batchUpdate(SHEET_NAMES.STATUS, [{
+          rangeA1: safeAccess.getRowRange(sheetRowIndex),
+          values: [newRow]
+        }]);
+
+        this.logger.debug('SystemManager', `Updated STATUS row: ${key}`, { value, statusFlag });
+      } else {
+        // Append new row if key doesn't exist
+        this.batchOperations.appendRows(SHEET_NAMES.STATUS, [newRow]);
+        this.logger.debug('SystemManager', `Created STATUS row: ${key}`, { value, statusFlag });
+      }
+    } catch (error) {
+      this.logger.error('SystemManager', `Failed to update STATUS row: ${key}`, {
+        error: error.message,
+        key: key
+      });
+    }
+  }
+
+  /**
+   * Check if trigger should skip execution (idempotency guard)
+   * Called by TriggerOrchestrator before lock acquisition
+   * @param {string} triggerName - Trigger name (e.g., 'runEmailProcessing')
+   * @param {number} windowMs - Time window to consider trigger active (default 5min)
+   * @returns {boolean} True if trigger should skip
+   */
+  shouldSkipTrigger(triggerName, windowMs = 5 * 60 * 1000) {
+    try {
+      const status = this.getSystemStatus();
+      const stateKey = `trigger_${triggerName}_state`;
+      const timestampKey = `trigger_${triggerName}_last_start`;
+
+      if (!status[stateKey] || !status[timestampKey]) {
+        return false; // No state tracked yet, allow execution
+      }
+
+      const triggerState = status[stateKey].value;
+      const lastStartTimestamp = status[timestampKey].value;
+
+      // Skip if IN_PROGRESS with recent timestamp
+      if (triggerState === 'IN_PROGRESS' && lastStartTimestamp) {
+        const lastStart = new Date(lastStartTimestamp);
+        const age = Date.now() - lastStart.getTime();
+
+        if (age < windowMs) {
+          this.logger.warn('SystemManager', `Trigger ${triggerName} should skip - in progress`, {
+            trigger: triggerName,
+            age_ms: age,
+            last_start: lastStartTimestamp
+          });
+          return true;
+        }
+      }
+
+      return false;
+
+    } catch (error) {
+      this.logger.error('SystemManager', `Trigger skip check failed: ${triggerName}`, {
+        error: error.message
+      });
+      // Fail open - allow trigger to run
+      return false;
+    }
+  }
+
+  /**
+   * Mark trigger as started (IN_PROGRESS)
+   * Updates existing STATUS rows in-place
+   * @param {string} triggerName - Trigger name
+   */
+  markTriggerStarted(triggerName) {
+    const timestamp = TimeZoneAwareDate.toISOString(new Date());
+    this._updateStatusRow(`trigger_${triggerName}_state`, 'IN_PROGRESS', 'AUTO');
+    this._updateStatusRow(`trigger_${triggerName}_last_start`, timestamp, 'AUTO');
+    this.logger.debug('SystemManager', `Trigger marked started: ${triggerName}`);
+  }
+
+  /**
+   * Mark trigger as completed (IDLE)
+   * Updates existing STATUS rows in-place
+   * @param {string} triggerName - Trigger name
+   * @param {string} status - 'SUCCESS' or 'FAILURE'
+   */
+  markTriggerCompleted(triggerName, status) {
+    const timestamp = TimeZoneAwareDate.toISOString(new Date());
+    this._updateStatusRow(`trigger_${triggerName}_state`, 'IDLE', status);
+    this._updateStatusRow(`trigger_${triggerName}_last_end`, timestamp, status);
+    this.logger.debug('SystemManager', `Trigger marked completed: ${triggerName}`, { status });
   }
 
   /**
@@ -594,19 +755,50 @@ class SystemManager {
           });
 
           if (completedTasks.length > 0) {
-            const archiveLimit = this.configManager.getNumber('ARCHIVE_BATCH_LIMIT', 100, {
+            const chunkSize = this.configManager.getNumber('ARCHIVE_BATCH_LIMIT', 50, {
               min: 10,
-              max: 500
+              max: 200
             });
-            const tasksToArchive = completedTasks.slice(0, archiveLimit);
-            const archiveResult = this.archiveManager.archiveCompletedTasks(tasksToArchive.map(row => ({
-              action_id: row[0],
-              status: row[1],
-              // Add other task properties as needed
-              toSheetRow: (headers) => row
-            })));
 
-            maintenanceResults.operations.archive_tasks = archiveResult;
+            let totalArchived = 0;
+            let chunksProcessed = 0;
+            const maxChunks = 5;
+            const maxTasks = Math.min(completedTasks.length, chunkSize * maxChunks);
+
+            this.logger.info('SystemManager', `Chunked archive: ${completedTasks.length} candidates, max ${maxTasks} in ${chunkSize}-task chunks`);
+
+            for (let i = 0; i < maxTasks; i += chunkSize) {
+              const chunk = completedTasks.slice(i, Math.min(i + chunkSize, maxTasks));
+
+              try {
+                const archiveResult = this.archiveManager.archiveCompletedTasks(chunk.map(row => ({
+                  action_id: row[0],
+                  status: row[1],
+                  toSheetRow: (headers) => row
+                })));
+
+                if (archiveResult.success) {
+                  totalArchived += chunk.length;
+                }
+                chunksProcessed++;
+
+                if (i + chunkSize < maxTasks) {
+                  Utilities.sleep(200);
+                }
+              } catch (chunkError) {
+                this.logger.error('SystemManager', `Chunk ${chunksProcessed + 1} failed`, {
+                  error: chunkError.message
+                });
+              }
+            }
+
+            maintenanceResults.operations.archive_tasks = {
+              success: totalArchived > 0,
+              archived_count: totalArchived,
+              chunks_processed: chunksProcessed,
+              total_candidates: completedTasks.length,
+              chunk_size: chunkSize
+            };
           } else {
             maintenanceResults.operations.archive_tasks = {
               success: true,

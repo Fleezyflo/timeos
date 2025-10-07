@@ -146,3 +146,92 @@ const rangeA1 = safeAccess.getRowRange(5);  // Returns "A5:BA5" for 53 columns
 grep -rn "String\.fromCharCode.*headers\.length" src/ --include="*.gs"
 # Should return 0 results
 ```
+
+---
+
+## Phase 7: Chunked Maintenance & Lock Metrics
+
+### Chunked Archive Operations
+
+`SystemManager.runSystemMaintenance()` now processes completed tasks in chunks to prevent timeout and rate limit issues.
+
+#### Configuration
+- **Chunk Size**: `ARCHIVE_BATCH_LIMIT` (default: 50, min: 10, max: 200)
+- **Max Chunks**: 5 per maintenance run (hardcoded)
+- **Max Tasks**: 250 per run (5 × 50)
+- **Inter-Chunk Delay**: 200ms
+
+#### Algorithm
+```javascript
+for (let i = 0; i < maxTasks; i += chunkSize) {
+  const chunk = completedTasks.slice(i, Math.min(i + chunkSize, maxTasks));
+  archiveManager.archiveCompletedTasks(chunk);
+  Utilities.sleep(200);  // Rate limit protection
+}
+```
+
+#### Results Structure
+```javascript
+{
+  operations: {
+    archive_tasks: {
+      success: true,
+      archived_count: 150,       // Actually archived
+      chunks_processed: 3,       // Chunks executed
+      total_candidates: 487,     // Total available
+      chunk_size: 50             // Configured size
+    }
+  }
+}
+```
+
+#### Expected Logs
+```
+[SystemManager] Chunked archive: 487 candidates, max 250 in 50-task chunks
+[SystemManager] Maintenance completed: SUCCESS
+```
+
+### Lock Manager Metrics
+
+Lock contention and timeout metrics are tracked automatically and exposed via health checks.
+
+#### Accessing Metrics
+```javascript
+const health = systemManager.runHealthCheck();
+Logger.log(health.checks.lock_manager.details);
+// {
+//   acquireAttempts: 156,
+//   timeouts: 1,
+//   successRate: "99%",
+//   contentionRate: "1%",
+//   timeoutRate: "0%"
+// }
+```
+
+#### Interpreting Rates
+- **Success Rate** >90%: Healthy
+- **Contention Rate** <10%: Normal
+- **Timeout Rate** <5%: Acceptable
+
+### Trigger Idempotency
+
+Triggers track state in STATUS sheet to prevent concurrent execution. SystemManager methods:
+- `shouldSkipTrigger(name)`: Check if trigger in progress
+- `markTriggerStarted(name)`: Set IN_PROGRESS state
+- `markTriggerCompleted(name, status)`: Set IDLE state
+
+STATUS rows are updated in-place (not appended) using `_updateStatusRow` helper.
+
+### Troubleshooting
+
+#### Partial Archiving
+Normal with large backlogs. Each run processes max 250 tasks. Subsequent runs handle remainder.
+
+#### Timeout Issues
+- Reduce `ARCHIVE_BATCH_LIMIT` to 30-40
+- Check archive destination accessibility
+- Increase inter-chunk sleep in SystemManager.gs
+
+#### High Contention
+- Review trigger schedule for overlaps
+- Increase lock timeout values in TriggerOrchestrator

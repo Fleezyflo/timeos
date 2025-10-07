@@ -2734,26 +2734,39 @@ class SmartLogger {
 
   /**
    * Write log entry to sheet
+   * Phase 6: Always batch for consistency and performance
    * @param {Sheet} sheet - Sheet to write to
    * @param {Array} logRow - Log data to write
    * @private
    */
   _writeToSheet(sheet, logRow) {
-    try {
-      sheet.appendRow(logRow);
-    } catch (error) {
-      // Add to batch if direct write fails
-      this.batchedLogs.push(logRow);
+    // Phase 6: Always batch for consistency
+    this.batchedLogs.push(logRow);
 
-      // Flush batch if it's getting full
-      if (this.batchedLogs.length >= this.maxBatchSize) {
-        this._flushBatchedLogs();
-      }
+    // Determine severity for flush trigger
+    const severity = logRow[1]; // Severity is at index 1
+    const shouldFlush = this.batchedLogs.length >= this.maxBatchSize || severity === 'ERROR';
+
+    if (shouldFlush) {
+      this._flushBatchedLogs();
+    }
+  }
+
+  /**
+   * Phase 6: Public flush method for manual batched log persistence
+   * Allows callers to force-flush pending logs (e.g., before long-running operations)
+   * @public
+   */
+  flush() {
+    if (this.batchedLogs.length > 0) {
+      this._flushBatchedLogs();
     }
   }
 
   /**
    * Flush batched logs to sheet
+   * Phase 6: Use BatchOperations.appendRows() with fallback to direct write
+   * Preserves logs on failure for retry
    * @private
    */
   _flushBatchedLogs() {
@@ -2761,22 +2774,41 @@ class SmartLogger {
       return;
     }
 
+    // Phase 6: Copy logs for this flush attempt (don't clear until successful)
+    const logsToFlush = [...this.batchedLogs];
+    let flushed = false;
+
     try {
-      const sheet = this._getSpreadsheet().getSheetByName(SHEET_NAMES.ACTIVITY);
-      if (sheet && this.batchedLogs.length > 0) {
-        const lastRow = sheet.getLastRow();
-        const numRows = this.batchedLogs.length;
-        const numCols = this.batchedLogs[0].length;
+      // Try BatchOperations first (preferred method)
+      if (hasService(SERVICES.BatchOperations)) {
+        const batchOps = container.get(SERVICES.BatchOperations);
+        batchOps.appendRows(SHEET_NAMES.ACTIVITY, logsToFlush);
+        flushed = true;
+      }
 
-        const range = sheet.getRange(lastRow + 1, 1, numRows, numCols);
-        range.setValues(this.batchedLogs);
+      // Fallback to direct sheet write if BatchOperations unavailable
+      if (!flushed) {
+        const sheet = this._getSpreadsheet().getSheetByName(SHEET_NAMES.ACTIVITY);
+        if (sheet && logsToFlush.length > 0) {
+          const lastRow = sheet.getLastRow();
+          const numRows = logsToFlush.length;
+          const numCols = logsToFlush[0].length;
 
+          const range = sheet.getRange(lastRow + 1, 1, numRows, numCols);
+          range.setValues(logsToFlush);
+          flushed = true;
+        }
+      }
+
+      // Only clear batched logs if flush succeeded
+      if (flushed) {
         this.batchedLogs = [];
       }
+
     } catch (error) {
-      // If batch flush fails, just clear the batch to prevent memory buildup
-      Logger.log(`SmartLogger: Failed to flush batched logs: ${error.message}`);
-      this.batchedLogs = [];
+      // Phase 6: DON'T clear logs on failure - preserve for next retry
+      Logger.log(`SmartLogger: Failed to flush ${logsToFlush.length} batched logs: ${error.message}`);
+      // Logs remain in this.batchedLogs for next flush attempt
     }
   }
 
@@ -3805,7 +3837,8 @@ class DistributedLockManager {
       acquireFailures: 0,
       releases: 0,
       staleLocksCleanedUp: 0,
-      contentionEvents: 0
+      contentionEvents: 0,
+      timeouts: 0
     };
   }
 
@@ -3883,6 +3916,7 @@ class DistributedLockManager {
 
       // Timeout reached
       this.metrics.acquireFailures++;
+      this.metrics.timeouts++;
       this.logger.warn('DistributedLockManager', 'Lock acquisition timeout', {
         lockName: lockName,
         timeoutMs: timeoutMs,
@@ -4082,12 +4116,16 @@ class DistributedLockManager {
       Math.round((this.metrics.acquireSuccesses / totalAttempts) * 100) : 0;
     const contentionRate = totalAttempts > 0 ?
       Math.round((this.metrics.contentionEvents / totalAttempts) * 100) : 0;
+    const timeoutRate = totalAttempts > 0 ?
+      Math.round((this.metrics.timeouts / totalAttempts) * 100) : 0;
 
     return {
       ...this.metrics,
       successRate: successRate + '%',
       contentionRate: contentionRate + '%',
-      activeLocks: this.getActiveLocks().length
+      timeoutRate: timeoutRate + '%',
+      activeLocks: this.getActiveLocks().length,
+      staleLockAge: this.staleLockThreshold / 1000 + 's'
     };
   }
 
@@ -5994,10 +6032,11 @@ class BatchOperations {
    *
    * Gets rows from a sheet that match specified filter criteria.
    * Performs filtering in the I/O layer to minimize memory usage and CPU overhead.
+   * Phase 6: Added pagination support via limit/offset options
    *
    * @param {string} sheetName - Name of the sheet
    * @param {Object} filterObject - Filter criteria { columnName: expectedValue, ... }
-   * @param {Object} options - Optional parameters { includeHeader: boolean, operator: 'AND'|'OR' }
+   * @param {Object} options - Optional parameters { includeHeader: boolean, operator: 'AND'|'OR', limit: number, offset: number }
    * @returns {Array[]} Filtered rows matching the criteria
    */
   getRowsByFilter(sheetName, filterObject = {}, options = {}) {
@@ -6009,10 +6048,11 @@ class BatchOperations {
       throw new Error('BatchOperations.getRowsByFilter: filterObject must be a valid object');
     }
 
-    const { includeHeader = false, operator = 'AND' } = options;
+    // Phase 6: Extract pagination parameters
+    const { includeHeader = false, operator = 'AND', limit = null, offset = 0 } = options;
 
     try {
-      // Get headers and all data efficiently
+      // Get headers efficiently
       let headers;
       try {
         headers = this.getHeaders(sheetName);
@@ -6020,12 +6060,27 @@ class BatchOperations {
         this.logger.error('BatchOperations', `Failed to get headers for '${sheetName}' in getRowsByFilter`, { error: e.message, stack: e.stack });
         throw new Error(`BatchOperations.getRowsByFilter: Failed to get headers for sheet '${sheetName}': ${e.message}`);
       }
+
+      // Phase 6: Optimize data retrieval with pagination if limit specified
       let allData;
       try {
-        allData = this.getAllSheetData(sheetName);
+        if (limit !== null && limit > 0) {
+          // Use range-based pagination for efficiency
+          const sheet = this._getSheet(sheetName);
+          const startRow = 2 + offset; // +2 because row 1 is header, row 2 is first data
+          const rowsToFetch = limit;
+          const numCols = headers.length;
+
+          const range = sheet.getRange(startRow, 1, rowsToFetch, numCols);
+          const paginatedData = range.getValues();
+          allData = [headers, ...paginatedData];
+        } else {
+          // Full dataset retrieval (no pagination)
+          allData = this.getAllSheetData(sheetName);
+        }
       } catch (e) {
-        this.logger.error('BatchOperations', `Failed to get all sheet data for '${sheetName}' in getRowsByFilter`, { error: e.message, stack: e.stack });
-        throw new Error(`BatchOperations.getRowsByFilter: Failed to get all sheet data for sheet '${sheetName}': ${e.message}`);
+        this.logger.error('BatchOperations', `Failed to get sheet data for '${sheetName}' in getRowsByFilter`, { error: e.message, stack: e.stack });
+        throw new Error(`BatchOperations.getRowsByFilter: Failed to get sheet data for sheet '${sheetName}': ${e.message}`);
       }
 
       if (allData.length === 0) {
@@ -6826,6 +6881,46 @@ class BatchOperations {
         logger.error('BatchOperations', `Both atomic and fallback failed for ${originalSheetName}: ${fallbackError.message}`);
         return false;
       }
+    }
+  }
+
+  /**
+   * Phase 6: Delete multiple rows by their indices
+   * Deletes rows in reverse order to maintain index stability
+   * @param {string} sheetName - Name of the sheet
+   * @param {Array<number>} rowIndices - Array of 1-based row indices to delete
+   * @returns {number} Number of rows deleted
+   * @public
+   */
+  deleteRowsByIndices(sheetName, rowIndices) {
+    if (!rowIndices || rowIndices.length === 0) {
+      return 0;
+    }
+
+    try {
+      const sheet = this._getSheet(sheetName);
+
+      // Sort indices in descending order to delete from bottom up
+      // This prevents index shifting issues
+      const sortedIndices = [...rowIndices].sort((a, b) => b - a);
+
+      // Delete each row
+      sortedIndices.forEach(rowIndex => {
+        sheet.deleteRows(rowIndex, 1);
+      });
+
+      this.logger.info('BatchOperations', `Deleted ${sortedIndices.length} rows from ${sheetName}`, {
+        rowIndices: sortedIndices.length > 10 ? `${sortedIndices.length} rows` : sortedIndices
+      });
+
+      return sortedIndices.length;
+
+    } catch (error) {
+      this.logger.error('BatchOperations', `Failed to delete rows from ${sheetName}`, {
+        error: error.message,
+        rowCount: rowIndices.length
+      });
+      throw error;
     }
   }
 

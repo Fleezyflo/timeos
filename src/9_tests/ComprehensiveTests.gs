@@ -134,6 +134,38 @@ function test_RedFlagFixes() {
 }
 
 /**
+ * Test chunked maintenance operations
+ */
+function test_ChunkedMaintenance() {
+  const logger = container.get(SERVICES.SmartLogger);
+  logger.info('Test', '[MAINTENANCE] Testing chunked operations');
+
+  try {
+    const systemManager = container.get(SERVICES.SystemManager);
+    const result = systemManager.runSystemMaintenance();
+
+    if (!result || !result.operations) {
+      logger.error('Test', '[MAINTENANCE] ❌ No results returned');
+      return false;
+    }
+
+    if (result.operations.archive_tasks) {
+      const op = result.operations.archive_tasks;
+      if (!op.hasOwnProperty('chunks_processed') || !op.hasOwnProperty('chunk_size')) {
+        logger.error('Test', '[MAINTENANCE] ❌ Chunking metadata missing');
+        return false;
+      }
+      logger.info('Test', `[MAINTENANCE] ✅ Processed ${op.chunks_processed} chunks, ${op.archived_count}/${op.total_candidates} archived`);
+    }
+
+    return true;
+  } catch (error) {
+    logger.error('Test', '[MAINTENANCE] ❌ Crashed: ' + error.message);
+    return false;
+  }
+}
+
+/**
  * Test function for PersistentStore class
  * Must demonstrate the full lifecycle: set, get, delete, and error handling
  */

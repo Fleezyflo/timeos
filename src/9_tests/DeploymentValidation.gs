@@ -429,6 +429,74 @@ function validateDatabaseSchema() {
       return false;
     }
 
+    // Lock manager metrics validation
+    logger.info('Deployment', 'Testing lock manager metrics...');
+    try {
+      const lockManager = container.get(SERVICES.DistributedLockManager);
+      const baselineMetrics = lockManager.getMetrics();
+
+      const testLock = lockManager.tryAcquireLock('deployment_test_lock', 5000);
+      if (!testLock) {
+        logger.error('Deployment', 'Lock metrics FAILED - could not acquire test lock');
+        return false;
+      }
+      lockManager.releaseLock(testLock);
+
+      const updatedMetrics = lockManager.getMetrics();
+      if (updatedMetrics.acquireAttempts <= baselineMetrics.acquireAttempts) {
+        logger.error('Deployment', 'Lock metrics FAILED - not incrementing');
+        return false;
+      }
+
+      if (!updatedMetrics.hasOwnProperty('timeouts') || !updatedMetrics.hasOwnProperty('timeoutRate')) {
+        logger.error('Deployment', 'Lock metrics FAILED - timeout tracking missing');
+        return false;
+      }
+
+      logger.info('Deployment', '✓ Lock manager metrics validated');
+    } catch (error) {
+      logger.error('Deployment', 'Lock metrics test crashed: ' + error.message);
+      return false;
+    }
+
+    // Trigger idempotency validation
+    logger.info('Deployment', 'Testing trigger idempotency guards...');
+    try {
+      const systemManager = container.get(SERVICES.SystemManager);
+
+      // Mark test trigger as started
+      systemManager.markTriggerStarted('test_deployment_trigger');
+
+      // Should skip fresh IN_PROGRESS trigger
+      const shouldSkip = systemManager.shouldSkipTrigger('test_deployment_trigger', 10000);
+      if (!shouldSkip) {
+        logger.error('Deployment', 'Idempotency FAILED - should skip IN_PROGRESS trigger');
+        return false;
+      }
+
+      // Mark as completed
+      systemManager.markTriggerCompleted('test_deployment_trigger', 'SUCCESS');
+
+      // Should not skip completed trigger
+      const shouldSkipAfter = systemManager.shouldSkipTrigger('test_deployment_trigger', 10000);
+      if (shouldSkipAfter) {
+        logger.error('Deployment', 'Idempotency FAILED - should not skip IDLE trigger');
+        return false;
+      }
+
+      // Verify STATUS update pattern (not append-only)
+      const status = systemManager.getSystemStatus();
+      if (!status['trigger_test_deployment_trigger_state']) {
+        logger.error('Deployment', 'Idempotency FAILED - STATUS not updated');
+        return false;
+      }
+
+      logger.info('Deployment', '✓ Trigger idempotency validated');
+    } catch (error) {
+      logger.error('Deployment', 'Idempotency test crashed: ' + error.message);
+      return false;
+    }
+
     logger.info('Deployment', '✓ Database schema validation passed');
     return true;
 
@@ -691,6 +759,101 @@ function testArchiveReliability() {
 
   } catch (error) {
     logger.error('ArchiveTest', 'Archive reliability test failed: ' + error.message, {
+      stack: error.stack
+    });
+    return false;
+  }
+}
+
+/**
+ * Phase 6: Validate batching and bulk operations
+ * Tests SmartLogger.flush(), deleteRowsByIndices(), and mock instrumentation
+ */
+function validatePhase6Batching() {
+  const logger = getLogger();
+
+  try {
+    logger.info('Phase6Validation', 'Starting Phase 6 validation tests');
+
+    // Test 1: SmartLogger.flush() method exists
+    const smartLogger = container.get(SERVICES.SmartLogger);
+    if (typeof smartLogger.flush !== 'function') {
+      throw new Error('SmartLogger.flush() method not found');
+    }
+    logger.info('Phase6Validation', '✓ Test 1 passed: SmartLogger.flush() exists');
+
+    // Test 2: BatchOperations.deleteRowsByIndices() exists
+    const batchOps = container.get(SERVICES.BatchOperations);
+    if (typeof batchOps.deleteRowsByIndices !== 'function') {
+      throw new Error('BatchOperations.deleteRowsByIndices() method not found');
+    }
+    logger.info('Phase6Validation', '✓ Test 2 passed: BatchOperations.deleteRowsByIndices() exists');
+
+    // Test 3: MockBatchOperations instrumentation
+    const mockCache = container.get(SERVICES.CrossExecutionCache);
+    const mockBatchOps = new MockBatchOperations(mockCache, logger);
+
+    // Seed mock data for testing
+    mockBatchOps.addTestData(SHEET_NAMES.ACTIONS, [
+      ['test1', 'PENDING', 'HIGH', TimeZoneAwareDate.now(), TimeZoneAwareDate.now()],
+      ['test2', 'PENDING', 'MEDIUM', TimeZoneAwareDate.now(), TimeZoneAwareDate.now()],
+      ['test3', 'PENDING', 'LOW', TimeZoneAwareDate.now(), TimeZoneAwareDate.now()]
+    ]);
+
+    // Test appendRows instrumentation
+    mockBatchOps.appendRows(SHEET_NAMES.ACTIONS, [
+      ['test4', 'PENDING', 'HIGH', TimeZoneAwareDate.now(), TimeZoneAwareDate.now()]
+    ]);
+
+    const counts = mockBatchOps.getOperationCounts();
+    if (counts.appends !== 1) {
+      throw new Error(`Expected 1 append, got ${counts.appends}`);
+    }
+    logger.info('Phase6Validation', '✓ Test 3 passed: appendRows instrumentation works');
+
+    // Test 4: updateActionWithOptimisticLocking instrumentation
+    mockBatchOps.updateActionWithOptimisticLocking(SHEET_NAMES.ACTIONS, 'test1', {
+      action_id: 'test1',
+      status: 'IN_PROGRESS'
+    });
+
+    const countsAfterUpdate = mockBatchOps.getOperationCounts();
+    if (countsAfterUpdate.optimisticLockCalls !== 1) {
+      throw new Error(`Expected 1 optimistic lock call, got ${countsAfterUpdate.optimisticLockCalls}`);
+    }
+    logger.info('Phase6Validation', '✓ Test 4 passed: updateActionWithOptimisticLocking instrumentation works');
+
+    // Test 5: deleteRowsByIndices instrumentation
+    const deletedCount = mockBatchOps.deleteRowsByIndices(SHEET_NAMES.ACTIONS, [2, 3]);
+    if (deletedCount !== 2) {
+      throw new Error(`Expected 2 deletions, got ${deletedCount}`);
+    }
+
+    const countsAfterDelete = mockBatchOps.getOperationCounts();
+    if (countsAfterDelete.deletions !== 2) {
+      throw new Error(`Expected 2 deletion operations tracked, got ${countsAfterDelete.deletions}`);
+    }
+    logger.info('Phase6Validation', '✓ Test 5 passed: deleteRowsByIndices instrumentation works');
+
+    // Test 6: Verify remaining data
+    const remainingData = mockBatchOps.getAllSheetData(SHEET_NAMES.ACTIONS);
+    // Should have header + 2 data rows (test1, test4 - test2 and test3 were deleted)
+    if (remainingData.length !== 3) {
+      throw new Error(`Expected 3 rows (header + 2 data), got ${remainingData.length}`);
+    }
+    logger.info('Phase6Validation', '✓ Test 6 passed: Data integrity after deletions');
+
+    logger.info('Phase6Validation', 'All Phase 6 validation tests passed!', {
+      tests_passed: 6,
+      smartLogger_flush: true,
+      deleteRowsByIndices: true,
+      mock_instrumentation: true
+    });
+
+    return true;
+
+  } catch (error) {
+    logger.error('Phase6Validation', 'Phase 6 validation failed: ' + error.message, {
       stack: error.stack
     });
     return false;
