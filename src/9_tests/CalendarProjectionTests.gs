@@ -102,7 +102,7 @@ class CalendarProjectionTestSuite extends TestSuite {
 
   setup() {
     // Mock dependencies
-    this.mockConfigManager = new MockConfigManager();
+    this.mockConfigManager = new MockConfigManagerCalendarTests();
     this.mockErrorHandler = new MockErrorHandler();
     this.mockLogger = new MockSmartLogger();
     this.mockBatchOperations = new MockBatchOperations(new MockCrossExecutionCache(new MockPersistentStore()), this.mockLogger);
@@ -257,7 +257,7 @@ class CalendarProjectionTestSuite extends TestSuite {
 
 // --- Mock Implementations (simplified for testing purposes) ---
 
-class MockConfigManager {
+class MockConfigManagerCalendarTests {
   constructor() {
     this.config = {
       'DEFAULT_ESTIMATED_MINUTES': 30,

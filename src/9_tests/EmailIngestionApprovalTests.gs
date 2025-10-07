@@ -17,7 +17,7 @@ class EmailIngestionApprovalTestSuite extends TestSuite {
 
   setup() {
     // Mock dependencies for EmailIngestionEngine and AppSheetBridge
-    this.mockConfigManager = new MockConfigManager();
+    this.mockConfigManager = new MockConfigManagerEmailTests();
     this.mockErrorHandler = new MockErrorHandler();
     this.mockLogger = new MockSmartLogger();
     this.mockPersistentStore = new MockPersistentStore();
@@ -267,7 +267,7 @@ class EmailIngestionApprovalTestSuite extends TestSuite {
 
 // --- Mock Implementations (simplified for testing purposes) ---
 
-class MockConfigManager {
+class MockConfigManagerEmailTests {
   constructor() {
     this.config = {
       'DEFAULT_ESTIMATED_MINUTES': 30,

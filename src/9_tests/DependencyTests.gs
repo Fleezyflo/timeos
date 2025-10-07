@@ -17,7 +17,7 @@ class DependencyManagementTestSuite extends TestSuite {
 
   setup() {
     // Mock dependencies
-    this.mockConfigManager = new MockConfigManager();
+    this.mockConfigManager = new MockConfigManagerDependencyTests();
     this.mockErrorHandler = new MockErrorHandler();
     this.mockLogger = new MockSmartLogger();
     this.mockPersistentStore = new MockPersistentStore();
@@ -332,7 +332,7 @@ class DependencyManagementTestSuite extends TestSuite {
 
 // --- Mock Implementations (simplified for testing purposes) ---
 
-class MockConfigManager {
+class MockConfigManagerDependencyTests {
   constructor() {
     this.config = {
       'DEFAULT_ESTIMATED_MINUTES': 30,
