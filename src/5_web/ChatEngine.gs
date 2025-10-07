@@ -233,7 +233,13 @@ class ChatEngine {
       };
     }
     recentTask.priority = priorityValue;
-    this._updateTaskInSheet(recentTask.action_id, { priority: priorityValue });
+    const success = this._updateTaskInSheet(recentTask.action_id, { priority: priorityValue });
+    if (!success) {
+      return {
+        success: true,
+        response: this._createSimpleResponse('⚠️ Task modified elsewhere. Refresh and retry.')
+      };
+    }
     this._storeRecentTaskContext(recentTask, context);
     return {
       success: true,
@@ -257,7 +263,13 @@ class ChatEngine {
       };
     }
     recentTask.lane = laneValue;
-    this._updateTaskInSheet(recentTask.action_id, { lane: laneValue });
+    const success = this._updateTaskInSheet(recentTask.action_id, { lane: laneValue });
+    if (!success) {
+      return {
+        success: true,
+        response: this._createSimpleResponse('⚠️ Task modified elsewhere. Refresh and retry.')
+      };
+    }
     this._storeRecentTaskContext(recentTask, context);
     return {
       success: true,
@@ -281,7 +293,13 @@ class ChatEngine {
       };
     }
     recentTask.estimated_minutes = durationValue;
-    this._updateTaskInSheet(recentTask.action_id, { estimated_minutes: durationValue });
+    const success = this._updateTaskInSheet(recentTask.action_id, { estimated_minutes: durationValue });
+    if (!success) {
+      return {
+        success: true,
+        response: this._createSimpleResponse('⚠️ Task modified elsewhere. Refresh and retry.')
+      };
+    }
     this._storeRecentTaskContext(recentTask, context);
     return {
       success: true,
@@ -316,7 +334,10 @@ class ChatEngine {
       return { success: false, response: this._createSimpleResponse(`❌ Cannot cancel task: ${validation.error}. Current status: ${targetAction.status}`) };
     }
 
-    this._updateTaskInSheet(targetAction.action_id, { status: STATUS.CANCELED });
+    const success = this._updateTaskInSheet(targetAction.action_id, { status: STATUS.CANCELED });
+    if (!success) {
+      return { success: true, response: this._createSimpleResponse('⚠️ Task modified elsewhere. Refresh and retry.') };
+    }
     return { success: true, response: this._createSimpleResponse(`✅ Task canceled: "${targetAction.title}"`) };
   }
 
@@ -344,13 +365,17 @@ class ChatEngine {
     const targetAction = matches[0].action;
     targetAction.markCompleted(new Date());
 
-    this._updateTaskInSheet(targetAction.action_id, {
+    const success = this._updateTaskInSheet(targetAction.action_id, {
       status: STATUS.COMPLETED,
       completed_date: targetAction.completed_date,
       updated_at: targetAction.updated_at,
       actual_minutes: targetAction.actual_minutes,
       estimation_accuracy: targetAction.estimation_accuracy
     });
+
+    if (!success) {
+      return { success: true, response: this._createSimpleResponse('⚠️ Task modified elsewhere. Refresh and retry.') };
+    }
 
     return { success: true, response: this._createSimpleResponse(`🎉 Task completed: "${targetAction.title}"`) };
   }
@@ -364,7 +389,13 @@ class ChatEngine {
         response: this._createSimpleResponse('Task not found to start.')
       };
     }
-    this._updateTaskInSheet(task.action_id, { status: STATUS.IN_PROGRESS });
+    const success = this._updateTaskInSheet(task.action_id, { status: STATUS.IN_PROGRESS });
+    if (!success) {
+      return {
+        success: true,
+        response: this._createSimpleResponse('⚠️ Task modified elsewhere. Refresh and retry.')
+      };
+    }
     return {
       success: true,
       response: this._createSimpleResponse(`Task "${task.title}" started.`)
@@ -486,18 +517,24 @@ class ChatEngine {
       if (!validation.valid) {
         return { success: false, response: this._createSimpleResponse(`❌ Cannot cancel task: ${validation.error}. Current status: ${targetAction.status}`) };
       }
-      this._updateTaskInSheet(targetAction.action_id, { status: STATUS.CANCELED });
+      const success = this._updateTaskInSheet(targetAction.action_id, { status: STATUS.CANCELED });
+      if (!success) {
+        return { success: true, response: this._createSimpleResponse('⚠️ Task modified elsewhere. Refresh and retry.') };
+      }
       return { success: true, response: this._createSimpleResponse(`✅ Task canceled: "${targetAction.title}"`) };
     }
     case 'complete': {
       targetAction.markCompleted(new Date());
-      this._updateTaskInSheet(targetAction.action_id, {
+      const success = this._updateTaskInSheet(targetAction.action_id, {
         status: STATUS.COMPLETED,
         completed_date: targetAction.completed_date,
         updated_at: targetAction.updated_at,
         actual_minutes: targetAction.actual_minutes,
         estimation_accuracy: targetAction.estimation_accuracy
       });
+      if (!success) {
+        return { success: true, response: this._createSimpleResponse('⚠️ Task modified elsewhere. Refresh and retry.') };
+      }
       return { success: true, response: this._createSimpleResponse(`🎉 Task completed: "${targetAction.title}"`) };
     }
     case 'start': {
@@ -505,7 +542,10 @@ class ChatEngine {
       if (!validation.valid) {
         return { success: false, response: this._createSimpleResponse(`❌ Cannot start task: ${validation.error}. Current status: ${targetAction.status}`) };
       }
-      this._updateTaskInSheet(targetAction.action_id, { status: STATUS.IN_PROGRESS });
+      const success = this._updateTaskInSheet(targetAction.action_id, { status: STATUS.IN_PROGRESS });
+      if (!success) {
+        return { success: true, response: this._createSimpleResponse('⚠️ Task modified elsewhere. Refresh and retry.') };
+      }
       return { success: true, response: this._createSimpleResponse(`▶️ Task started: "${targetAction.title}"`) };
     }
     default:
@@ -538,40 +578,60 @@ class ChatEngine {
   }
 
   _updateTaskInSheet(actionId, updates) {
-    if (!actionId || !updates || typeof updates !== 'object') return false;
-
-    const headers = this.batchOperations.getHeaders(SHEET_NAMES.ACTIONS);
-    const matches = this.batchOperations.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: actionId });
-
-    if (!matches || matches.length === 0) {
-      this.logger.warn('ChatEngine', `No task found with action_id ${actionId} for sheet update.`);
+    if (!actionId || !updates || typeof updates !== 'object') {
+      this.logger.warn('ChatEngine', 'Invalid arguments to _updateTaskInSheet');
       return false;
     }
 
-    const { row, sheetRowIndex } = matches[0];
-    const safeAccess = new SafeColumnAccess(headers);
-    const updatedRow = [...row];
+    try {
+      const headers = this.batchOperations.getHeaders(SHEET_NAMES.ACTIONS);
+      const matches = this.batchOperations.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: actionId });
 
-    Object.keys(updates).forEach(key => {
-      safeAccess.setCellValue(updatedRow, key, updates[key]);
-    });
-
-    const toColumnLetter = (columnIndex) => {
-      let index = columnIndex;
-      let columnName = '';
-      while (index > 0) {
-        index--;
-        columnName = String.fromCharCode(65 + (index % 26)) + columnName;
-        index = Math.floor(index / 26);
+      if (!matches || matches.length === 0) {
+        this.logger.warn('ChatEngine', `No task found with action_id ${actionId}`);
+        return false;
       }
-      return columnName || 'A';
-    };
 
-    const endColumn = toColumnLetter(headers.length);
-    const rangeA1 = `A${sheetRowIndex}:${endColumn}${sheetRowIndex}`;
+      const { row } = matches[0];
+      const task = MohTask.fromSheetRow(row, headers);
 
-    this.batchOperations.batchUpdate(SHEET_NAMES.ACTIONS, [{ rangeA1, values: [updatedRow] }]);
-    return true;
+      if (!task) {
+        this.logger.error('ChatEngine', `Failed to instantiate MohTask for ${actionId}`);
+        return false;
+      }
+
+      // Apply mutations
+      Object.keys(updates).forEach(key => {
+        if (task.hasOwnProperty(key)) {
+          task[key] = updates[key];
+        }
+      });
+
+      // Call optimistic locking (returns { success, versionConflict?, error? })
+      const result = this.batchOperations.updateActionWithOptimisticLocking(
+        SHEET_NAMES.ACTIONS,
+        actionId,
+        task
+      );
+
+      if (!result.success) {
+        if (result.versionConflict) {
+          this.logger.warn('ChatEngine', `Version conflict updating ${actionId}`, { result });
+        } else {
+          this.logger.error('ChatEngine', `Update failed for ${actionId}`, { result });
+        }
+        return false;
+      }
+
+      return true;
+
+    } catch (error) {
+      this.logger.error('ChatEngine', `Fatal error in _updateTaskInSheet: ${error.message}`, {
+        actionId,
+        stack: error.stack
+      });
+      throw error;
+    }
   }
 
   _storeRecentTaskContext(task, context) {

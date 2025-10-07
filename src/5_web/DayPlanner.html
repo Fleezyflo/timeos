@@ -2664,6 +2664,13 @@ padding: 6px 8px;
                   return new Promise((resolve, reject) => {
                     google.script.run
                       .withSuccessHandler(response => {
+                        if (response && !response.success && response.versionConflict) {
+                          info.revert();
+                          this.showToast('⚠️ Task updated elsewhere. Refreshing...', 'warning');
+                          this.loadTasks({ force: true });
+                          reject(response);
+                          return;
+                        }
                         if (response.success) {
                           this.showToast('Task rescheduled!', 'success');
                           // Update cached event object
@@ -2706,6 +2713,13 @@ padding: 6px 8px;
                   return new Promise((resolve, reject) => {
                     google.script.run
                       .withSuccessHandler(response => {
+                        if (response && !response.success && response.versionConflict) {
+                          info.revert();
+                          this.showToast('⚠️ Task updated elsewhere. Refreshing...', 'warning');
+                          this.loadTasks({ force: true });
+                          reject(response);
+                          return;
+                        }
                         if (response.success) {
                           this.showToast('Task duration updated!', 'success');
                           // Update cached event object
@@ -3230,6 +3244,11 @@ padding: 6px 8px;
       startTask(taskId) {
         google.script.run
           .withSuccessHandler(response => {
+            if (response && !response.success && response.versionConflict) {
+              this.showToast('⚠️ Task updated elsewhere. Refreshing...', 'warning');
+              this.loadTasks({ force: true });
+              return;
+            }
             if (response.success) {
               this.showToast('Task started!', 'success');
               this.invalidateCache('tasks');
@@ -3250,6 +3269,11 @@ padding: 6px 8px;
       completeTask(taskId) {
         google.script.run
           .withSuccessHandler(response => {
+            if (response && !response.success && response.versionConflict) {
+              this.showToast('⚠️ Task updated elsewhere. Refreshing...', 'warning');
+              this.loadTasks({ force: true });
+              return;
+            }
             if (response.success) {
               this.showToast('Task completed!', 'success');
               this.invalidateCache('tasks');
@@ -3270,6 +3294,11 @@ padding: 6px 8px;
       snoozeTask(taskId) {
         google.script.run
           .withSuccessHandler(response => {
+            if (response && !response.success && response.versionConflict) {
+              this.showToast('⚠️ Task updated elsewhere. Refreshing...', 'warning');
+              this.loadTasks({ force: true });
+              return;
+            }
             if (response.success) {
               this.showToast('Task snoozed for 1 hour', 'success');
               this.loadTasks();
@@ -3557,13 +3586,27 @@ padding: 6px 8px;
       bulkCompleteSelected() {
         const selectedIds = Array.from(this.state.selectedTasks);
         if (selectedIds.length === 0) return;
-        
+
         this.showToast(`Completing ${selectedIds.length} tasks...`, 'info');
-        
+
         let completed = 0;
+        let conflicts = 0;
         selectedIds.forEach(taskId => {
           google.script.run
-            .withSuccessHandler(() => {
+            .withSuccessHandler(response => {
+              if (response && !response.success && response.versionConflict) {
+                conflicts++;
+                completed++;
+                if (completed === selectedIds.length) {
+                  if (conflicts > 0) {
+                    this.showToast(`⚠️ ${conflicts} task(s) updated elsewhere. Refreshing...`, 'warning');
+                  }
+                  this.state.selectedTasks.clear();
+                  this.loadTasks({ force: true });
+                  this.loadDashboard();
+                }
+                return;
+              }
               completed++;
               if (completed === selectedIds.length) {
                 this.showToast('All tasks completed!', 'success');
@@ -3582,13 +3625,26 @@ padding: 6px 8px;
       bulkCancelSelected() {
         const selectedIds = Array.from(this.state.selectedTasks);
         if (selectedIds.length === 0) return;
-        
+
         this.showToast(`Canceling ${selectedIds.length} tasks...`, 'info');
-        
+
         let canceled = 0;
+        let conflicts = 0;
         selectedIds.forEach(taskId => {
           google.script.run
-            .withSuccessHandler(() => {
+            .withSuccessHandler(response => {
+              if (response && !response.success && response.versionConflict) {
+                conflicts++;
+                canceled++;
+                if (canceled === selectedIds.length) {
+                  if (conflicts > 0) {
+                    this.showToast(`⚠️ ${conflicts} task(s) updated elsewhere. Refreshing...`, 'warning');
+                  }
+                  this.state.selectedTasks.clear();
+                  this.loadTasks({ force: true });
+                }
+                return;
+              }
               canceled++;
               if (canceled === selectedIds.length) {
                 this.showToast('All tasks canceled!', 'success');
@@ -3618,20 +3674,30 @@ padding: 6px 8px;
             return this.retryWithBackoff(() => {
               return new Promise((resolve, reject) => {
                 google.script.run
-                  .withSuccessHandler(resolve)
+                  .withSuccessHandler(response => {
+                    if (response && !response.success && response.versionConflict) {
+                      reject({ type: 'versionConflict', taskId });
+                    } else {
+                      resolve(response);
+                    }
+                  })
                   .withFailureHandler(reject)
                   .appsheet_completeTask({ taskId: taskId });
               });
             });
           });
-          
+
           Promise.allSettled(promises).then(results => {
             const succeeded = results.filter(r => r.status === 'fulfilled').length;
-            const failed = results.filter(r => r.status === 'rejected').length;
-            
-            if (succeeded > 0) {
-              this.showToast(`Completed ${succeeded} task(s)${failed > 0 ? `, ${failed} failed` : ''}`, 
-                            failed > 0 ? 'warning' : 'success');
+            const conflicts = results.filter(r => r.status === 'rejected' && r.reason?.type === 'versionConflict').length;
+            const failed = results.filter(r => r.status === 'rejected' && r.reason?.type !== 'versionConflict').length;
+
+            if (succeeded > 0 || conflicts > 0) {
+              const messages = [];
+              if (succeeded > 0) messages.push(`Completed ${succeeded} task(s)`);
+              if (conflicts > 0) messages.push(`${conflicts} updated elsewhere`);
+              if (failed > 0) messages.push(`${failed} failed`);
+              this.showToast(messages.join(', '), conflicts > 0 || failed > 0 ? 'warning' : 'success');
               this.state.selectedTasks.clear();
               this.invalidateCache('tasks');
               this.invalidateCache('dashboard');
@@ -3657,20 +3723,30 @@ padding: 6px 8px;
             return this.retryWithBackoff(() => {
               return new Promise((resolve, reject) => {
                 google.script.run
-                  .withSuccessHandler(resolve)
+                  .withSuccessHandler(response => {
+                    if (response && !response.success && response.versionConflict) {
+                      reject({ type: 'versionConflict', taskId });
+                    } else {
+                      resolve(response);
+                    }
+                  })
                   .withFailureHandler(reject)
                   .appsheet_cancelTask({ taskId: taskId, reason: 'Bulk cancel' });
               });
             });
           });
-          
+
           Promise.allSettled(promises).then(results => {
             const succeeded = results.filter(r => r.status === 'fulfilled').length;
-            const failed = results.filter(r => r.status === 'rejected').length;
-            
-            if (succeeded > 0) {
-              this.showToast(`Canceled ${succeeded} task(s)${failed > 0 ? `, ${failed} failed` : ''}`, 
-                            failed > 0 ? 'warning' : 'success');
+            const conflicts = results.filter(r => r.status === 'rejected' && r.reason?.type === 'versionConflict').length;
+            const failed = results.filter(r => r.status === 'rejected' && r.reason?.type !== 'versionConflict').length;
+
+            if (succeeded > 0 || conflicts > 0) {
+              const messages = [];
+              if (succeeded > 0) messages.push(`Canceled ${succeeded} task(s)`);
+              if (conflicts > 0) messages.push(`${conflicts} updated elsewhere`);
+              if (failed > 0) messages.push(`${failed} failed`);
+              this.showToast(messages.join(', '), conflicts > 0 || failed > 0 ? 'warning' : 'success');
               this.state.selectedTasks.clear();
               this.invalidateCache('tasks');
               this.invalidateCache('dashboard');
@@ -3714,9 +3790,23 @@ padding: 6px 8px;
         this.showToast(`Rescheduling ${selectedIds.length} tasks...`, 'info');
         
         let rescheduled = 0;
+        let conflicts = 0;
         selectedIds.forEach(taskId => {
           google.script.run
-            .withSuccessHandler(() => {
+            .withSuccessHandler(response => {
+              if (response && !response.success && response.versionConflict) {
+                conflicts++;
+                rescheduled++;
+                if (rescheduled === selectedIds.length) {
+                  if (conflicts > 0) {
+                    this.showToast(`⚠️ ${conflicts} task(s) updated elsewhere. Refreshing...`, 'warning');
+                  }
+                  this.state.selectedTasks.clear();
+                  this.closeModal('modal-bulk-reschedule');
+                  this.loadTasks({ force: true });
+                }
+                return;
+              }
               rescheduled++;
               if (rescheduled === selectedIds.length) {
                 this.showToast('All tasks rescheduled!', 'success');
@@ -3976,6 +4066,12 @@ padding: 6px 8px;
         this.queueOfflineAction(() => {
           google.script.run
             .withSuccessHandler(response => {
+              if (response && !response.success && response.versionConflict) {
+                this.showToast('⚠️ Task updated elsewhere. Refreshing...', 'warning');
+                this.closeModal('modal-complete-task');
+                this.loadTasks({ force: true });
+                return;
+              }
               if (response.success) {
                 this.showToast('Task completed!', 'success');
                 this.closeModal('modal-complete-task');
@@ -3991,7 +4087,7 @@ padding: 6px 8px;
             .withFailureHandler(error => {
               this.showToast('Error completing task: ' + error.message, 'error');
             })
-            .appsheet_completeTask({ 
+            .appsheet_completeTask({
               taskId: taskId,
               actualMinutes: actualMinutes,
               notes: notes
@@ -4000,9 +4096,9 @@ padding: 6px 8px;
       },
 
       openSnoozeModal(taskId) {
-        const task = this.state.tasks.find(t => t.action_id === taskId) || 
+        const task = this.state.tasks.find(t => t.action_id === taskId) ||
                      this.cache.tasks.get(taskId);
-        
+
         if (task) {
           document.getElementById('snooze-task-id').value = task.action_id;
           document.getElementById('snooze-task-title').value = task.title;
@@ -4017,6 +4113,12 @@ padding: 6px 8px;
         this.queueOfflineAction(() => {
           google.script.run
             .withSuccessHandler(response => {
+              if (response && !response.success && response.versionConflict) {
+                this.showToast('⚠️ Task updated elsewhere. Refreshing...', 'warning');
+                this.closeModal('modal-snooze-task');
+                this.loadTasks({ force: true });
+                return;
+              }
               if (response.success) {
                 this.showToast(`Task snoozed for ${minutes} minutes`, 'success');
                 this.closeModal('modal-snooze-task');
@@ -4030,7 +4132,7 @@ padding: 6px 8px;
             .withFailureHandler(error => {
               this.showToast('Error snoozing task: ' + error.message, 'error');
             })
-            .appsheet_rescheduleTask({ 
+            .appsheet_rescheduleTask({
               taskId: taskId,
               newStart: newStart.toISOString()
             });
@@ -4042,10 +4144,16 @@ padding: 6px 8px;
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
         tomorrow.setHours(9, 0, 0, 0);
-        
+
         this.queueOfflineAction(() => {
           google.script.run
             .withSuccessHandler(response => {
+              if (response && !response.success && response.versionConflict) {
+                this.showToast('⚠️ Task updated elsewhere. Refreshing...', 'warning');
+                this.closeModal('modal-snooze-task');
+                this.loadTasks({ force: true });
+                return;
+              }
               if (response.success) {
                 this.showToast('Task snoozed till tomorrow morning', 'success');
                 this.closeModal('modal-snooze-task');
@@ -4078,6 +4186,12 @@ padding: 6px 8px;
         this.queueOfflineAction(() => {
           google.script.run
             .withSuccessHandler(response => {
+              if (response && !response.success && response.versionConflict) {
+                this.showToast('⚠️ Task updated elsewhere. Refreshing...', 'warning');
+                this.closeModal('modal-snooze-task');
+                this.loadTasks({ force: true });
+                return;
+              }
               if (response.success) {
                 this.showToast('Task snoozed to custom time', 'success');
                 this.closeModal('modal-snooze-task');
@@ -4091,7 +4205,7 @@ padding: 6px 8px;
             .withFailureHandler(error => {
               this.showToast('Error snoozing task: ' + error.message, 'error');
             })
-            .appsheet_rescheduleTask({ 
+            .appsheet_rescheduleTask({
               taskId: taskId,
               newStart: new Date(customTime).toISOString()
             });
@@ -4142,6 +4256,13 @@ padding: 6px 8px;
         this.queueOfflineAction(() => {
           google.script.run
             .withSuccessHandler(response => {
+              if (response && !response.success && response.versionConflict) {
+                this.showToast('⚠️ Task updated elsewhere. Refreshing...', 'warning');
+                this.closeModal('modal-edit-task');
+                this.closeModal('modal-task-details');
+                this.loadTasks({ force: true });
+                return;
+              }
               if (response.success) {
                 this.showToast('Task updated successfully', 'success');
                 this.closeModal('modal-edit-task');
@@ -4244,6 +4365,11 @@ padding: 6px 8px;
           if (newStart) {
             google.script.run
               .withSuccessHandler(response => {
+                if (response && !response.success && response.versionConflict) {
+                  this.showToast('⚠️ Task updated elsewhere. Refreshing...', 'warning');
+                  this.loadTasks({ force: true });
+                  return;
+                }
                 if (response.success) {
                   this.showToast('Task rescheduled', 'success');
                   this.invalidateCache('tasks');
@@ -4267,6 +4393,11 @@ padding: 6px 8px;
       startTask(taskId) {
         google.script.run
           .withSuccessHandler(response => {
+            if (response && !response.success && response.versionConflict) {
+              this.showToast('⚠️ Task updated elsewhere. Refreshing...', 'warning');
+              this.loadTasks({ force: true });
+              return;
+            }
             if (response.success) {
               this.showToast('Task started!', 'success');
               this.invalidateCache('tasks');

@@ -309,6 +309,78 @@ function validateDatabaseSchema() {
       }
     }
 
+    // Optimistic locking validation (inline - no new function)
+    logger.info('Deployment', 'Testing optimistic locking...');
+    try {
+      const testTask = new MohTask({
+        title: 'OL_Test_' + Date.now(),
+        version: 1,
+        status: STATUS.PENDING,
+        priority: PRIORITY.MEDIUM,
+        lane: LANE.OPERATIONAL
+      });
+
+      const testHeaders = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+      batchOps.appendRows(SHEET_NAMES.ACTIONS, [testTask.toSheetRow(testHeaders)]);
+
+      const fetchedRows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: testTask.action_id });
+      if (fetchedRows.length === 0) {
+        logger.error('Deployment', 'OL test task not found after append');
+        return false;
+      }
+
+      // Test 1: Stale update should fail with versionConflict
+      const staleTask = MohTask.fromSheetRow(fetchedRows[0].row, testHeaders);
+      staleTask.version = 1; // Keep stale version
+      staleTask.title = 'Stale update';
+
+      const staleResult = batchOps.updateActionWithOptimisticLocking(
+        SHEET_NAMES.ACTIONS,
+        staleTask.action_id,
+        staleTask
+      );
+
+      if (staleResult.success) {
+        logger.error('Deployment', 'OL FAILED - stale update succeeded', { staleResult: staleResult });
+        return false;
+      }
+
+      if (!staleResult.versionConflict) {
+        logger.error('Deployment', 'OL FAILED - versionConflict flag not set', { staleResult: staleResult });
+        return false;
+      }
+
+      // Test 2: Valid update should succeed
+      const currentTask = MohTask.fromSheetRow(fetchedRows[0].row, testHeaders);
+      currentTask.title = 'Valid update';
+
+      const validResult = batchOps.updateActionWithOptimisticLocking(
+        SHEET_NAMES.ACTIONS,
+        currentTask.action_id,
+        currentTask
+      );
+
+      if (!validResult.success) {
+        logger.error('Deployment', 'OL FAILED - valid update failed', { validResult: validResult });
+        return false;
+      }
+
+      logger.info('Deployment', '✓ Optimistic locking validation passed');
+
+      // Cleanup
+      const allData = batchOps.getAllSheetData(SHEET_NAMES.ACTIONS);
+      const testIdx = allData.findIndex(function(r, i) {
+        return i > 0 && r[testHeaders.indexOf('action_id')] === testTask.action_id;
+      });
+      if (testIdx > 0) {
+        const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.ACTIONS);
+        sheet.deleteRow(testIdx + 1);
+      }
+    } catch (olError) {
+      logger.error('Deployment', 'OL test crashed: ' + olError.message, { stack: olError.stack });
+      return false;
+    }
+
     logger.info('Deployment', '✓ Database schema validation passed');
     return true;
 
@@ -402,6 +474,43 @@ function testArchiveReliability() {
     };
 
     const mockBatchOps = new MockBatchOperations(cache, testLogger);
+
+    // Monkey-patch MockBatchOperations for optimistic locking (no new method declaration)
+    mockBatchOps.updateActionWithOptimisticLocking = function(sheetName, actionId, updatedAction) {
+      const mockSheet = this.mockSheets.get(sheetName);
+      if (!mockSheet) {
+        return { success: false, error: 'Sheet \'' + sheetName + '\' does not exist' };
+      }
+
+      const headers = this.getHeaders(sheetName);
+      const actionIdIdx = headers.indexOf('action_id');
+      const versionIdx = headers.indexOf('version');
+
+      if (actionIdIdx === -1 || versionIdx === -1) {
+        return { success: false, error: 'Missing required columns' };
+      }
+
+      const rowIndex = mockSheet.data.findIndex(function(row) { return row[actionIdIdx] === actionId; });
+      if (rowIndex === -1) {
+        return { success: false, error: 'Action ' + actionId + ' not found' };
+      }
+
+      const currentDbVersion = parseInt(mockSheet.data[rowIndex][versionIdx], 10) || 1;
+
+      if (!updatedAction.isVersionCurrent(currentDbVersion)) {
+        return {
+          success: false,
+          error: 'Version conflict for ' + actionId,
+          versionConflict: true
+        };
+      }
+
+      updatedAction.prepareForUpdate();
+      mockSheet.data[rowIndex] = updatedAction.toSheetRow(headers);
+
+      return { success: true };
+    };
+
     const mockConfigManager = {
       getString: function() { return ''; },
       getNumber: function(key, def) { return def; }
@@ -526,6 +635,9 @@ function testArchiveReliability() {
       retry_tested: true,
       total_tests: 5
     });
+
+    // Cleanup monkey-patch
+    delete mockBatchOps.updateActionWithOptimisticLocking;
 
     return true;
 
