@@ -210,6 +210,69 @@ class SystemManager {
       healthResults.partial_failure_mode = true;
     }
 
+    // Bulk operation metrics (Phase 9 completion - using real APIs)
+    try {
+      const bulkMetrics = {
+        batched_logs: 0,
+        cache_items: 0,
+        store_operations: 0
+      };
+
+      // SmartLogger batched logs (using real API)
+      if (this.logger && typeof this.logger.getStats === 'function') {
+        const loggerStats = this.logger.getStats();
+        bulkMetrics.batched_logs = loggerStats.batchedLogsCount || 0;
+      }
+
+      // CrossExecutionCache items (using real field)
+      if (container.has(SERVICES.CrossExecutionCache)) {
+        const cache = container.get(SERVICES.CrossExecutionCache);
+        if (typeof cache.getStats === 'function') {
+          const cacheStats = cache.getStats();
+          bulkMetrics.cache_items = cacheStats.accessOrderLength || 0;
+        }
+      }
+
+      // PersistentStore operations (using real field)
+      if (container.has(SERVICES.PersistentStore)) {
+        const store = container.get(SERVICES.PersistentStore);
+        if (typeof store.getStats === 'function') {
+          const storeStats = store.getStats();
+          bulkMetrics.store_operations = storeStats.totalOperations || 0;
+        }
+      }
+
+      healthResults.checks.bulk_operations = {
+        status: 'HEALTHY',
+        details: bulkMetrics
+      };
+    } catch (error) {
+      healthResults.checks.bulk_operations = { status: 'ERROR', error: error.message };
+      healthResults.partial_failure_mode = true;
+    }
+
+    // Data sanitization capability check (Phase 9 completion)
+    try {
+      const sanitizationCapabilities = {
+        email_regex_test: /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test('test@example.com'),
+        has_stringify: typeof JSON.stringify === 'function'
+      };
+
+      const allCapable = Object.values(sanitizationCapabilities).every(v => v === true);
+
+      healthResults.checks.data_sanitization = {
+        status: allCapable ? 'HEALTHY' : 'DEGRADED',
+        details: {
+          email_masking_capable: sanitizationCapabilities.email_regex_test,
+          json_sanitization_capable: sanitizationCapabilities.has_stringify,
+          note: 'Capability check only - no runtime counters available'
+        }
+      };
+    } catch (error) {
+      healthResults.checks.data_sanitization = { status: 'ERROR', error: error.message };
+      healthResults.partial_failure_mode = true;
+    }
+
     const overallHealth = this._calculateOverallHealth(healthResults.checks);
     healthResults.overall_status = overallHealth;
 
@@ -222,17 +285,19 @@ class SystemManager {
       });
     }
 
-    // Persist health check summary to STATUS sheet
+    // Persist health check to STATUS sheet (3 separate rows per Phase 9 spec)
     try {
-      const summaryValue = JSON.stringify({
+      const summary = {
         status: overallHealth,
-        timestamp: TimeZoneAwareDate.toISOString(new Date()),
         checks_count: Object.keys(healthResults.checks).length,
         partial_failure: healthResults.partial_failure_mode || false
-      });
+      };
 
-      this._updateStatusRow('health_check_last_run', summaryValue, 'AUTO');
-      this.logger.debug('SystemManager', 'Health check summary persisted to STATUS');
+      this._updateStatusRow('last_health_check_summary', JSON.stringify(summary), 'AUTO');
+      this._updateStatusRow('last_health_check_details', JSON.stringify(healthResults), 'AUTO');
+      this._updateStatusRow('last_health_check_timestamp', TimeZoneAwareDate.toISOString(new Date()), 'AUTO');
+
+      this.logger.debug('SystemManager', 'Health check persisted to STATUS (3 rows)');
     } catch (statusError) {
       this.logger.warn('SystemManager', 'Failed to persist health summary to STATUS', {
         error: statusError.message
@@ -1410,5 +1475,53 @@ class SystemManager {
       created: wasCreated,
       sheet: sheet
     };
+  }
+
+  /**
+   * Phase 10: Log deployment action to PLAN_EXECUTION_LOG
+   * @param {string} phase - Phase identifier (e.g., 'Phase 10')
+   * @param {string} action - Action type: 'BACKUP' | 'DEPLOY' | 'VERIFY' | 'ROLLBACK'
+   * @param {string} status - 'STARTED' | 'SUCCESS' | 'FAILURE' | 'SKIPPED'
+   * @param {Object} details - Action-specific details
+   * @param {Object} verificationResults - Test results (optional)
+   * @returns {boolean} Success status
+   */
+  logDeploymentAction(phase, action, status, details = {}, verificationResults = null) {
+    try {
+      const timestamp = TimeZoneAwareDate.toISOString(new Date());
+      const logId = Utilities.getUuid();
+      const operator = Session.getActiveUser().getEmail();
+
+      const logEntry = [
+        logId,
+        timestamp,
+        phase,
+        operator,
+        action,
+        status,
+        JSON.stringify(details),
+        verificationResults ? JSON.stringify(verificationResults) : '',
+        details.duration_ms || 0,
+        details.error_message || ''
+      ];
+
+      this.batchOperations.appendRows(SHEET_NAMES.PLAN_EXECUTION_LOG, [logEntry]);
+
+      this.logger.info('SystemManager', `Deployment action logged: ${phase} - ${action} - ${status}`, {
+        logId: logId,
+        phase: phase,
+        action: action,
+        status: status
+      });
+
+      return true;
+    } catch (error) {
+      this.logger.error('SystemManager', 'Failed to log deployment action', {
+        error: error.message,
+        phase: phase,
+        action: action
+      });
+      return false;
+    }
   }
 }
