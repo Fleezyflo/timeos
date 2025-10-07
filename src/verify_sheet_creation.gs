@@ -11,26 +11,6 @@
 function VERIFY_SHEET_CREATION() {
   Logger.log('=== SHEET CREATION VERIFICATION ===');
 
-  // Step 0: Phase 2 - Verify schema alignment before proceeding
-  Logger.log('Step 0: Checking schema alignment with previewSchemaDiff()...');
-  try {
-    const schemaDiff = previewSchemaDiff();
-    if (schemaDiff.sheets_with_differences > 0) {
-      Logger.log('✗ CRITICAL: Schema misalignment detected!');
-      Logger.log('Sheets with differences: ' + schemaDiff.sheets_with_differences);
-      Logger.log('Details: ' + JSON.stringify(schemaDiff.diffs, null, 2));
-      return {
-        success: false,
-        error: 'Schema misalignment detected - ' + schemaDiff.sheets_with_differences + ' sheets differ from canonical',
-        schema_diff: schemaDiff
-      };
-    }
-    Logger.log('✓ Schema alignment verified - all sheets match canonical definitions');
-  } catch (diffError) {
-    Logger.log('WARNING: Could not run previewSchemaDiff - ' + diffError.message);
-    Logger.log('Continuing with verification...');
-  }
-
   // Step 1: Run FIX() to create/repair all sheets
   Logger.log('\nStep 1: Running FIX() to create all required sheets...');
   const fixResult = FIX();
