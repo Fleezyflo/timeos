@@ -1116,7 +1116,7 @@ function appsheet_startTask(params) {
     }]);
 
     CacheService.getScriptCache().remove(CACHE_ALL_TASKS_KEY);
-    return { success: true, data: { action_id: params.taskId, status: 'in_progress' } };
+    return { success: true, data: { action_id: params.taskId, status: STATUS.IN_PROGRESS } };
   } catch (error) {
     LoggerFacade.error('AppSheetBridge', 'appsheet_startTask failed', {
       error: error.message,
@@ -1166,7 +1166,7 @@ function appsheet_completeTask(params) {
     }]);
 
     CacheService.getScriptCache().remove(CACHE_ALL_TASKS_KEY);
-    return { success: true, data: { action_id: params.taskId, status: 'completed' } };
+    return { success: true, data: { action_id: params.taskId, status: STATUS.COMPLETED } };
   } catch (error) {
     LoggerFacade.error('AppSheetBridge', 'appsheet_completeTask failed', {
       error: error.message,

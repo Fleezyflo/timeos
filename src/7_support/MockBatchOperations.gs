@@ -36,7 +36,9 @@ class MockBatchOperations {
     });
 
     this.mockSheets.set(SHEET_NAMES.APPSHEET_CONFIG, {
-      headers: ['config_key', 'config_value', 'updated_at', 'description'],
+      headers: [
+        'row_id', 'category', 'subcategory', 'item', 'key', 'value', 'description'
+      ],
       data: [
         ['SCHEDULING_ENABLED', 'true', TimeZoneAwareDate.toISOString(new Date()), 'Enable automatic scheduling']
       ]
@@ -44,14 +46,17 @@ class MockBatchOperations {
 
     this.mockSheets.set(SHEET_NAMES.TIME_BLOCKS, {
       headers: [
-        'block_id', 'date', 'start_time', 'end_time', 'block_type', 'energy_level',
-        'remaining_minutes', 'scheduled_actions', 'created_at'
+        'block_id', 'start_time', 'end_time', 'duration_minutes', 'block_type',
+        'energy_level', 'context', 'available', 'busy', 'title', 'description',
+        'task_id', 'created_at'
       ],
       data: []
     });
 
     this.mockSheets.set(SHEET_NAMES.ACTIVITY, {
-      headers: ['timestamp', 'level', 'component', 'message', 'context'],
+      headers: [
+        'timestamp', 'level', 'component', 'action', 'data', 'user'
+      ],
       data: []
     });
 
