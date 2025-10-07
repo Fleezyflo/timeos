@@ -477,7 +477,8 @@ class MohTask {
       'assigned_to': this.assigned_to || '',
       'parent_id': this.parent_id || '',
       'dependencies': safeJSONStringify(this.dependencies, '[]'),
-      'tags': safeJSONStringify(this.tags, '[]')
+      'tags': safeJSONStringify(this.tags, '[]'),
+      'archived_at': this.archived_at || ''
     };
 
     // Efficiently populate row
@@ -948,9 +949,10 @@ class MohTask {
       context: this.context || '',
       source: this.source || '',
       source_id: this.source_id || '',
-      actual_minutes: this.actual_minutes ?? null,
-      scheduling_metadata: this.scheduling_metadata || '{}',
-      estimation_accuracy: this.estimation_accuracy ?? null
+      'actual_minutes': this.actual_minutes ?? null,
+      'scheduling_metadata': this.scheduling_metadata || '{}',
+      'estimation_accuracy': this.estimation_accuracy ?? null,
+      'archived_at': toISO(this.archived_at)
     };
   }
 
@@ -1136,5 +1138,6 @@ MohTask._propertyDefinitions = {
   last_scheduled_attachments: { type: 'json', default: '[]' },
   last_scheduled_metadata: { type: 'json', default: '{}' },
   last_scheduled_dependency: { type: 'string', default: '' },
-  last_scheduled_estimated_completion: { type: 'date', default: null }
+  last_scheduled_estimated_completion: { type: 'date', default: null },
+  archived_at: { type: 'date', default: null }
 };

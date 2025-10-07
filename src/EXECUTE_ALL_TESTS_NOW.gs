@@ -57,7 +57,9 @@ function EXECUTE_ALL_TESTS_IMMEDIATELY() {
     { name: 'GET_STATUS', fn: GET_STATUS },
     { name: 'CHECK', fn: CHECK },
     { name: 'TEST', fn: TEST },
-    { name: 'createDailyFoundationBlocks', fn: () => getService(SERVICES.FoundationBlocksManager).createDailyFoundationBlocks(new Date()) }
+    { name: 'createDailyFoundationBlocks', fn: () => getService(SERVICES.FoundationBlocksManager).createDailyFoundationBlocks(new Date()) },
+    { name: 'refreshCalendarProjection', fn: () => getService(SERVICES.CalendarSyncManager).refreshCalendarProjection(7) },
+    { name: 'runDataArchiving', fn: () => getService(SERVICES.TriggerOrchestrator).runDataArchiving() }
   ];
 
   for (let i = 0; i < testFunctions.length; i++) {

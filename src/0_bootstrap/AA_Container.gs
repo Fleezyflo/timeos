@@ -5881,14 +5881,6 @@ class BatchOperations {
    */
   getAllActions() {
     try {
-      const cacheKey = 'all_actions_cache';
-      let cachedActions = this.cache.get(cacheKey);
-
-      if (cachedActions) {
-        this.logger.info('BatchOperations', 'getAllActions: Cache hit', { key: cacheKey });
-        return cachedActions;
-      }
-
       const allData = this.getAllSheetData(SHEET_NAMES.ACTIONS);
       if (allData.length <= 1) return []; // Only headers or empty
 
@@ -5898,9 +5890,7 @@ class BatchOperations {
         actions.push(MohTask.fromSheetRow(allData[i], headers));
       }
 
-      // Cache the results for 5 minutes (300 seconds)
-      this.cache.set(cacheKey, actions, 300);
-      this.logger.info('BatchOperations', `getAllActions: Retrieved ${actions.length} tasks and cached`, { key: cacheKey });
+      this.logger.info('BatchOperations', `getAllActions: Retrieved ${actions.length} tasks (no cache used)`);
 
       return actions;
     } catch (error) {

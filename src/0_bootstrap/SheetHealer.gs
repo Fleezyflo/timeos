@@ -289,7 +289,7 @@ class SheetHealer {
           'source', 'source_id', 'description', 'calendar_event_id', 'rollover_count',
           'scheduling_metadata', 'score', 'deadline', 'energy_required',
           'focus_required', 'estimation_accuracy', 'created_by',
-          'assigned_to', 'parent_id', 'dependencies', 'tags'
+          'assigned_to', 'parent_id', 'dependencies', 'tags', 'archived_at'
         ],
         columnWidths: [150, 100, 80, 150, 150, 200, 100, 80, 80, 150, 150, 80, 150, 100, 150, 300],
         validations: [

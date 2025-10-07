@@ -3279,7 +3279,11 @@ padding: 6px 8px;
           .withSuccessHandler(response => {
             if (response.success) {
               this.showToast('Task snoozed for 1 hour', 'success');
-              this.loadTasks();
+              this.invalidateCache('tasks');
+              this.invalidateCache('dashboard');
+              this.invalidateCache('calendar');
+              this.loadTasks({ force: true });
+              this.loadDashboard({ force: true });
             } else {
               this.showToast(response.error || 'Failed to snooze task', 'error');
             }

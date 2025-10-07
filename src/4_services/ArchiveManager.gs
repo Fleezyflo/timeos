@@ -160,18 +160,19 @@ class ArchiveManager {
 
       const archiveSheetName = 'ACTIONS_ARCHIVE';
       const sourceHeaders = this.batchOperations.getHeaders(SHEET_NAMES.ACTIONS);
+      const archiveHeaders = [...sourceHeaders, 'archived_at'];
 
       // Ensure archive sheet exists
-      const archiveSpreadsheetId = this.getOrCreateArchiveSheet(archiveSheetName, sourceHeaders);
+      const archiveSpreadsheetId = this.getOrCreateArchiveSheet(archiveSheetName, archiveHeaders);
 
       // Prepare archive rows
       const archiveRows = tasks.map(task => {
         // Add archive metadata
-        const archiveRow = task.toSheetRow ? task.toSheetRow(sourceHeaders) : this._taskToArchiveRow(task, sourceHeaders);
+        const archiveRow = task.toSheetRow ? task.toSheetRow(archiveHeaders) : this._taskToArchiveRow(task, archiveHeaders);
 
-        // Add archive timestamp if not already present
-        const archivedAtIndex = sourceHeaders.indexOf('archived_at');
-        if (archivedAtIndex !== -1 && !archiveRow[archivedAtIndex]) {
+        // Add archive timestamp
+        const archivedAtIndex = archiveHeaders.indexOf('archived_at');
+        if (archivedAtIndex !== -1) {
           archiveRow[archivedAtIndex] = TimeZoneAwareDate.now();
         }
 
@@ -216,17 +217,17 @@ class ArchiveManager {
       }
 
       const archiveSheetName = 'PROPOSED_ARCHIVE';
-      const sourceHeaders = this.batchOperations.getHeaders(SHEET_NAMES.PROPOSED_TASKS);
+      const archiveHeaders = [...sourceHeaders, 'archived_at'];
 
       // Ensure archive sheet exists
-      const archiveSpreadsheetId = this.getOrCreateArchiveSheet(archiveSheetName, sourceHeaders);
+      const archiveSpreadsheetId = this.getOrCreateArchiveSheet(archiveSheetName, archiveHeaders);
 
       // Prepare archive rows
       const archiveRows = proposals.map(proposal => {
-        const archiveRow = this._proposalToArchiveRow(proposal, sourceHeaders);
+        const archiveRow = this._proposalToArchiveRow(proposal, archiveHeaders);
 
         // Add archive timestamp
-        const archivedAtIndex = sourceHeaders.indexOf('archived_at');
+        const archivedAtIndex = archiveHeaders.indexOf('archived_at');
         if (archivedAtIndex !== -1) {
           archiveRow[archivedAtIndex] = TimeZoneAwareDate.now();
         }

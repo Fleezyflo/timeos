@@ -171,6 +171,17 @@ class CalendarSyncManager {
   _eventToProjectionRow(event, headers) {
     const row = new Array(headers.length).fill('');
 
+    const metadata = {
+      location: event.location,
+      isAllDay: event.isAllDay,
+      attendees: event.attendees,
+      creator: event.creator,
+      visibility: event.visibility,
+      source: event.source
+    };
+
+    const description = event.description + '\n\n--- METADATA ---\n' + JSON.stringify(metadata, null, 2);
+
     const mapping = {
       'event_id': event.id || '',
       'start': event.start ? TimeZoneAwareDate.toISOString(event.start) : '',
@@ -178,7 +189,7 @@ class CalendarSyncManager {
       'type': this._categorizeEvent(event),
       'busy': event.busy ? 'true' : 'false',
       'title': event.title || '',
-      'description': event.description || ''
+      'description': description
     };
 
     headers.forEach((header, index) => {
