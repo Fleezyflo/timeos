@@ -309,6 +309,78 @@ function validateDatabaseSchema() {
       }
     }
 
+    // Optimistic locking validation (inline - no new function)
+    logger.info('Deployment', 'Testing optimistic locking...');
+    try {
+      const testTask = new MohTask({
+        title: 'OL_Test_' + Date.now(),
+        version: 1,
+        status: STATUS.PENDING,
+        priority: PRIORITY.MEDIUM,
+        lane: LANE.OPERATIONAL
+      });
+
+      const testHeaders = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+      batchOps.appendRows(SHEET_NAMES.ACTIONS, [testTask.toSheetRow(testHeaders)]);
+
+      const fetchedRows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: testTask.action_id });
+      if (fetchedRows.length === 0) {
+        logger.error('Deployment', 'OL test task not found after append');
+        return false;
+      }
+
+      // Test 1: Stale update should fail with versionConflict
+      const staleTask = MohTask.fromSheetRow(fetchedRows[0].row, testHeaders);
+      staleTask.version = 1; // Keep stale version
+      staleTask.title = 'Stale update';
+
+      const staleResult = batchOps.updateActionWithOptimisticLocking(
+        SHEET_NAMES.ACTIONS,
+        staleTask.action_id,
+        staleTask
+      );
+
+      if (staleResult.success) {
+        logger.error('Deployment', 'OL FAILED - stale update succeeded', { staleResult: staleResult });
+        return false;
+      }
+
+      if (!staleResult.versionConflict) {
+        logger.error('Deployment', 'OL FAILED - versionConflict flag not set', { staleResult: staleResult });
+        return false;
+      }
+
+      // Test 2: Valid update should succeed
+      const currentTask = MohTask.fromSheetRow(fetchedRows[0].row, testHeaders);
+      currentTask.title = 'Valid update';
+
+      const validResult = batchOps.updateActionWithOptimisticLocking(
+        SHEET_NAMES.ACTIONS,
+        currentTask.action_id,
+        currentTask
+      );
+
+      if (!validResult.success) {
+        logger.error('Deployment', 'OL FAILED - valid update failed', { validResult: validResult });
+        return false;
+      }
+
+      logger.info('Deployment', '✓ Optimistic locking validation passed');
+
+      // Cleanup
+      const allData = batchOps.getAllSheetData(SHEET_NAMES.ACTIONS);
+      const testIdx = allData.findIndex(function(r, i) {
+        return i > 0 && r[testHeaders.indexOf('action_id')] === testTask.action_id;
+      });
+      if (testIdx > 0) {
+        const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAMES.ACTIONS);
+        sheet.deleteRow(testIdx + 1);
+      }
+    } catch (olError) {
+      logger.error('Deployment', 'OL test crashed: ' + olError.message, { stack: olError.stack });
+      return false;
+    }
+
     logger.info('Deployment', '✓ Database schema validation passed');
     return true;
 
@@ -369,6 +441,210 @@ function isSystemReadyForDeployment() {
   } catch (error) {
     const logger = container.get(SERVICES.SmartLogger);
     logger.error('DeploymentValidation', `Deployment readiness check failed: ${error.message}`);
+    return false;
+  }
+}
+
+/**
+ * Test archive reliability with actual MockBatchOperations integration
+ */
+function testArchiveReliability() {
+  const logger = container.get(SERVICES.SmartLogger);
+  logger.info('ArchiveTest', 'Testing archive reliability with integration');
+
+  try {
+    // Create mock dependencies
+    const cache = {
+      get: function() { return null; },
+      set: function() {},
+      delete: function() {},
+      clear: function() {}
+    };
+    const testLogger = {
+      info: function(comp, msg, data) {
+        Logger.log('[' + comp + '] ' + msg + (data ? ' ' + JSON.stringify(data) : ''));
+      },
+      debug: function() {},
+      warn: function(comp, msg) {
+        Logger.log('[WARN][' + comp + '] ' + msg);
+      },
+      error: function(comp, msg, data) {
+        Logger.log('[ERROR][' + comp + '] ' + msg + (data ? ' ' + JSON.stringify(data) : ''));
+      }
+    };
+
+    const mockBatchOps = new MockBatchOperations(cache, testLogger);
+
+    // Monkey-patch MockBatchOperations for optimistic locking (no new method declaration)
+    mockBatchOps.updateActionWithOptimisticLocking = function(sheetName, actionId, updatedAction) {
+      const mockSheet = this.mockSheets.get(sheetName);
+      if (!mockSheet) {
+        return { success: false, error: 'Sheet \'' + sheetName + '\' does not exist' };
+      }
+
+      const headers = this.getHeaders(sheetName);
+      const actionIdIdx = headers.indexOf('action_id');
+      const versionIdx = headers.indexOf('version');
+
+      if (actionIdIdx === -1 || versionIdx === -1) {
+        return { success: false, error: 'Missing required columns' };
+      }
+
+      const rowIndex = mockSheet.data.findIndex(function(row) { return row[actionIdIdx] === actionId; });
+      if (rowIndex === -1) {
+        return { success: false, error: 'Action ' + actionId + ' not found' };
+      }
+
+      const currentDbVersion = parseInt(mockSheet.data[rowIndex][versionIdx], 10) || 1;
+
+      if (!updatedAction.isVersionCurrent(currentDbVersion)) {
+        return {
+          success: false,
+          error: 'Version conflict for ' + actionId,
+          versionConflict: true
+        };
+      }
+
+      updatedAction.prepareForUpdate();
+      mockSheet.data[rowIndex] = updatedAction.toSheetRow(headers);
+
+      return { success: true };
+    };
+
+    const mockConfigManager = {
+      getString: function() { return ''; },
+      getNumber: function(key, def) { return def; }
+    };
+
+    // Create ArchiveManager with mocks
+    const archiveManager = new ArchiveManager(mockConfigManager, testLogger, mockBatchOps);
+
+    // Stub getOrCreateArchiveSheet to avoid SpreadsheetApp calls
+    archiveManager.getOrCreateArchiveSheet = function(sheetName, headers) {
+      // Ensure mock sheet exists with provided headers
+      const mockSheet = mockBatchOps.mockSheets.get(sheetName);
+      if (!mockSheet) {
+        mockBatchOps.mockSheets.set(sheetName, {
+          headers: headers,
+          data: []
+        });
+      } else if (!mockSheet.headers || mockSheet.headers.length === 0) {
+        mockSheet.headers = headers;
+      }
+      return ''; // Return empty string to indicate current spreadsheet
+    };
+
+    // Test 1: Verify PROPOSED_TASKS headers don't include archived_at
+    const proposedHeaders = mockBatchOps.getHeaders(SHEET_NAMES.PROPOSED_TASKS);
+    if (!proposedHeaders || proposedHeaders.length === 0) {
+      throw new Error('PROPOSED_TASKS headers not available');
+    }
+    if (proposedHeaders.indexOf('archived_at') !== -1) {
+      throw new Error('PROPOSED_TASKS should NOT have archived_at column in source schema');
+    }
+    logger.info('ArchiveTest', 'PROPOSED_TASKS has ' + proposedHeaders.length + ' headers without archived_at');
+
+    // Test 2: Archive proposals and verify archived_at is added
+    const testProposals = [
+      {
+        proposal_id: 'TEST_PROP_1',
+        status: 'PROCESSED',
+        source: 'test',
+        sender: 'test@example.com',
+        subject: 'Test proposal',
+        created_at: TimeZoneAwareDate.now()
+      }
+    ];
+
+    // Invoke actual archiveProcessedProposals
+    const archiveResult = archiveManager.archiveProcessedProposals(testProposals);
+
+    if (!archiveResult.success) {
+      throw new Error('Archive operation failed: ' + (archiveResult.error || 'unknown'));
+    }
+
+    logger.info('ArchiveTest', 'Archived ' + archiveResult.archived_proposals + ' proposals');
+
+    // Test 3: Verify archive sheet has archived_at column
+    const archiveSheetData = mockBatchOps.getAllSheetData('PROPOSED_ARCHIVE');
+    if (!archiveSheetData || archiveSheetData.length === 0) {
+      throw new Error('PROPOSED_ARCHIVE sheet not created');
+    }
+
+    const archiveHeaders = archiveSheetData[0];
+    const archivedAtIndex = archiveHeaders.indexOf('archived_at');
+
+    if (archivedAtIndex === -1) {
+      throw new Error('PROPOSED_ARCHIVE missing archived_at column in schema');
+    }
+
+    logger.info('ArchiveTest', 'PROPOSED_ARCHIVE has archived_at at index ' + archivedAtIndex);
+
+    // Test 4: Verify archived rows contain timestamp
+    if (archiveSheetData.length < 2) {
+      throw new Error('No archived rows found');
+    }
+
+    const archivedRow = archiveSheetData[1]; // First data row
+    const timestamp = archivedRow[archivedAtIndex];
+
+    if (!timestamp || timestamp === '') {
+      throw new Error('archived_at timestamp not written to row');
+    }
+
+    logger.info('ArchiveTest', 'Archived row has timestamp: ' + timestamp);
+
+    // Test 5: Simulate retry scenario with mock failure
+    let retryTestPassed = false;
+    const originalAppendRows = mockBatchOps.appendRows;
+    let attemptCount = 0;
+
+    // Mock appendRows to fail first attempt
+    mockBatchOps.appendRows = function(sheetName, rows) {
+      attemptCount++;
+      if (attemptCount === 1) {
+        throw new Error('Simulated transient failure');
+      }
+      return originalAppendRows.call(mockBatchOps, sheetName, rows);
+    };
+
+    try {
+      const retryResult = archiveManager.archiveProcessedProposals([{
+        proposal_id: 'TEST_RETRY',
+        status: 'PROCESSED',
+        source: 'retry-test',
+        created_at: TimeZoneAwareDate.now()
+      }]);
+
+      if (retryResult.success && attemptCount === 2) {
+        retryTestPassed = true;
+        logger.info('ArchiveTest', 'Retry logic succeeded on attempt ' + attemptCount);
+      }
+    } finally {
+      // Restore original method
+      mockBatchOps.appendRows = originalAppendRows;
+    }
+
+    if (!retryTestPassed) {
+      throw new Error('Retry test failed: attemptCount=' + attemptCount);
+    }
+
+    logger.info('ArchiveTest', 'All archive reliability tests passed', {
+      headers_validated: true,
+      timestamp_verified: true,
+      retry_tested: true,
+      total_tests: 5
+    });
+
+    // Cleanup monkey-patch
+    delete mockBatchOps.updateActionWithOptimisticLocking;
+
+    return true;
+
+  } catch (error) {
+    logger.error('ArchiveTest', 'Archive reliability test failed: ' + error.message, {
+      stack: error.stack
+    });
     return false;
   }
 }

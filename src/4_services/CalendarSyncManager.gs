@@ -418,36 +418,54 @@ class CalendarSyncManager {
    */
   _updateActionCalendarId(actionId, eventId) {
     try {
-      // Find and update the action in the ACTIONS sheet
       const headers = this.batchOperations.getHeaders(SHEET_NAMES.ACTIONS);
       const rows = this.batchOperations.getRowsWithPosition(SHEET_NAMES.ACTIONS, {
         action_id: actionId
       });
 
-      if (rows.length > 0) {
-        const row = rows[0];
-        const calendarEventIdIndex = headers.indexOf('calendar_event_id');
-
-        if (calendarEventIdIndex !== -1) {
-          row.data[calendarEventIdIndex] = eventId;
-
-          this.batchOperations.batchUpdate(SHEET_NAMES.ACTIONS, [{
-            range: `A${row.sheetRow}:${String.fromCharCode(65 + headers.length - 1)}${row.sheetRow}`,
-            values: [row.data]
-          }]);
-
-          this.logger.debug('CalendarSyncManager', `Updated action with calendar event ID`, {
-            action_id: actionId,
-            event_id: eventId
-          });
-        }
+      if (rows.length === 0) {
+        this.logger.warn('CalendarSyncManager', `Action ${actionId} not found`);
+        return false;
       }
 
-    } catch (error) {
-      this.logger.error('CalendarSyncManager', `Failed to update action calendar ID: ${error.message}`, {
+      const { row } = rows[0];
+      const task = MohTask.fromSheetRow(row, headers);
+
+      if (!task) {
+        this.logger.error('CalendarSyncManager', `Failed to instantiate MohTask for ${actionId}`);
+        return false;
+      }
+
+      task.calendar_event_id = eventId;
+
+      const result = this.batchOperations.updateActionWithOptimisticLocking(
+        SHEET_NAMES.ACTIONS,
+        actionId,
+        task
+      );
+
+      if (!result.success) {
+        if (result.versionConflict) {
+          this.logger.warn('CalendarSyncManager', `Version conflict for ${actionId} - retry next sync`);
+        } else {
+          this.logger.error('CalendarSyncManager', `Update failed for ${actionId}`, { result });
+        }
+        return false;
+      }
+
+      this.logger.debug('CalendarSyncManager', `Updated calendar event ID`, {
         action_id: actionId,
         event_id: eventId
       });
+      return true;
+
+    } catch (error) {
+      this.logger.error('CalendarSyncManager', `Fatal error: ${error.message}`, {
+        action_id: actionId,
+        event_id: eventId,
+        stack: error.stack
+      });
+      return false;
     }
   }
 

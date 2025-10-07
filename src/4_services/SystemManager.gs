@@ -140,6 +140,35 @@ class SystemManager {
       this.logger.error('SystemManager', 'Configuration health check failed catastrophically', { error: error.message });
     }
 
+    // Archive health check
+    try {
+      if (this.archiveManager) {
+        const archiveStatus = this.archiveManager.getArchiveStatus();
+        const archiveStats = this.archiveManager.getArchiveStatistics();
+        healthResults.checks.archives = {
+          status: archiveStatus.external_accessible ? 'HEALTHY' : (archiveStatus.external_configured ? 'DEGRADED' : 'HEALTHY'),
+          details: {
+            location: archiveStatus.archive_location,
+            external_configured: archiveStatus.external_configured,
+            external_accessible: archiveStatus.external_accessible,
+            total_archived_records: archiveStats.total_archived_records,
+            archive_sheets: archiveStats.archive_sheets
+          }
+        };
+      } else {
+        healthResults.checks.archives = {
+          status: 'DEGRADED',
+          details: { message: 'ArchiveManager not available' }
+        };
+      }
+    } catch (error) {
+      healthResults.checks.archives = {
+        status: 'ERROR',
+        error: error.message
+      };
+      healthResults.partial_failure_mode = true;
+    }
+
     const overallHealth = this._calculateOverallHealth(healthResults.checks);
     healthResults.overall_status = overallHealth;
 
