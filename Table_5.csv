@@ -1,5 +1,0 @@
-Column Name,Type,Formula,Purpose
--------------,------,---------,---------
-`should_auto_accept`,Yes/No,"`AND([confidence_score] > 0.8, [sender].[reputation_score] > 0.7, [sender].[approved_count] > 5)`",Auto-approval eligibility
-`age_hours`,Decimal,`(HOUR(NOW() - [created_at]))`,Hours since creation
-`is_stale`,Yes/No,`[age_hours] > 48`,Whether proposal is too old

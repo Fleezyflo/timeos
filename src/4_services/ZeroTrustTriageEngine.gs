@@ -440,8 +440,11 @@ class ZeroTrustTriageEngine {
           subject: subject,
           parsed_title: extractionResult.title,
           suggested_lane: extractionResult.lane,
+          suggested_priority: extractionResult.suggested_priority || PRIORITY.MEDIUM,
+          suggested_duration: extractionResult.suggested_duration || '',
           confidence_score: extractionResult.score,
-          raw_content_preview: body.substring(0, 200) + (body.length > 200 ? '...' : '')
+          raw_content_preview: body.substring(0, 200) + (body.length > 200 ? '...' : ''),
+          created_task_id: ''
         };
 
         return {
@@ -507,33 +510,24 @@ class ZeroTrustTriageEngine {
       this.logger.info('ZeroTrustTriageEngine', `Creating ${proposalsData.length} task proposals from approved emails`);
 
       const headers = this.batchOperations.getHeaders(SHEET_NAMES.PROPOSED_TASKS);
-      const rows = proposalsData.map(proposal => {
-        const row = new Array(headers.length).fill('');
-
-        // Map proposal data to sheet columns
-        const mapping = {
-          'proposal_id': proposal.proposal_id,
-          'status': proposal.status,
-          'created_at': proposal.created_at,
-          'processed_at': proposal.processed_at || '',
-          'source': proposal.source,
-          'source_id': proposal.source_id,
-          'sender': proposal.sender,
-          'subject': proposal.subject,
-          'parsed_title': proposal.parsed_title,
-          'suggested_lane': proposal.suggested_lane,
-          'confidence_score': proposal.confidence_score,
-          'raw_content_preview': proposal.raw_content_preview
-        };
-
-        headers.forEach((header, index) => {
-          if (mapping[header] !== undefined) {
-            row[index] = mapping[header];
-          }
-        });
-
-        return row;
-      });
+      const safeAccess = new SafeColumnAccess(headers);
+      const rows = proposalsData.map(proposal => safeAccess.mapObjectToRow({
+        proposal_id: proposal.proposal_id,
+        status: proposal.status,
+        created_at: proposal.created_at,
+        processed_at: proposal.processed_at || '',
+        source: proposal.source,
+        source_id: proposal.source_id,
+        sender: proposal.sender,
+        subject: proposal.subject,
+        parsed_title: proposal.parsed_title,
+        suggested_lane: proposal.suggested_lane,
+        suggested_priority: proposal.suggested_priority || '',
+        suggested_duration: proposal.suggested_duration || '',
+        confidence_score: proposal.confidence_score || '',
+        raw_content_preview: proposal.raw_content_preview || '',
+        created_task_id: proposal.created_task_id || ''
+      }));
 
       // Append all proposals at once
       this.batchOperations.appendRows(SHEET_NAMES.PROPOSED_TASKS, rows);

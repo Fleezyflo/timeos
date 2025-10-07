@@ -263,6 +263,7 @@ class SheetHealer {
     return {
       'ACTIONS': this._getActionsSchema(),
       'PROPOSED_TASKS': this._getProposedTasksSchema(),
+      'DEPENDENCIES': this._getDependenciesSchema(),
       'CALENDAR_PROJECTION': this._getCalendarProjectionSchema(),
       'FOUNDATION_BLOCKS': this._getFoundationBlocksSchema(),
       'TIME_BLOCKS': this._getTimeBlocksSchema(),
@@ -355,6 +356,18 @@ class SheetHealer {
             helpText: 'Proposal status - complete PROPOSAL_STATUS enum coverage'
           }
         ]
+    };
+  }
+
+  /**
+   * DEPENDENCIES sheet schema
+   */
+  static _getDependenciesSchema() {
+    return {
+        headers: [
+          'blocking_action_id', 'blocked_action_id', 'relationship_type', 'created_at', 'updated_at'
+        ],
+        columnWidths: [200, 200, 160, 160, 160]
     };
   }
 
@@ -532,7 +545,7 @@ class SheetHealer {
           'state_id', 'timestamp', 'energy_level', 'focus_level', 'mood',
           'stress_level', 'current_context', 'notes'
         ],
-        columnWidths: [150, 100, 100, 100, 100, 150, 300]
+        columnWidths: [160, 160, 120, 120, 120, 140, 200, 300]
     };
   }
 

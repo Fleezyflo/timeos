@@ -102,31 +102,10 @@ class MohTask {
       return;
     }
 
-    // Core properties with defaults
-    this.action_id = data.action_id || this._generateActionId();
-    this.status = data.status || STATUS.NOT_STARTED;
-    this.priority = data.priority || PRIORITY.MEDIUM;
-    this.created_at = data.created_at || TimeZoneAwareDate.now();
-    this.updated_at = data.updated_at || TimeZoneAwareDate.now();
-    this.title = data.title || '';
-    this.description = data.description || '';
-    this.context = data.context || '';
-    this.lane = data.lane || LANE.OPERATIONAL;
-    this.estimated_minutes = data.estimated_minutes || CONSTANTS.DEFAULT_ESTIMATED_MINUTES;
-    this.actual_minutes = data.actual_minutes || null;
-    this.scheduled_start = data.scheduled_start || null;
-    this.scheduled_end = data.scheduled_end || null;
-    this.completed_date = data.completed_date || null;
-    this.source = data.source || SOURCE.MANUAL;
-    this.source_id = data.source_id || null;
-    this.calendar_event_id = data.calendar_event_id || null;
-    this.rollover_count = data.rollover_count || 0;
-    this.scheduling_metadata = data.scheduling_metadata || '{}';
-    this.score = data.score || 0;
-    this.deadline = data.deadline || null;
-    this.energy_required = data.energy_required || ENERGY_LEVEL.MEDIUM;
-    this.focus_required = data.focus_required || FOCUS_LEVEL.MEDIUM;
-    this.estimation_accuracy = data.estimation_accuracy || null;
+    // Initialize all properties from _propertyDefinitions
+    for (const propName in MohTask._propertyDefinitions) {
+      this[propName] = undefined; // Initialize to undefined to ensure _validateAndSetDefaults handles defaults
+    }
 
     // Internal Date objects (lazy loaded for performance)
     this.__created_at_date_cached = null;
@@ -136,11 +115,8 @@ class MohTask {
     this.__completed_date_date_cached = null;
     this.__deadline_date_cached = null;
 
-    // Version tracking for optimistic locking
-    this.version = parseInt(data.version, 10) || 1;
-
     // Validate and self-heal
-    const validationOutcome = this._validateAndSetDefaults();
+    const validationOutcome = this._validateAndSetDefaults(data);
     this.validationErrors = validationOutcome.errors || [];
     this.healedDuringValidation = validationOutcome.healed === true;
 
@@ -171,10 +147,76 @@ class MohTask {
   /**
    * Comprehensive validation with self-healing
    */
-  _validateAndSetDefaults() {
+  _validateAndSetDefaults(data = {}) {
     const errors = [];
     let healed = false;
 
+    for (const propName in MohTask._propertyDefinitions) {
+      const propConfig = MohTask._propertyDefinitions[propName];
+      let value = (data && data[propName] !== undefined && data[propName] !== '') ? data[propName] : propConfig.default;
+
+      // Handle function defaults
+      if (typeof value === 'function') {
+        value = value();
+      }
+
+      // Type normalization
+      switch (propConfig.type) {
+        case 'string':
+          this[propName] = String(value || '');
+          break;
+        case 'number':
+          if (value === null || value === undefined) {
+            this[propName] = propConfig.default === null ? null : Number(propConfig.default || 0);
+          } else {
+            this[propName] = Number(value);
+          }
+          if (isNaN(this[propName])) {
+            this[propName] = propConfig.default === null ? null : Number(propConfig.default || 0);
+            errors.push(`Invalid number for ${propName} - set to default`);
+            healed = true;
+          }
+          break;
+        case 'boolean':
+          this[propName] = Boolean(value);
+          break;
+        case 'date':
+          this[propName] = value; // Assign directly, let lazy getters and _validateDates handle parsing/validation
+          break;
+        case 'json':
+          if (typeof value === 'string') {
+            try {
+              this[propName] = JSON.parse(value);
+            } catch (e) {
+              const fallbackLogger = (typeof console !== 'undefined' && console) ? console : null;
+              const logger = (typeof safeGetService === 'function')
+                ? safeGetService(SERVICES.SmartLogger, fallbackLogger)
+                : fallbackLogger;
+              if (logger && typeof logger.warn === 'function' && logger !== fallbackLogger) {
+                logger.warn('MohTask', `Invalid JSON for ${propName}: ${value}. Using default.`, { error: e.message });
+              } else if (fallbackLogger && typeof fallbackLogger.warn === 'function') {
+                fallbackLogger.warn(`[MohTask] Invalid JSON for ${propName}: ${value}. Using default. Error: ${e.message}`);
+              } else if (typeof Logger !== 'undefined' && typeof Logger.log === 'function') {
+                Logger.log(`WARN [MohTask] Invalid JSON for ${propName}: ${value}. Using default. Error: ${e.message}`);
+              }
+              this[propName] = JSON.parse(propConfig.default);
+              errors.push(`Invalid JSON for ${propName} - set to default`);
+              healed = true;
+            }
+          } else if (typeof value === 'object' && value !== null) {
+            this[propName] = value;
+          } else {
+            this[propName] = JSON.parse(propConfig.default);
+            errors.push(`Invalid value for ${propName} - set to default JSON`);
+            healed = true;
+          }
+          break;
+        default:
+          this[propName] = value;
+      }
+    }
+
+    // Specific validations (re-integrating existing logic)
     // Validate action_id
     if (!this.action_id || !validatePattern(this.action_id, 'ACTION_ID')) {
       this.action_id = this._generateActionId();
@@ -214,8 +256,9 @@ class MohTask {
       healed = true;
     }
 
-    // Validate dates
-    this._validateDates(errors);
+    // Validate dates (this will also update the cached date objects)
+    const dateHealing = this._validateDates(errors);
+    if (dateHealing) healed = true;
 
     // Validate estimated minutes
     if (this.estimated_minutes < 0 || this.estimated_minutes > CONSTANTS.MAX_ESTIMATED_MINUTES) {
@@ -243,12 +286,11 @@ class MohTask {
     }
 
     // Validate scheduling metadata
-    this._validateSchedulingMetadata();
+    this._validateSchedulingMetadata(); // Re-added call
 
     // Log errors and healing
     if (errors.length > 0 && hasService('SmartLogger')) {
       const logger = getService('SmartLogger');
-      // Only log debug messages if the logger's current level is DEBUG or lower
       if (logger.currentLogLevel <= logger.logLevels.DEBUG) {
         logger.debug('MohTask', 'Validation errors auto-corrected', {
           action_id: this.action_id,
@@ -348,29 +390,28 @@ class MohTask {
    * Validate scheduling metadata JSON
    */
   _validateSchedulingMetadata() {
-    if (!this.scheduling_metadata || this.scheduling_metadata.trim() === '') {
-      this.scheduling_metadata = '{}';
+    // Ensure it's an object. If not, log and set to empty object.
+    if (typeof this.scheduling_metadata !== 'object' || this.scheduling_metadata === null) {
+      const fallbackLogger = (typeof console !== 'undefined' && console) ? console : null;
+      const logger = (typeof safeGetService === 'function')
+        ? safeGetService(SERVICES.SmartLogger, fallbackLogger)
+        : fallbackLogger;
+      if (logger && typeof logger.warn === 'function' && logger !== fallbackLogger) {
+        logger.warn('MohTask', `scheduling_metadata is not an object. Type: ${typeof this.scheduling_metadata}. Resetting to empty object.`, { action_id: this.action_id });
+      } else if (fallbackLogger && typeof fallbackLogger.warn === 'function') {
+        fallbackLogger.warn(`[MohTask] scheduling_metadata is not an object. Type: ${typeof this.scheduling_metadata}. Resetting to empty object.`, { action_id: this.action_id });
+      } else if (typeof Logger !== 'undefined' && typeof Logger.log === 'function') {
+        Logger.log(`WARN [MohTask] scheduling_metadata invalid type (${typeof this.scheduling_metadata}). Action: ${this.action_id}`);
+      }
+      this.scheduling_metadata = {};
       return;
     }
 
-    // Quick check for valid JSON structure before parsing
-    const trimmedMetadata = this.scheduling_metadata.trim();
-    if (trimmedMetadata.startsWith('{') && trimmedMetadata.endsWith('}')) {
-      try {
-        const parsed = JSON.parse(this.scheduling_metadata);
-        // Ensure it's an object
-        if (typeof parsed !== 'object' || parsed === null) {
-          this.scheduling_metadata = '{}';
-        }
-      } catch (error) {
-        // If parsing fails, reset to empty object
-        this.scheduling_metadata = '{}';
-      }
-    } else {
-      // If it doesn't look like JSON, reset to empty object
-      this.scheduling_metadata = '{}';
-    }
+    // Further validation of the object's content can go here if needed.
+    // For now, we assume _validateAndSetDefaults has already ensured it's a valid object.
   }
+
+
 
   /**
    * Convert to sheet row format with optimized column mapping
@@ -403,13 +444,40 @@ class MohTask {
       'description': this.description,
       'calendar_event_id': this.calendar_event_id || '',
       'rollover_count': this.rollover_count || 0,
-      'scheduling_metadata': this.scheduling_metadata || '{}',
+      'scheduling_metadata': safeJSONStringify(this.scheduling_metadata, '{}'),
       'score': this.score || 0,
       'deadline': this.deadline || '',
       'energy_required': this.energy_required || '',
       'focus_required': this.focus_required || '',
       'estimation_accuracy': this.estimation_accuracy || '',
-      'version': this.version || 1
+      'version': this.version || 1,
+      'last_scheduled_score': this.last_scheduled_score || 0,
+      'last_scheduled_block_type': this.last_scheduled_block_type || '',
+      'last_scheduled_energy_level': this.last_scheduled_energy_level || '',
+      'last_scheduled_context_type': this.last_scheduled_context_type || '',
+      'last_scheduled_lane': this.last_scheduled_lane || '',
+      'last_scheduled_duration': this.last_scheduled_duration || 0,
+      'last_scheduled_priority': this.last_scheduled_priority || '',
+      'last_scheduled_impact': this.last_scheduled_impact || '',
+      'last_scheduled_urgency': this.last_scheduled_urgency || '',
+      'last_scheduled_effort_minutes': this.last_scheduled_effort_minutes || 0,
+      'last_scheduled_estimation_accuracy': this.last_scheduled_estimation_accuracy || '',
+      'last_scheduled_rollover_count': this.last_scheduled_rollover_count || 0,
+      'last_scheduled_last_rollover_date': this.last_scheduled_last_rollover_date || '',
+      'last_scheduled_notes': this.last_scheduled_notes || '',
+      'last_scheduled_source': this.last_scheduled_source || '',
+      'last_scheduled_source_id': this.last_scheduled_source_id || '',
+      'last_scheduled_external_url': this.last_scheduled_external_url || '',
+      'last_scheduled_attachments': safeJSONStringify(this.last_scheduled_attachments, '[]'),
+      'last_scheduled_metadata': safeJSONStringify(this.last_scheduled_metadata, '{}'),
+      'last_scheduled_dependency': this.last_scheduled_dependency || '',
+      'last_scheduled_estimated_completion': this.last_scheduled_estimated_completion || '',
+      'completion_notes': this.completion_notes || '',
+      'created_by': this.created_by || 'system',
+      'assigned_to': this.assigned_to || '',
+      'parent_id': this.parent_id || '',
+      'dependencies': safeJSONStringify(this.dependencies, '[]'),
+      'tags': safeJSONStringify(this.tags, '[]')
     };
 
     // Efficiently populate row
@@ -439,7 +507,7 @@ class MohTask {
 
     // Build data object from row
     headers.forEach((header, index) => {
-      if (header && row[index] !== undefined && row[index] !== '') {
+      if (header && row[index] !== undefined) {
         data[header] = row[index];
       }
     });
@@ -530,6 +598,26 @@ class MohTask {
 
     if (data.version) {
       data.version = parseInt(data.version, 10) || 1;
+    }
+
+    if (data.last_scheduled_score) {
+      data.last_scheduled_score = parseFloat(data.last_scheduled_score) || 0;
+    }
+
+    if (data.last_scheduled_duration) {
+      data.last_scheduled_duration = parseInt(data.last_scheduled_duration, 10) || 0;
+    }
+
+    if (data.last_scheduled_effort_minutes) {
+      data.last_scheduled_effort_minutes = parseInt(data.last_scheduled_effort_minutes, 10) || 0;
+    }
+
+    if (data.last_scheduled_estimation_accuracy) {
+      data.last_scheduled_estimation_accuracy = parseFloat(data.last_scheduled_estimation_accuracy) || null;
+    }
+
+    if (data.last_scheduled_rollover_count) {
+      data.last_scheduled_rollover_count = parseInt(data.last_scheduled_rollover_count, 10) || 0;
     }
   }
 
@@ -977,3 +1065,76 @@ class MohTask {
 MohTask.validationCache = new Map();
 MohTask.schemaVersion = '2.0';
 MohTask.instanceCount = 0;
+
+MohTask._logger = null; // Static logger instance
+
+MohTask.setLogger = function(loggerInstance) {
+  MohTask._logger = loggerInstance;
+};
+
+MohTask._propertyDefinitions = {
+  action_id: { type: 'string', default: () => 'ACT_' + Utilities.getUuid() },
+  title: { type: 'string', default: '' },
+  description: { type: 'string', default: '' },
+  status: { type: 'string', default: STATUS.NOT_STARTED },
+  priority: { type: 'string', default: PRIORITY.MEDIUM },
+  lane: { type: 'string', default: LANE.OPERATIONAL },
+  context: { type: 'string', default: CONTEXT.ADMIN },
+  estimated_minutes: { type: 'number', default: CONSTANTS.DEFAULT_ESTIMATED_MINUTES },
+  actual_minutes: { type: 'number', default: null },
+  scheduled_start: { type: 'date', default: null },
+  scheduled_end: { type: 'date', default: null },
+  completed_date: { type: 'date', default: null },
+  due_date: { type: 'date', default: null },
+  deadline: { type: 'date', default: null },
+  created_at: { type: 'date', default: () => TimeZoneAwareDate.now() },
+  updated_at: { type: 'date', default: () => TimeZoneAwareDate.now() },
+  calendar_event_id: { type: 'string', default: '' },
+  source: { type: 'string', default: SOURCE.MANUAL },
+  source_id: { type: 'string', default: '' },
+  external_url: { type: 'string', default: '' },
+  attachments: { type: 'json', default: '[]' },
+  metadata: { type: 'json', default: '{}' },
+  rollover_count: { type: 'number', default: 0 },
+  last_rollover_date: { type: 'date', default: null },
+  notes: { type: 'string', default: '' },
+  energy_required: { type: 'string', default: ENERGY_LEVEL.MEDIUM },
+  focus_required: { type: 'string', default: FOCUS_LEVEL.MEDIUM },
+  impact: { type: 'string', default: PRIORITY.MEDIUM },
+  urgency: { type: 'string', default: PRIORITY.MEDIUM },
+  effort_minutes: { type: 'number', default: 30 },
+  estimation_accuracy: { type: 'number', default: null },
+  score: { type: 'number', default: 0 },
+  scheduling_metadata: { type: 'json', default: '{}' },
+  version: { type: 'number', default: 1 },
+  dependency: { type: 'string', default: '' },
+  estimated_completion: { type: 'date', default: null },
+  completion_notes: { type: 'string', default: '' },
+  created_by: { type: 'string', default: 'system' },
+  assigned_to: { type: 'string', default: '' },
+  parent_id: { type: 'string', default: '' },
+  dependencies: { type: 'json', default: '[]' },
+  tags: { type: 'json', default: '[]' },
+
+  last_scheduled_score: { type: 'number', default: 0 },
+  last_scheduled_block_type: { type: 'string', default: '' },
+  last_scheduled_energy_level: { type: 'string', default: '' },
+  last_scheduled_context_type: { type: 'string', default: '' },
+  last_scheduled_lane: { type: 'string', default: '' },
+  last_scheduled_duration: { type: 'number', default: 0 },
+  last_scheduled_priority: { type: 'string', default: '' },
+  last_scheduled_impact: { type: 'string', default: '' },
+  last_scheduled_urgency: { type: 'string', default: '' },
+  last_scheduled_effort_minutes: { type: 'number', default: 0 },
+  last_scheduled_estimation_accuracy: { type: 'number', default: null },
+  last_scheduled_rollover_count: { type: 'number', default: 0 },
+  last_scheduled_last_rollover_date: { type: 'date', default: null },
+  last_scheduled_notes: { type: 'string', default: '' },
+  last_scheduled_source: { type: 'string', default: '' },
+  last_scheduled_source_id: { type: 'string', default: '' },
+  last_scheduled_external_url: { type: 'string', default: '' },
+  last_scheduled_attachments: { type: 'json', default: '[]' },
+  last_scheduled_metadata: { type: 'json', default: '{}' },
+  last_scheduled_dependency: { type: 'string', default: '' },
+  last_scheduled_estimated_completion: { type: 'date', default: null }
+};

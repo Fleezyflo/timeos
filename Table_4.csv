@@ -1,9 +1,0 @@
-Column Name,AppSheet Type,Base Type,Required,Description
--------------,---------------,-----------,----------,-------------
-`ai_processed`,Yes/No,Boolean,No,Whether AI extraction ran
-`ai_task_type`,Enum,Text,No,"AI-categorized type: Deep Work, Communication, Administrative, Creative"
-`ai_urgency`,Enum,Text,No,"AI-determined urgency: CRITICAL, HIGH, MEDIUM, LOW"
-`ai_estimated_minutes`,Number,Integer,No,AI-estimated duration
-`ai_due_date`,Date,Date,No,AI-extracted deadline
-`ai_action_items`,LongText,Text,No,AI-extracted action items list
-`ai_confidence`,Percent,Number,No,AI extraction confidence

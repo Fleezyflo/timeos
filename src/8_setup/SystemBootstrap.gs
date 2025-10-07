@@ -115,6 +115,8 @@ function completeSetup() {
       Logger.log(`[SystemBootstrap] Phase ${initState.phase}: ${initState.phases[2]}...`);
 
       registerAllServices();
+      // Set MohTask static logger after SmartLogger is registered
+      MohTask.setLogger(container.get(SERVICES.SmartLogger)); // NEW
       Logger.log('[SystemBootstrap] All services registered successfully');
 
       Logger.log(`[SystemBootstrap] ✓ Phase ${initState.phase} completed`);

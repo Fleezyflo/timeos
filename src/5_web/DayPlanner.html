@@ -2665,12 +2665,11 @@ padding: 6px 8px;
                     google.script.run
                       .withSuccessHandler(response => {
                         if (response.success) {
-                          this.showToast('Task rescheduled!', 'success');
                           // Update cached event object
-                          const cachedEventIndex = this.cache.calendar.data.findIndex(e => e.task_id === taskId);
+                          const cachedEventIndex = this.cache.calendar.data.findIndex(e => e.id === taskId);
                           if (cachedEventIndex !== -1) {
-                            this.cache.calendar.data[cachedEventIndex].start_time = event.start.toISOString();
-                            this.cache.calendar.data[cachedEventIndex].end_time = event.end ? event.end.toISOString() : new Date(event.start.getTime() + 30 * 60000).toISOString();
+                            this.cache.calendar.data[cachedEventIndex].start = event.start.toISOString();
+                            this.cache.calendar.data[cachedEventIndex].end = event.end ? event.end.toISOString() : new Date(event.start.getTime() + 30 * 60000).toISOString();
                             this.cache.calendar.fetchedAt = Date.now(); // Mark cache as fresh
                           }
                           this.invalidateCache('tasks');
@@ -2709,10 +2708,10 @@ padding: 6px 8px;
                         if (response.success) {
                           this.showToast('Task duration updated!', 'success');
                           // Update cached event object
-                          const cachedEventIndex = this.cache.calendar.data.findIndex(e => e.task_id === taskId);
+                          const cachedEventIndex = this.cache.calendar.data.findIndex(e => e.id === taskId);
                           if (cachedEventIndex !== -1) {
-                            this.cache.calendar.data[cachedEventIndex].start_time = event.start.toISOString();
-                            this.cache.calendar.data[cachedEventIndex].end_time = event.end ? event.end.toISOString() : new Date(event.start.getTime() + 30 * 60000).toISOString();
+                            this.cache.calendar.data[cachedEventIndex].start = event.start.toISOString();
+                            this.cache.calendar.data[cachedEventIndex].end = event.end ? event.end.toISOString() : new Date(event.start.getTime() + 30 * 60000).toISOString();
                             this.cache.calendar.fetchedAt = Date.now(); // Mark cache as fresh
                           }
                           this.invalidateCache('tasks');

@@ -71,7 +71,7 @@ class ChatEngine {
       }
       const headers = this.batchOperations.getHeaders(SHEET_NAMES.ACTIONS);
       const taskRow = MohTaskInstance.toSheetRow(headers);
-      this.batchOperations.batchAppend(SHEET_NAMES.ACTIONS, [taskRow]);
+      this.batchOperations.appendRows(SHEET_NAMES.ACTIONS, [taskRow]);
       this._storeRecentTaskContext(MohTaskInstance, context);
       this.logger.info('ChatEngine', `Created task: ${MohTaskInstance.title} (ID: ${MohTaskInstance.action_id})`);
       return {
@@ -196,14 +196,41 @@ class ChatEngine {
     const rawPriority = paramMatches.priority;
     const rawLane = paramMatches.lane;
 
+    // Extract dependencies and tags, ensuring they are valid JSON arrays or default to '[]'
+    let dependencies = '[]';
+    if (paramMatches.dependencies) {
+      try {
+        const parsed = JSON.parse(paramMatches.dependencies);
+        if (Array.isArray(parsed)) {
+          dependencies = JSON.stringify(parsed);
+        }
+      } catch (e) {
+        this.logger.warn('ChatEngine', `Invalid JSON for dependencies: ${paramMatches.dependencies}. Using default '[]'.`, { error: e.message });
+      }
+    }
+
+    let tags = '[]';
+    if (paramMatches.tags) {
+      try {
+        const parsed = JSON.parse(paramMatches.tags);
+        if (Array.isArray(parsed)) {
+          tags = JSON.stringify(parsed);
+        }
+      } catch (e) {
+        this.logger.warn('ChatEngine', `Invalid JSON for tags: ${paramMatches.tags}. Using default '[]'.`, { error: e.message });
+      }
+    }
+
     return {
       title: paramMatches.title || text,
       description: paramMatches.description || '',
       deadline: paramMatches.deadline || '',
       priority: normalizePriority(rawPriority || PRIORITY.MEDIUM),
       lane: normalizeLane(rawLane || LANE.OPERATIONAL),
-      created_by: context && context.user ? context.user : 'unknown',
-      created_at: new Date().toISOString()
+      created_by: context && context.user ? context.user : Session.getActiveUser().getEmail() || 'system@example.com', // Use active user email, fallback to generic system email
+      created_at: new Date().toISOString(),
+      dependencies: dependencies, // NEW
+      tags: tags // NEW
     };
   }
 
@@ -383,7 +410,55 @@ class ChatEngine {
         response: this._createSimpleResponse('One or both tasks not found to establish dependency.')
       };
     }
-    this._updateTaskInSheet(dependentTask.action_id, { dependency: dependencyTask.action_id });
+
+    if (dependentTask.action_id === dependencyTask.action_id) {
+      return {
+        success: true,
+        response: this._createSimpleResponse('A task cannot depend on itself.')
+      };
+    }
+
+    const headers = this.batchOperations.getHeaders(SHEET_NAMES.ACTIONS);
+    const safeAccess = new SafeColumnAccess(headers);
+    const matches = this.batchOperations.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: dependentTask.action_id });
+
+    if (!matches || matches.length === 0) {
+      this.logger.warn('ChatEngine', `No sheet row found for dependency update on ${dependentTask.action_id}`);
+      return {
+        success: false,
+        response: this._createSimpleResponse('Failed to establish dependency. Please try again later.')
+      };
+    }
+
+    const currentRow = matches[0].row;
+    let dependencyList = [];
+    const dependenciesValue = safeAccess.getCellValue(currentRow, 'dependencies', '[]');
+
+    if (dependenciesValue) {
+      try {
+        const parsed = JSON.parse(dependenciesValue);
+        if (Array.isArray(parsed)) {
+          dependencyList = parsed;
+        }
+      } catch (error) {
+        this.logger.warn('ChatEngine', `Failed to parse dependencies for ${dependentTask.action_id}, resetting to empty array.`, {
+          error: error.message
+        });
+      }
+    }
+
+    if (!dependencyList.includes(dependencyTask.action_id)) {
+      dependencyList.push(dependencyTask.action_id);
+    } else {
+      return {
+        success: true,
+        response: this._createSimpleResponse(
+          `Task "${dependentTask.title}" already depends on "${dependencyTask.title}".`
+        )
+      };
+    }
+
+    this._updateTaskInSheet(dependentTask.action_id, { dependencies: JSON.stringify(dependencyList) });
     return {
       success: true,
       response: this._createSimpleResponse(

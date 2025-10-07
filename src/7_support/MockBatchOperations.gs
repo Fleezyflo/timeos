@@ -65,6 +65,13 @@ class MockBatchOperations {
       data: []
     });
 
+    this.mockSheets.set(SHEET_NAMES.DEPENDENCIES, {
+      headers: [
+        'blocking_action_id', 'blocked_action_id', 'relationship_type', 'created_at', 'updated_at'
+      ],
+      data: []
+    });
+
     this.mockSheets.set(SHEET_NAMES.HUMAN_STATE, {
       headers: [
         'state_id', 'timestamp', 'energy_level', 'focus_level', 'mood',

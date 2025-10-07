@@ -924,6 +924,91 @@ class SystemManager {
   }
 
   /**
+   * Backfills the DEPENDENCIES sheet by extracting dependency information
+   * from the 'dependencies' JSON array in the ACTIONS sheet.
+   * This function is designed to be run once or as needed for data migration.
+   * It uses a guard flag to prevent unnecessary re-execution.
+   *
+   * @returns {Object} Result of the backfill operation.
+   */
+  backfillDependenciesSheet() {
+    const guardKey = CONSTANTS.BACKFILL_DEPENDENCIES_GUARD;
+    try {
+      // Check guard flag in PersistentStore
+      const hasRun = this.configManager.getBoolean(guardKey, false);
+      if (hasRun) {
+        this.logger.info('SystemManager', 'Dependencies backfill already executed. Skipping.');
+        return { success: true, message: 'Backfill already executed.' };
+      }
+
+      this.logger.info('SystemManager', 'Starting backfill of DEPENDENCIES sheet from ACTIONS.');
+
+      const actionHeaders = this.batchOperations.getHeaders(SHEET_NAMES.ACTIONS);
+      const actionSafeAccess = new SafeColumnAccess(actionHeaders);
+      const allActions = this.batchOperations.getRowsByFilter(SHEET_NAMES.ACTIONS, {});
+
+      const newDependencies = new Map(); // Map to store unique dependencies: "blockingId->blockedId" -> {blockingId, blockedId}
+
+      for (const actionRow of allActions) {
+        const actionId = actionSafeAccess.getCellValue(actionRow, 'action_id');
+        const dependenciesJson = actionSafeAccess.getCellValue(actionRow, 'dependencies');
+
+        if (actionId && dependenciesJson) {
+          try {
+            const dependencies = JSON.parse(dependenciesJson);
+            if (Array.isArray(dependencies)) {
+              for (const blockingActionId of dependencies) {
+                if (typeof blockingActionId === 'string' && blockingActionId.trim() !== '') {
+                  const key = `${blockingActionId}->${actionId}`;
+                  if (!newDependencies.has(key)) {
+                    newDependencies.set(key, {
+                      blocking_action_id: blockingActionId,
+                      blocked_action_id: actionId,
+                      relationship_type: 'blocks', // Default relationship type
+                      created_at: TimeZoneAwareDate.now(),
+                      updated_at: TimeZoneAwareDate.now()
+                    });
+                  }
+                }
+              }
+            }
+          } catch (parseError) {
+            this.logger.warn('SystemManager', 'Failed to parse dependencies JSON for action', {
+              action_id: actionId,
+              dependencies_json: dependenciesJson,
+              error: parseError.message
+            });
+          }
+        }
+      }
+
+      const dependencyRows = Array.from(newDependencies.values());
+      if (dependencyRows.length > 0) {
+        const dependencySheetHeaders = this.batchOperations.getHeaders(SHEET_NAMES.DEPENDENCIES);
+        const dependencySafeAccess = new SafeColumnAccess(dependencySheetHeaders);
+        const rowsToAppend = dependencyRows.map(dep => dependencySafeAccess.mapObjectToRow(dep));
+
+        this.batchOperations.appendRows(SHEET_NAMES.DEPENDENCIES, rowsToAppend);
+        this.logger.info('SystemManager', `Successfully backfilled ${rowsToAppend.length} dependencies to DEPENDENCIES sheet.`);
+      } else {
+        this.logger.info('SystemManager', 'No new dependencies found to backfill.');
+      }
+
+      // Set guard flag to true after successful execution
+      this.configManager.set(guardKey, true);
+
+      return { success: true, backfilled_count: dependencyRows.length };
+
+    } catch (error) {
+      this.logger.error('SystemManager', 'Failed to backfill DEPENDENCIES sheet', {
+        error: error.message,
+        stack: error.stack
+      });
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
    * Verify database schema integrity
    * @returns {boolean} True if schema is valid
    */

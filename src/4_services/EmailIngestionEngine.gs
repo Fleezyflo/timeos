@@ -268,11 +268,28 @@ class EmailIngestionEngine {
   _createTaskProposals(proposalDataArray, newCursorTimestamp) {
     try {
       const headers = this.batchOperations.getHeaders(SHEET_NAMES.PROPOSED_TASKS);
+      const safeAccess = new SafeColumnAccess(headers);
 
       const rows = proposalDataArray.map(proposalData => {
         const proposalId = `email_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        const completeData = { proposal_id: proposalId, ...proposalData };
-        return headers.map(header => completeData[header] || '');
+        const completeData = {
+          proposal_id: proposalId,
+          status: proposalData.status || STATUS.PENDING,
+          created_at: proposalData.created_at || TimeZoneAwareDate.now(),
+          processed_at: proposalData.processed_at || '',
+          source: proposalData.source || 'email_ingestion',
+          source_id: proposalData.source_id || '',
+          sender: proposalData.sender || '',
+          subject: proposalData.subject || '',
+          parsed_title: proposalData.parsed_title || '',
+          suggested_lane: proposalData.suggested_lane || '',
+          suggested_priority: proposalData.suggested_priority || '',
+          suggested_duration: proposalData.suggested_duration || '',
+          confidence_score: proposalData.confidence_score || '',
+          raw_content_preview: proposalData.raw_content_preview || '',
+          created_task_id: proposalData.created_task_id || ''
+        };
+        return safeAccess.mapObjectToRow(completeData);
       });
 
       // Batch insert all rows at once instead of individual appendRow() calls for performance
@@ -720,8 +737,11 @@ class EmailIngestionEngine {
         subject: subject,
         parsed_title: title,
         suggested_lane: lane,
+        suggested_priority: priority || PRIORITY.MEDIUM,
+        suggested_duration: estimated_minutes || '',
         confidence_score: actionabilityScore || 0.5,
-        raw_content_preview: (body || '').substring(0, 200) + ((body || '').length > 200 ? '...' : '')
+        raw_content_preview: (body || '').substring(0, 200) + ((body || '').length > 200 ? '...' : ''),
+        created_task_id: ''
       };
 
       this.logger.debug('EmailIngestionEngine', 'parseTaskFromEmailWithLearning returning', {

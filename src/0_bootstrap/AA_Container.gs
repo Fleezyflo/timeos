@@ -91,7 +91,10 @@ const CONSTANTS = Object.freeze({
   // NLP stop words for email keyword extraction
   STOP_WORDS: ['from', 'with', 'that', 'this', 'there', 'which', 'would',
                'should', 'could', 'about', 'your', 'subject', 'please',
-               'thank', 'regards']
+               'thank', 'regards'],
+
+  // Backfill flags
+  BACKFILL_DEPENDENCIES_GUARD: 'backfill_dependencies_guard'
 });
 
 // Sheet names (validated on access)

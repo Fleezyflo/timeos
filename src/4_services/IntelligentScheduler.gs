@@ -617,23 +617,70 @@ class IntelligentScheduler {
     const visited = new Set();
     const actionMap = new Map(actions.map(action => [action.action_id, action]));
 
-    const headers = this.batchOperations.getHeaders(SHEET_NAMES.DEPENDENCIES);
-    const dependencies = this.batchOperations.getRowsByFilter(SHEET_NAMES.DEPENDENCIES, {});
+    const allDependencies = new Map(); // Map to store all unique dependencies: blockedId -> [blockingIds]
 
-    const dependsOn = new Map();
-    const blocks = new Map();
+    // 1. Consume dependencies from the DEPENDENCIES sheet
+    try {
+      const dependencySheetHeaders = this.batchOperations.getHeaders(SHEET_NAMES.DEPENDENCIES);
+      const dependencySheetRows = this.batchOperations.getRowsByFilter(SHEET_NAMES.DEPENDENCIES, {});
+      const dependencySafeAccess = new SafeColumnAccess(dependencySheetHeaders);
 
-    const blockingIdIndex = headers.indexOf('blocking_action_id');
-    const blockedIdIndex = headers.indexOf('blocked_action_id');
-
-    for (const depRow of dependencies) {
-      const blockingId = depRow[blockingIdIndex];
-      const blockedId = depRow[blockedIdIndex];
-      if (!dependsOn.has(blockedId)) dependsOn.set(blockedId, []);
-      if (!blocks.has(blockingId)) blocks.set(blockingId, []);
-      dependsOn.get(blockedId).push(blockingId);
-      blocks.get(blockingId).push(blockedId);
+      for (const depRow of dependencySheetRows) {
+        const blockingId = dependencySafeAccess.getCellValue(depRow, 'blocking_action_id');
+        const blockedId = dependencySafeAccess.getCellValue(depRow, 'blocked_action_id');
+        if (blockingId && blockedId) {
+          if (!allDependencies.has(blockedId)) allDependencies.set(blockedId, new Set());
+          allDependencies.get(blockedId).add(blockingId);
+        }
+      }
+      this.logger.debug('IntelligentScheduler', `Loaded ${dependencySheetRows.length} dependencies from DEPENDENCIES sheet.`);
+    } catch (error) {
+      this.logger.warn('IntelligentScheduler', `Failed to load dependencies from DEPENDENCIES sheet: ${error.message}. Proceeding with inline dependencies only.`, { error: error.message });
     }
+
+    // 2. Merge with inline JSON dependencies from ACTIONS sheet
+    const actionHeaders = this.batchOperations.getHeaders(SHEET_NAMES.ACTIONS);
+    const actionSafeAccess = new SafeColumnAccess(actionHeaders);
+
+    for (const action of actions) {
+      const actionId = action.action_id;
+      const dependenciesJson = actionSafeAccess.getCellValue(action.toSheetRow(actionHeaders), 'dependencies');
+
+      if (actionId && dependenciesJson) {
+        try {
+          const inlineDependencies = JSON.parse(dependenciesJson);
+          if (Array.isArray(inlineDependencies)) {
+            for (const blockingActionId of inlineDependencies) {
+              if (typeof blockingActionId === 'string' && blockingActionId.trim() !== '') {
+                if (!allDependencies.has(actionId)) allDependencies.set(actionId, new Set());
+                allDependencies.get(actionId).add(blockingActionId);
+              }
+            }
+          }
+        } catch (parseError) {
+          this.logger.warn('IntelligentScheduler', 'Failed to parse inline dependencies JSON for action', {
+            action_id: actionId,
+            dependencies_json: dependenciesJson,
+            error: parseError.message
+          });
+        }
+      }
+    }
+
+    // Convert Sets back to Arrays for easier processing
+    const finalDependencies = new Map();
+    allDependencies.forEach((blockingIdsSet, blockedId) => {
+      finalDependencies.set(blockedId, Array.from(blockingIdsSet));
+    });
+
+    const dependsOn = finalDependencies;
+    const blocks = new Map(); // Rebuild blocks map from finalDependencies
+    finalDependencies.forEach((blockingIds, blockedId) => {
+      blockingIds.forEach(blockingId => {
+        if (!blocks.has(blockingId)) blocks.set(blockingId, []);
+        blocks.get(blockingId).push(blockedId);
+      });
+    });
 
     for (const action of actions) {
       if (visited.has(action.action_id)) continue;

@@ -1,4 +1,0 @@
-Column Name,Type,Formula,Purpose
--------------,------,---------,---------
-`approval_rate`,Percent,"`IF([total_interactions] > 0, [approved_count] / [total_interactions], 0)`",Percentage approved
-`is_trusted`,Yes/No,"`AND([status] = ""TRUSTED"", [reputation_score] > 0.7)`",Auto-approve eligibility

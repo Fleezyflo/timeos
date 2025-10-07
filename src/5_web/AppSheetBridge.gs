@@ -486,12 +486,19 @@ function appsheet_getCalendarEvents(params) {
     const endDate = params && params.endDate ? new Date(params.endDate) : new Date(startDate.getTime() + 30 * 24 * 60 * 60 * 1000);
     const allTasks = batchOps.getAllActions();
 
-    const events = allTasks.filter(task => {
-      if (!task.scheduled_start) return false;
-      const start = new Date(task.scheduled_start);
-      return start >= startDate && start <= endDate;
-    }).map(task => task.toDetailedJSON());
-
+    const events = allTasks
+      .filter(task => task.scheduled_start)
+      .map(task => ({
+        id: task.action_id,
+        title: task.title,
+        start: task.scheduled_start,
+        end: task.scheduled_end || task.scheduled_start,
+        allDay: false,
+        extendedProps: {
+          taskId: task.action_id,
+          status: task.status
+        }
+      }));
     return { success: true, data: { events } };
   } catch (error) {
     LoggerFacade.error('AppSheetBridge', 'appsheet_getCalendarEvents failed', {
@@ -518,30 +525,41 @@ function appsheet_getProposals(params) {
     }
     
     const data = sheet.getDataRange().getValues();
+    if (!data || data.length <= 1) {
+      return { success: true, data: [] };
+    }
+
+    const headers = data[0];
+    const safeAccess = new SafeColumnAccess(headers);
     const proposals = [];
-    
-    // Skip header row
+
     for (let i = 1; i < data.length && proposals.length < limit; i++) {
       const row = data[i];
-      const status = row[1];  // status column
-      
+      const status = safeAccess.getCellValue(row, 'status', '');
+
       if (!filterStatus || status === filterStatus) {
+        const confidenceText = safeAccess.getCellValue(row, 'confidence_score', 0);
+        const confidence = typeof confidenceText === 'number'
+          ? confidenceText
+          : parseFloat(confidenceText) || 0;
+
         proposals.push({
-          proposal_id: row[0],
-          sender_email: row[6],
-          subject: row[7],
-          body: row[11], // Using raw_content_preview as body
-          extracted_title: row[8],
-          suggested_lane: row[9],
-          confidence_score: row[10],
-          status: row[1],
-          processed_at: row[3],
-          // suggested_priority and suggested_duration are not in the new schema
-          // created_task_id is not in the new schema
-          created_at: row[2], // New field
-          source: row[4], // New field
-          source_id: row[5], // New field
-          raw_content_preview: row[11] // New field
+          proposal_id: safeAccess.getCellValue(row, 'proposal_id', ''),
+          sender_email: safeAccess.getCellValue(row, 'sender', ''),
+          subject: safeAccess.getCellValue(row, 'subject', ''),
+          body: safeAccess.getCellValue(row, 'raw_content_preview', ''),
+          extracted_title: safeAccess.getCellValue(row, 'parsed_title', ''),
+          suggested_lane: safeAccess.getCellValue(row, 'suggested_lane', ''),
+          suggested_priority: safeAccess.getCellValue(row, 'suggested_priority', ''),
+          suggested_duration: safeAccess.getCellValue(row, 'suggested_duration', ''),
+          confidence_score: confidence,
+          status: status,
+          processed_at: safeAccess.getCellValue(row, 'processed_at', ''),
+          created_at: safeAccess.getCellValue(row, 'created_at', ''),
+          source: safeAccess.getCellValue(row, 'source', ''),
+          source_id: safeAccess.getCellValue(row, 'source_id', ''),
+          raw_content_preview: safeAccess.getCellValue(row, 'raw_content_preview', ''),
+          created_task_id: safeAccess.getCellValue(row, 'created_task_id', '')
         });
       }
     }
@@ -577,14 +595,241 @@ function appsheet_getPendingProposalsCount() {
   ensureBootstrapServices();
   try {
     const batchOps = getService(SERVICES.BatchOperations);
-    const pendingProposals = batchOps.getRowsByFilter(SHEET_NAMES.PROPOSED_TASKS, { status: PROPOSAL_STATUS.PENDING });
-    return { success: true, count: pendingProposals.length };
+    const data = batchOps.getAllSheetData(SHEET_NAMES.PROPOSED_TASKS);
+    if (!data || data.length <= 1) {
+      return { success: true, count: 0 };
+    }
+
+    const headers = data[0];
+    const safeAccess = new SafeColumnAccess(headers);
+    let count = 0;
+
+    for (let i = 1; i < data.length; i++) {
+      if (safeAccess.getCellValue(data[i], 'status', '') === PROPOSAL_STATUS.PENDING) {
+        count++;
+      }
+    }
+
+    return { success: true, count: count };
   } catch (error) {
     LoggerFacade.error('AppSheetBridge', 'appsheet_getPendingProposalsCount failed', {
       error: error.message,
       stack: error.stack
     });
     return { success: false, error: error.message, count: 0, stack: error.stack };
+  }
+}
+
+/**
+ * Process a proposal action (currently supports rejection and manual status updates).
+ * @param {Object} params Parameters containing proposalId and action.
+ * @returns {Object} Result with success flag and action performed.
+ */
+function appsheet_processProposal(params) {
+  ensureBootstrapServices();
+  try {
+    const logger = getService(SERVICES.SmartLogger);
+    const { proposalId, action } = params || {};
+
+    if (!proposalId || !action) {
+      throw new ValidationError('proposalId and action are required.');
+    }
+
+    const batchOps = getService(SERVICES.BatchOperations);
+    const headers = batchOps.getHeaders(SHEET_NAMES.PROPOSED_TASKS);
+    const safeAccess = new SafeColumnAccess(headers);
+    const matches = batchOps.getRowsWithPosition(SHEET_NAMES.PROPOSED_TASKS, { proposal_id: proposalId });
+
+    if (!matches || matches.length === 0) {
+      return { success: false, error: `Proposal not found: ${proposalId}` };
+    }
+
+    const { row, sheetRowIndex } = matches[0];
+    const lowerAction = action.toString().toLowerCase();
+
+    if (lowerAction === 'approve' || lowerAction === 'accept') {
+      // Delegate to the dedicated approval handler to ensure created_task_id is persisted.
+      return appsheet_approveProposal({ proposalId: proposalId, overrides: params && params.overrides ? params.overrides : {} });
+    }
+
+    const updatedRow = [...row];
+    let newStatus;
+
+    switch (lowerAction) {
+    case 'reject':
+      newStatus = PROPOSAL_STATUS.REJECTED;
+      safeAccess.setCellValue(updatedRow, 'created_task_id', '');
+      break;
+    case 'process':
+      newStatus = PROPOSAL_STATUS.PROCESSED;
+      break;
+    default:
+      return { success: false, error: `Unsupported action: ${action}` };
+    }
+
+    safeAccess.setCellValue(updatedRow, 'status', newStatus);
+    safeAccess.setCellValue(updatedRow, 'processed_at', TimeZoneAwareDate.now());
+
+    const rangeA1 = _calculateRowRange(headers.length, sheetRowIndex);
+    batchOps.batchUpdate(SHEET_NAMES.PROPOSED_TASKS, [{
+      rangeA1: rangeA1,
+      values: [updatedRow]
+    }]);
+
+    if (logger && logger.info) {
+      logger.info('AppSheetBridge', `Proposal ${proposalId} updated via ${lowerAction}`, { status: newStatus });
+    }
+
+    return { success: true, action: newStatus, proposalId: proposalId };
+  } catch (error) {
+    LoggerFacade.error('AppSheetBridge', 'appsheet_processProposal failed', {
+      error: error.message,
+      stack: error.stack,
+      params: params
+    });
+    return { success: false, error: error.message, stack: error.stack };
+  }
+}
+
+/**
+ * Approve a proposal and create a corresponding task.
+ * @param {Object} params Parameters containing proposalId and optional overrides.
+ * @returns {Object} Result with success flag and created task identifier.
+ */
+function appsheet_approveProposal(params) {
+  ensureBootstrapServices();
+  try {
+    const logger = getService(SERVICES.SmartLogger);
+    const batchOps = getService(SERVICES.BatchOperations);
+    const { proposalId, overrides = {} } = params || {};
+
+    if (!proposalId) {
+      throw new ValidationError('proposalId is required.');
+    }
+
+    const headers = batchOps.getHeaders(SHEET_NAMES.PROPOSED_TASKS);
+    const safeAccess = new SafeColumnAccess(headers);
+    const matches = batchOps.getRowsWithPosition(SHEET_NAMES.PROPOSED_TASKS, { proposal_id: proposalId });
+
+    if (!matches || matches.length === 0) {
+      return { success: false, error: `Proposal not found: ${proposalId}` };
+    }
+
+    const { row, sheetRowIndex } = matches[0];
+    const nowIso = TimeZoneAwareDate.now();
+
+    let userEmail = '';
+    try {
+      userEmail = Session.getActiveUser().getEmail();
+    } catch (sessionError) {
+      if (logger && logger.warn) {
+        logger.warn('AppSheetBridge', 'Failed to resolve active user email, using fallback', { error: sessionError.message });
+      }
+    }
+
+    const suggestedDurationRaw = overrides.estimated_minutes !== undefined
+      ? overrides.estimated_minutes
+      : safeAccess.getCellValue(row, 'suggested_duration', '');
+    const parsedDuration = parseInt(suggestedDurationRaw, 10);
+    const estimatedMinutes = Number.isFinite(parsedDuration) && parsedDuration > 0
+      ? parsedDuration
+      : CONSTANTS.DEFAULT_ESTIMATED_MINUTES;
+
+    const priorityValue = overrides.priority || safeAccess.getCellValue(row, 'suggested_priority', PRIORITY.MEDIUM) || PRIORITY.MEDIUM;
+    const normalizedPriority = normalizePriority(priorityValue);
+
+    const laneValue = overrides.lane || safeAccess.getCellValue(row, 'suggested_lane', LANE.OPERATIONAL) || LANE.OPERATIONAL;
+    const normalizedLane = normalizeLane(laneValue);
+
+    const titleValue = overrides.title
+      || safeAccess.getCellValue(row, 'parsed_title', '')
+      || safeAccess.getCellValue(row, 'subject', '')
+      || 'Untitled Proposal';
+
+    const rawPreview = safeAccess.getCellValue(row, 'raw_content_preview', '');
+    const subject = safeAccess.getCellValue(row, 'subject', '');
+    const descriptionOverride = overrides.description || '';
+    const description = descriptionOverride ||
+      [subject && subject !== titleValue ? `Subject: ${subject}` : '', rawPreview]
+        .filter(Boolean)
+        .join('\n\n');
+
+    const confidenceScoreRaw = safeAccess.getCellValue(row, 'confidence_score', '');
+    const confidenceScore = typeof confidenceScoreRaw === 'number'
+      ? confidenceScoreRaw
+      : parseFloat(confidenceScoreRaw) || null;
+
+    const proposalSource = safeAccess.getCellValue(row, 'source', SOURCE.EMAIL);
+    const senderEmail = safeAccess.getCellValue(row, 'sender', '');
+
+    const metadata = {
+      proposal_id: proposalId,
+      proposal_source: proposalSource,
+      confidence_score: confidenceScore,
+      sender: senderEmail
+    };
+
+    const taskData = {
+      title: titleValue,
+      description: description || '',
+      status: STATUS.PENDING,
+      priority: normalizedPriority,
+      lane: normalizedLane,
+      estimated_minutes: estimatedMinutes,
+      created_at: nowIso,
+      updated_at: nowIso,
+      source: SOURCE.EMAIL,
+      source_id: proposalId,
+      created_by: userEmail || 'appsheet@example.com',
+      assigned_to: overrides.assigned_to || userEmail || '',
+      completion_notes: '',
+      dependencies: [],
+      tags: ['email_proposal'],
+      metadata: metadata
+    };
+
+    const newTask = new MohTask(taskData);
+    if (!newTask.isValid()) {
+      const validationErrors = newTask.getValidationErrors();
+      throw new ValidationError(`Task validation failed: ${validationErrors.join(', ')}`);
+    }
+
+    const actionHeaders = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+    const taskRow = newTask.toSheetRow(actionHeaders);
+    batchOps.appendRows(SHEET_NAMES.ACTIONS, [taskRow]);
+
+    const updatedRow = [...row];
+    safeAccess.setCellValue(updatedRow, 'status', PROPOSAL_STATUS.ACCEPTED);
+    safeAccess.setCellValue(updatedRow, 'processed_at', nowIso);
+    safeAccess.setCellValue(updatedRow, 'created_task_id', newTask.action_id);
+
+    const rangeA1 = _calculateRowRange(headers.length, sheetRowIndex);
+    batchOps.batchUpdate(SHEET_NAMES.PROPOSED_TASKS, [{
+      rangeA1: rangeA1,
+      values: [updatedRow]
+    }]);
+
+    if (logger && logger.info) {
+      logger.info('AppSheetBridge', `Approved proposal ${proposalId}`, {
+        action_id: newTask.action_id,
+        priority: normalizedPriority,
+        lane: normalizedLane
+      });
+    }
+
+    return {
+      success: true,
+      action: 'approved',
+      action_id: newTask.action_id,
+      proposal_id: proposalId
+    };
+  } catch (error) {
+    LoggerFacade.error('AppSheetBridge', 'appsheet_approveProposal failed', {
+      error: error.message,
+      stack: error.stack,
+      params: params
+    });
+    return { success: false, error: error.message, stack: error.stack };
   }
 }
 
@@ -638,6 +883,31 @@ function appsheet_getMyDay(params) {
     });
     return { success: false, error: `Server error getting dashboard data: ${error.message}`, stack: error.stack };
   }
+}
+
+/**
+ * Convert a sheet row length and row index into an A1 range string.
+ * @param {number} columnCount Number of columns in the sheet.
+ * @param {number} rowIndex 1-based sheet row index.
+ * @returns {string} Range in A1 notation covering the full row.
+ */
+function _calculateRowRange(columnCount, rowIndex) {
+  if (!columnCount || columnCount < 1) {
+    throw new Error('_calculateRowRange requires a positive column count');
+  }
+  const toColumnLetter = (index) => {
+    let column = '';
+    let dividend = index;
+    while (dividend > 0) {
+      let modulo = (dividend - 1) % 26;
+      column = String.fromCharCode(65 + modulo) + column;
+      dividend = Math.floor((dividend - modulo) / 26);
+    }
+    return column || 'A';
+  };
+
+  const endColumn = toColumnLetter(columnCount);
+  return `A${rowIndex}:${endColumn}${rowIndex}`;
 }
 
 /**
@@ -728,4 +998,92 @@ function bootstrapClient() {
   }
 
   return result;
+}
+
+/**
+ * Creates a new task from AppSheet.
+ * @param {Object} params - Task parameters from AppSheet.
+ * @param {string} params.title - The title of the task.
+ * @param {string} [params.description] - The description of the task.
+ * @param {string} [params.priority] - The priority of the task (e.g., 'HIGH', 'MEDIUM').
+ * @param {string} [params.lane] - The lane of the task.
+ * @param {number} [params.estimated_minutes] - Estimated minutes for the task.
+ * @param {string} [params.due_date] - Due date in ISO format.
+ * @param {string} [params.completion_notes] - Notes about task completion.
+ * @param {string} [params.assigned_to] - Email of the assigned user.
+ * @param {string} [params.parent_id] - ID of the parent task.
+ * @param {string} [params.dependencies] - JSON array string of dependency IDs.
+ * @param {string} [params.tags] - JSON array string of tags.
+ * @returns {Object} Result with success status and task details.
+ */
+function appsheet_createTask(params) {
+  ensureBootstrapServices();
+  try {
+    const logger = getService(SERVICES.SmartLogger);
+    const batchOps = getService(SERVICES.BatchOperations);
+
+    if (!params || !params.title) {
+      throw new ValidationError('Task title is required.');
+    }
+
+    let userEmail = '';
+    try {
+      userEmail = Session.getActiveUser().getEmail();
+    } catch (sessionError) {
+      logger.warn('AppSheetBridge', 'Failed to resolve active user email, using fallback', { error: sessionError.message });
+    }
+
+    const dependenciesValue = Array.isArray(params.dependencies)
+      ? JSON.stringify(params.dependencies)
+      : (typeof params.dependencies === 'string' && params.dependencies.trim() ? params.dependencies : '[]');
+
+    const tagsValue = Array.isArray(params.tags)
+      ? JSON.stringify(params.tags)
+      : (typeof params.tags === 'string' && params.tags.trim() ? params.tags : '[]');
+
+    const taskData = {
+      title: params.title,
+      description: params.description || '',
+      priority: params.priority || PRIORITY.MEDIUM,
+      lane: params.lane || LANE.OPERATIONAL,
+      estimated_minutes: params.estimated_minutes || CONSTANTS.DEFAULT_ESTIMATED_MINUTES,
+      due_date: params.due_date || null,
+      completion_notes: params.completion_notes || '',
+      created_by: userEmail || 'appsheet@example.com', // Use session email
+      assigned_to: params.assigned_to || userEmail || '', // Use session email if assigned_to not provided
+      parent_id: params.parent_id || '',
+      dependencies: dependenciesValue,
+      tags: tagsValue,
+      source: SOURCE.APPSHEET // Mark source as AppSheet
+    };
+
+    const newTask = new MohTask(taskData);
+
+    if (!newTask.isValid()) {
+      logger.error('AppSheetBridge', 'Task validation failed during creation', { errors: newTask.getValidationErrors(), taskData: taskData });
+      throw new ValidationError('Task validation failed: ' + newTask.getValidationErrors().join(', '));
+    }
+
+    const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+    const taskRow = newTask.toSheetRow(headers);
+    batchOps.appendRows(SHEET_NAMES.ACTIONS, [taskRow]);
+
+    logger.info('AppSheetBridge', `Task created via AppSheet: ${newTask.title} (ID: ${newTask.action_id})`);
+
+    return {
+      success: true,
+      action_id: newTask.action_id,
+      title: newTask.title,
+      status: newTask.status,
+      created_by: newTask.created_by
+    };
+
+  } catch (error) {
+    LoggerFacade.error('AppSheetBridge', 'appsheet_createTask failed', {
+      error: error.message,
+      stack: error.stack,
+      params: params
+    });
+    return { success: false, error: `Failed to create task: ${error.message}`, stack: error.stack };
+  }
 }

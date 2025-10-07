@@ -1,5 +1,0 @@
-Column Name,Type,Formula,Purpose
--------------,------,---------,---------
-`duration_hours`,Decimal,`(HOUR([end] - [start]) + MINUTE([end] - [start])/60)`,Event duration
-`is_today`,Yes/No,`DATE([start]) = TODAY()`,Whether event is today
-`conflict_detected`,Yes/No,Computed by bot,Whether conflicts with other events

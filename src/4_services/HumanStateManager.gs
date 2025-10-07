@@ -30,14 +30,16 @@ class HumanStateManager {
   recordHumanState(state) {
     try {
       const timestamp = TimeZoneAwareDate.toISOString(new Date());
+      const stateId = 'STATE_' + Utilities.getUuid(); // Generate UUID for state_id
       const stateEntry = [
+        stateId,
         timestamp,
         state.energy || 'MEDIUM',
-        state.mood || 'NEUTRAL',
         state.focus || 'NORMAL',
-        state.notes || '',
-        'MANUAL', // Source: manual vs detected
-        JSON.stringify(state) // Full state for analysis
+        state.mood || 'NEUTRAL',
+        state.stress_level || null,
+        state.current_context || null,
+        state.notes || ''
       ];
 
       // Use HUMAN_STATE sheet name from constants
@@ -64,34 +66,34 @@ class HumanStateManager {
   /**
    * Get current human state based on recent entries
    * @returns {Object} Current estimated human state
-   */
+  */
   getCurrentHumanState() {
     try {
       // Get recent state entries (last 4 hours)
       const recentThreshold = new Date(Date.now() - (4 * 60 * 60 * 1000));
-      const recentStates = this.batchOperations.getRowsByFilter(SHEET_NAMES.HUMAN_STATE, {})
-        .filter(row => {
-          try {
-            const timestamp = new Date(row[0]);
-            return timestamp >= recentThreshold;
-          } catch (error) {
-            return false;
-          }
+      const headers = this.batchOperations.getHeaders(SHEET_NAMES.HUMAN_STATE);
+      const safeAccess = new SafeColumnAccess(headers);
+      const stateEntries = this.batchOperations.getRowsByFilter(SHEET_NAMES.HUMAN_STATE, {})
+        .map(row => {
+          const timestampStr = safeAccess.getCellValue(row, 'timestamp', null);
+          const timestamp = timestampStr ? new Date(timestampStr) : null;
+          return { row, timestamp, timestampStr };
         })
-        .sort((a, b) => new Date(b[0]) - new Date(a[0])); // Most recent first
+        .filter(entry => entry.timestamp && !isNaN(entry.timestamp.getTime()) && entry.timestamp >= recentThreshold)
+        .sort((a, b) => b.timestamp - a.timestamp); // Most recent first
 
-      if (recentStates.length === 0) {
+      if (stateEntries.length === 0) {
         return this._getDefaultHumanState();
       }
 
       // Use weighted average of recent states (most recent has highest weight)
-      const weights = recentStates.map((_, index) => Math.pow(0.7, index)); // Exponential decay
+      const weights = stateEntries.map((_, index) => Math.pow(0.7, index)); // Exponential decay
       const totalWeight = weights.reduce((sum, w) => sum + w, 0);
 
-      const weightedStates = recentStates.map((state, index) => ({
-        energy: this._mapStateToNumber(state[1], 'energy'),
-        mood: this._mapStateToNumber(state[2], 'mood'),
-        focus: this._mapStateToNumber(state[3], 'focus'),
+      const weightedStates = stateEntries.map((entry, index) => ({
+        energy: this._mapStateToNumber(safeAccess.getCellValue(entry.row, 'energy_level', 'MEDIUM'), 'energy'),
+        mood: this._mapStateToNumber(safeAccess.getCellValue(entry.row, 'mood', 'NEUTRAL'), 'mood'),
+        focus: this._mapStateToNumber(safeAccess.getCellValue(entry.row, 'focus_level', 'NORMAL'), 'focus'),
         weight: weights[index] / totalWeight
       }));
 
@@ -105,9 +107,9 @@ class HumanStateManager {
         energy: this._mapNumberToState(aggregated.energy, 'energy'),
         mood: this._mapNumberToState(aggregated.mood, 'mood'),
         focus: this._mapNumberToState(aggregated.focus, 'focus'),
-        confidence: Math.min(1.0, recentStates.length / 3), // Higher confidence with more data points
-        lastUpdated: recentStates[0][0],
-        dataPoints: recentStates.length
+        confidence: Math.min(1.0, stateEntries.length / 3), // Higher confidence with more data points
+        lastUpdated: stateEntries[0].timestampStr || TimeZoneAwareDate.now(),
+        dataPoints: stateEntries.length
       };
     } catch (error) {
       this.logger.error('HumanStateManager', 'Failed to get current human state', {
@@ -526,7 +528,69 @@ class HumanStateManager {
 
     } catch (error) {
       this.logger.error('HumanStateManager', `Self-test failed: ${error.message}`);
-      return false;
+      return false; // Self-test failed
+    }
+  }
+  /**
+   * One-off maintenance function to normalize the HUMAN_STATE sheet.
+   * Reads existing rows, inserts generated state_id, realigns columns, and re-writes.
+   */
+  normalizeHumanStateSheet() {
+    try {
+      this.logger.info('HumanStateManager', 'Starting HUMAN_STATE sheet normalization.');
+
+      const oldHeaders = this.batchOperations.getHeaders(SHEET_NAMES.HUMAN_STATE);
+      const allRows = this.batchOperations.getAllSheetData(SHEET_NAMES.HUMAN_STATE);
+
+      // Define the new expected headers (8 columns)
+      const newHeaders = [
+        'state_id', 'timestamp', 'energy_level', 'focus_level', 'mood',
+        'stress_level', 'current_context', 'notes'
+      ];
+
+      if (allRows.length <= 1) { // Only headers or empty sheet
+        this.logger.info('HumanStateManager', 'HUMAN_STATE sheet is empty or only has headers. Writing new headers.');
+        this.batchOperations.clearSheet(SHEET_NAMES.HUMAN_STATE);
+        this.batchOperations.appendRows(SHEET_NAMES.HUMAN_STATE, [newHeaders]);
+        return { success: true, message: 'Sheet initialized with new headers.' };
+      }
+
+      const oldSafeAccess = new SafeColumnAccess(oldHeaders);
+      const newSafeAccess = new SafeColumnAccess(newHeaders);
+      const normalizedRows = [];
+
+      // Skip the header row from allRows
+      for (let i = 1; i < allRows.length; i++) {
+        const oldRow = allRows[i];
+        const newRow = newSafeAccess.createEmptyRow();
+
+        // Map old data to new structure, only including the 8 specified columns
+        const stateId = oldSafeAccess.getCellValue(oldRow, 'state_id') || ('STATE_' + Utilities.getUuid());
+        newSafeAccess.setCellValue(newRow, 'state_id', stateId);
+        newSafeAccess.setCellValue(newRow, 'timestamp', oldSafeAccess.getCellValue(oldRow, 'timestamp'));
+        newSafeAccess.setCellValue(newRow, 'energy_level', oldSafeAccess.getCellValue(oldRow, 'energy_level') || oldSafeAccess.getCellValue(oldRow, 'energy') || 'MEDIUM');
+        newSafeAccess.setCellValue(newRow, 'focus_level', oldSafeAccess.getCellValue(oldRow, 'focus_level') || oldSafeAccess.getCellValue(oldRow, 'focus') || 'NORMAL');
+        newSafeAccess.setCellValue(newRow, 'mood', oldSafeAccess.getCellValue(oldRow, 'mood') || 'NEUTRAL');
+        newSafeAccess.setCellValue(newRow, 'stress_level', oldSafeAccess.getCellValue(oldRow, 'stress_level') || null);
+        newSafeAccess.setCellValue(newRow, 'current_context', oldSafeAccess.getCellValue(oldRow, 'current_context') || null);
+        newSafeAccess.setCellValue(newRow, 'notes', oldSafeAccess.getCellValue(oldRow, 'notes'));
+
+        normalizedRows.push(newRow);
+      }
+
+      // Clear the sheet and write new headers and data
+      this.batchOperations.clearSheet(SHEET_NAMES.HUMAN_STATE);
+      this.batchOperations.appendRows(SHEET_NAMES.HUMAN_STATE, [newHeaders]);
+      if (normalizedRows.length > 0) {
+        this.batchOperations.appendRows(SHEET_NAMES.HUMAN_STATE, normalizedRows);
+      }
+
+      this.logger.info('HumanStateManager', `HUMAN_STATE sheet normalization complete. ${normalizedRows.length} rows processed.`);
+      return { success: true, message: `Sheet normalized. ${normalizedRows.length} rows processed.` };
+
+    } catch (error) {
+      this.logger.error('HumanStateManager', 'Failed to normalize HUMAN_STATE sheet', { error: error.message, stack: error.stack });
+      throw error;
     }
   }
 }

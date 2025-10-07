@@ -172,23 +172,13 @@ class CalendarSyncManager {
     const row = new Array(headers.length).fill('');
 
     const mapping = {
-      'event_id': event.id,
-      'title': event.title,
-      'description': event.description,
-      'start': TimeZoneAwareDate.toISOString(event.start),
-      'end': TimeZoneAwareDate.toISOString(event.end),
-      'location': event.location,
-      'is_all_day': event.isAllDay,
-      'attendees': event.attendees,
-      'creator': event.creator,
-      'busy': event.busy,
-      'visibility': event.visibility,
-      'source': event.source,
-      'duration_minutes': Math.round((event.end - event.start) / (1000 * 60)),
-      'date': TimeZoneAwareDate.toISOString(event.start).split('T')[0],
+      'event_id': event.id || '',
+      'start': event.start ? TimeZoneAwareDate.toISOString(event.start) : '',
+      'end': event.end ? TimeZoneAwareDate.toISOString(event.end) : '',
       'type': this._categorizeEvent(event),
-      'sync_status': 'imported',
-      'last_updated': TimeZoneAwareDate.now()
+      'busy': event.busy ? 'true' : 'false',
+      'title': event.title || '',
+      'description': event.description || ''
     };
 
     headers.forEach((header, index) => {

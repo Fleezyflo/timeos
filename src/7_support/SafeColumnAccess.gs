@@ -44,6 +44,15 @@ class SafeColumnAccess {
     return row;
   }
 
+  getCellValue(row, colName, defaultValue = null) {
+    const value = this.getValue(row, colName);
+    return value !== null ? value : defaultValue;
+  }
+
+  setCellValue(row, colName, value) {
+    return this.setValue(row, colName, value);
+  }
+
   createEmptyRow() {
     return new Array(this.headers.length).fill('');
   }

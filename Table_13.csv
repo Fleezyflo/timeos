@@ -1,9 +1,0 @@
-Column Name,AppSheet Type,Base Type,Required,Description
--------------,---------------,-----------,----------,-------------
-`message_id`,Text,Text,Yes,Unique message identifier
-`timestamp`,DateTime,DateTime,Yes,Message timestamp
-`user`,Email,Email,Yes,User who sent message
-`context`,Text,Text,No,Conversation context
-`payload`,LongText,JSON,Yes,Message payload (JSON)
-`status`,Enum,Text,Yes,Processing status
-`last_updated`,DateTime,DateTime,Yes,Last status update

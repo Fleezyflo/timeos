@@ -1,6 +1,0 @@
-Column Name,AppSheet Type,Base Type,Required,Description
--------------,---------------,-----------,----------,-------------
-`key`,Text,Text,Yes,Status key (primary key)
-`value`,Text,Text,No,Status value
-`updated_at`,DateTime,DateTime,Yes,Last update timestamp
-`description`,LongText,Text,No,Key description
