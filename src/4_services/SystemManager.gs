@@ -1251,6 +1251,19 @@ class SystemManager {
   _safeCheckSheetHealth(sheetName) {
     try {
       const headers = this.batchOperations.getHeaders(sheetName);
+
+      // Phase 2: Validate headers against canonical schema if available
+      try {
+        this._validateHeadersOrThrow(sheetName, headers);
+      } catch (validationError) {
+        return {
+          accessible: true,
+          headers_count: headers.length,
+          status: 'SCHEMA_MISMATCH',
+          error: validationError.message
+        };
+      }
+
       return {
         accessible: true,
         headers_count: headers.length,
@@ -1268,6 +1281,55 @@ class SystemManager {
 
       throw error;
     }
+  }
+
+  /**
+   * Validate sheet headers against canonical schema
+   * Phase 2: Schema integrity guard rail
+   *
+   * @param {string} sheetName - Name of sheet to validate
+   * @param {Array<string>} actualHeaders - Current headers from sheet
+   * @throws {Error} If headers don't match canonical schema
+   * @private
+   */
+  _validateHeadersOrThrow(sheetName, actualHeaders) {
+    // Check if SheetHealer is available for schema validation
+    if (typeof SheetHealer === 'undefined' || typeof SheetHealer.getRequiredSheets !== 'function') {
+      // Cannot validate without SheetHealer - log warning but don't fail
+      this.logger.warn('SystemManager', 'SheetHealer not available for schema validation', { sheetName });
+      return;
+    }
+
+    const requiredSheets = SheetHealer.getRequiredSheets();
+    const schema = requiredSheets[sheetName];
+
+    if (!schema || !schema.headers) {
+      // No canonical schema defined for this sheet - skip validation
+      return;
+    }
+
+    const expectedHeaders = schema.headers;
+
+    // Check header count
+    if (actualHeaders.length !== expectedHeaders.length) {
+      throw new Error(
+        `Header count mismatch for ${sheetName}: expected ${expectedHeaders.length}, got ${actualHeaders.length}`
+      );
+    }
+
+    // Check header order and names
+    for (let i = 0; i < expectedHeaders.length; i++) {
+      if (actualHeaders[i] !== expectedHeaders[i]) {
+        throw new Error(
+          `Header mismatch at position ${i} in ${sheetName}: expected '${expectedHeaders[i]}', got '${actualHeaders[i]}'`
+        );
+      }
+    }
+
+    // All checks passed
+    this.logger.debug('SystemManager', `Schema validation passed for ${sheetName}`, {
+      header_count: actualHeaders.length
+    });
   }
 
   /**
