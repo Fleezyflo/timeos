@@ -31,6 +31,7 @@ function EXECUTE_ALL_TESTS_IMMEDIATELY() {
     { name: 'test_ErrorHandler', fn: test_ErrorHandler },
     { name: 'test_SmartLogger', fn: test_SmartLogger },
     { name: 'runAllCoreTests', fn: runAllCoreTests },
+    { name: 'runDependencyManagementTests', fn: runDependencyManagementTests },
 
     // Verification Tests
     { name: 'verifyConsoleElimination', fn: verifyConsoleElimination },

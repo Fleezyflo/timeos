@@ -281,6 +281,52 @@ class DependencyManagementTestSuite extends TestSuite {
     const circularChain = chains[0].map(t => t.action_id);
     this.assertTrue(circularChain.includes("task-X") && circularChain.includes("task-Y"), "Circular chain should include both tasks.");
   }
+  testIdentifyDependencyChains_invalidDependency() {
+    // Seed ACTIONS sheet with a task having an invalid dependency
+    const actionHeaders = this.mockBatchOperations.getHeaders(SHEET_NAMES.ACTIONS);
+    const taskWithInvalidDep = new MohTask({
+      action_id: "task-invalid",
+      title: "Task with Invalid Dependency",
+      dependencies: ["non-existent-task"]
+    });
+
+    this.mockBatchOperations.addTestData(SHEET_NAMES.ACTIONS, [
+      taskWithInvalidDep.toSheetRow(actionHeaders)
+    ]);
+
+    const allActions = [taskWithInvalidDep];
+    const chains = this.intelligentScheduler._identifyDependencyChains(allActions);
+
+    this.assertEquals(chains.length, 0, "Should not create any chains for a task with only invalid dependencies.");
+
+    // Verify that a warning was logged
+    const logs = this.mockLogger.getLogs();
+    const warningLog = logs.find(log => log.level === 'warn' && log.message.includes('Failed to parse inline dependencies JSON for action'));
+    this.assertNotNull(warningLog, "Should log a warning for invalid dependencies.");
+  }
+
+  testBackfillAndChainIdentification() {
+    // 1. Backfill dependencies
+    this.testBackfillDependenciesSheet_success();
+
+    // 2. Identify chains
+    const actionHeaders = this.mockBatchOperations.getHeaders(SHEET_NAMES.ACTIONS);
+    const taskA = new MohTask({ action_id: "task-A", title: "Task A", dependencies: [] });
+    const taskB = new MohTask({ action_id: "task-B", title: "Task B", dependencies: ["task-A"] });
+    const taskC = new MohTask({ action_id: "task-C", title: "Task C", dependencies: ["task-A", "task-B"] });
+    const taskD = new MohTask({ action_id: "task-D", title: "Task D", dependencies: ["task-C"] });
+
+    const allActions = [taskA, taskB, taskC, taskD];
+    const chains = this.intelligentScheduler._identifyDependencyChains(allActions);
+
+    this.assertEquals(chains.length, 1, "Should identify one main dependency chain after backfill.");
+    const mainChain = chains[0].map(t => t.action_id);
+
+    this.assertEquals(mainChain.length, 4, "Chain should have 4 tasks.");
+    this.assertTrue(mainChain.indexOf("task-A") < mainChain.indexOf("task-B"), "task-A should precede task-B.");
+    this.assertTrue(mainChain.indexOf("task-B") < mainChain.indexOf("task-C"), "task-B should precede task-C.");
+    this.assertTrue(mainChain.indexOf("task-C") < mainChain.indexOf("task-D"), "task-C should precede task-D.");
+  }
 }
 
 // --- Mock Implementations (simplified for testing purposes) ---
@@ -314,11 +360,15 @@ class MockErrorHandler {
 }
 
 class MockSmartLogger {
-  info(component, message, context) { /* console.log(`INFO: [${component}] ${message}`, context); */ }
-  error(component, message, context) { console.error(`ERROR: [${component}] ${message}`, context); }
-  warn(component, message, context) { console.warn(`WARN: [${component}] ${message}`, context); }
-  debug(component, message, context) { /* console.log(`DEBUG: [${component}] ${message}`, context); */ }
-  log(component, message, context) { /* console.log(`LOG: [${component}] ${message}`, context); */ }
+  constructor() {
+    this.logs = [];
+  }
+  info(component, message, context) { this.logs.push({ level: 'info', component, message, context }); }
+  error(component, message, context) { this.logs.push({ level: 'error', component, message, context }); }
+  warn(component, message, context) { this.logs.push({ level: 'warn', component, message, context }); }
+  debug(component, message, context) { this.logs.push({ level: 'debug', component, message, context }); }
+  log(component, message, context) { this.logs.push({ level: 'log', component, message, context }); }
+  getLogs() { return this.logs; }
 }
 
 class MockPersistentStore {
@@ -332,7 +382,7 @@ class MockCrossExecutionCache {
   constructor(persistentStore) { this.persistentStore = persistentStore; this.memoryCache = new Map(); }
   get(key) { return this.memoryCache.get(key) || this.persistentStore.get(key); }
   set(key, value, ttl) { this.memoryCache.set(key, value); this.persistentStore.set(key, value, ttl); }
-  delete(key) { this.memoryCache.delete(key); this.persistentStore.delete(key); }
+  delete(key) { this.memoryCache.delete(key); }
   deletePattern(pattern) { /* not implemented for mock */ }
   clear() { this.memoryCache.clear(); this.persistentStore.clear(); }
 }

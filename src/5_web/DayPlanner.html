@@ -3155,6 +3155,8 @@ padding: 6px 8px;
               this.showToast('Energy state logged successfully', 'success');
               document.getElementById('energy-notes').value = '';
               this.invalidateCache('dashboard');
+              this.invalidateCache('tasks');
+              this.invalidateCache('calendar');
               this.loadEnergyView();
               this.loadDashboard({ force: true });
             } else {
@@ -3197,6 +3199,9 @@ padding: 6px 8px;
             if (response.success) {
               this.showToast(`Processed ${response.processed || 0} emails`, 'success');
               this.invalidateCache('triage');
+              this.invalidateCache('tasks');
+              this.invalidateCache('dashboard');
+              this.invalidateCache('calendar');
               this.loadTriage({ force: true });
             }
           })
@@ -3310,6 +3315,9 @@ padding: 6px 8px;
             if (response.success) {
               this.showToast('Proposal rejected', 'success');
               this.invalidateCache('triage');
+              this.invalidateCache('tasks');
+              this.invalidateCache('dashboard');
+              this.invalidateCache('calendar');
               this.loadTriage({ force: true });
             } else {
               this.showToast(response.error || 'Failed to reject', 'error');

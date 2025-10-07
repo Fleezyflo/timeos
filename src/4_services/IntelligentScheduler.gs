@@ -623,19 +623,26 @@ class IntelligentScheduler {
     try {
       const dependencySheetHeaders = this.batchOperations.getHeaders(SHEET_NAMES.DEPENDENCIES);
       const dependencySheetRows = this.batchOperations.getRowsByFilter(SHEET_NAMES.DEPENDENCIES, {});
-      const dependencySafeAccess = new SafeColumnAccess(dependencySheetHeaders);
+      
+      if (!dependencySheetRows || dependencySheetRows.length === 0) {
+        this.logger.info('IntelligentScheduler', 'No dependencies found in the DEPENDENCIES sheet. Proceeding with inline dependencies.');
+      } else {
+        const dependencySafeAccess = new SafeColumnAccess(dependencySheetHeaders);
 
-      for (const depRow of dependencySheetRows) {
-        const blockingId = dependencySafeAccess.getCellValue(depRow, 'blocking_action_id');
-        const blockedId = dependencySafeAccess.getCellValue(depRow, 'blocked_action_id');
-        if (blockingId && blockedId) {
-          if (!allDependencies.has(blockedId)) allDependencies.set(blockedId, new Set());
-          allDependencies.get(blockedId).add(blockingId);
+        for (const depRow of dependencySheetRows) {
+          const blockingId = dependencySafeAccess.getCellValue(depRow, 'blocking_action_id');
+          const blockedId = dependencySafeAccess.getCellValue(depRow, 'blocked_action_id');
+          if (blockingId && blockedId) {
+            if (!allDependencies.has(blockedId)) allDependencies.set(blockedId, new Set());
+            allDependencies.get(blockedId).add(blockingId);
+          } else {
+            this.logger.warn('IntelligentScheduler', 'Skipping invalid row in DEPENDENCIES sheet', { row: depRow });
+          }
         }
+        this.logger.debug('IntelligentScheduler', `Loaded ${dependencySheetRows.length} dependencies from DEPENDENCIES sheet.`);
       }
-      this.logger.debug('IntelligentScheduler', `Loaded ${dependencySheetRows.length} dependencies from DEPENDENCIES sheet.`);
     } catch (error) {
-      this.logger.warn('IntelligentScheduler', `Failed to load dependencies from DEPENDENCIES sheet: ${error.message}. Proceeding with inline dependencies only.`, { error: error.message });
+      this.logger.error('IntelligentScheduler', `Error loading dependencies from DEPENDENCIES sheet: ${error.message}. Proceeding with inline dependencies only.`, { error: error.message, stack: error.stack });
     }
 
     // 2. Merge with inline JSON dependencies from ACTIONS sheet

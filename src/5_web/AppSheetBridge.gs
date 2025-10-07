@@ -808,6 +808,7 @@ function appsheet_approveProposal(params) {
       rangeA1: rangeA1,
       values: [updatedRow]
     }]);
+    CacheService.getScriptCache().remove(CACHE_ALL_TASKS_KEY);
 
     if (logger && logger.info) {
       logger.info('AppSheetBridge', `Approved proposal ${proposalId}`, {
@@ -1067,6 +1068,7 @@ function appsheet_createTask(params) {
     const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
     const taskRow = newTask.toSheetRow(headers);
     batchOps.appendRows(SHEET_NAMES.ACTIONS, [taskRow]);
+    CacheService.getScriptCache().remove(CACHE_ALL_TASKS_KEY);
 
     logger.info('AppSheetBridge', `Task created via AppSheet: ${newTask.title} (ID: ${newTask.action_id})`);
 
