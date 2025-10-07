@@ -519,7 +519,7 @@ const CacheService = {
 
 // Simplified LoggerFacade for testing (only define if production LoggerFacade is unavailable)
 if (typeof LoggerFacade === 'undefined') {
-  var LoggerFacade = {
+  this.LoggerFacade = {
     error: (component, message, context) => { console.error(`ERROR: [${component}] ${message}`, context); },
     warn: (component, message, context) => { console.warn(`WARN: [${component}] ${message}`, context); },
     info: (component, message, context) => { console.log(`INFO: [${component}] ${message}`, context); },

@@ -4,6 +4,92 @@
  * Comprehensive test suite for CalendarSyncManager's calendar projection functionality.
  */
 
+// Provide minimal TestSuite/TestRunner shims when the global versions aren’t preloaded.
+if (typeof TestSuite === 'undefined') {
+  this.TestSuite = class TestSuite {
+    constructor(name) {
+      this.name = name;
+      this.tests = Object.getOwnPropertyNames(Object.getPrototypeOf(this))
+        .filter(method => method.startsWith('test') && typeof this[method] === 'function');
+    }
+
+    setup() {}
+    teardown() {}
+
+    run(testRunner) {
+      testRunner.log(`Running Test Suite: ${this.name}`);
+      for (const testName of this.tests) {
+        try {
+          this.setup();
+          this[testName]();
+          testRunner.pass(this.name, testName);
+        } catch (e) {
+          testRunner.fail(this.name, testName, e);
+        } finally {
+          this.teardown();
+        }
+      }
+    }
+
+    assertTrue(condition, message) {
+      if (!condition) throw new Error(`Assertion Failed: ${message || 'Expected true, got false'}`);
+    }
+    assertFalse(condition, message) {
+      if (condition) throw new Error(`Assertion Failed: ${message || 'Expected false, got true'}`);
+    }
+    assertEquals(actual, expected, message) {
+      if (actual !== expected) throw new Error(`Assertion Failed: ${message || ''} Expected: ${expected}, Actual: ${actual}`);
+    }
+    assertNotEquals(actual, unexpected, message) {
+      if (actual === unexpected) throw new Error(`Assertion Failed: ${message || ''} Expected not: ${unexpected}, Actual: ${actual}`);
+    }
+    assertNull(value, message) {
+      if (value !== null) throw new Error(`Assertion Failed: ${message || 'Expected null, got ' + value}`);
+    }
+    assertNotNull(value, message) {
+      if (value === null) throw new Error(`Assertion Failed: ${message || 'Expected not null, got null'}`);
+    }
+    assertUndefined(value, message) {
+      if (value !== undefined) throw new Error(`Assertion Failed: ${message || 'Expected undefined, got ' + value}`);
+    }
+    assertStringContains(haystack, needle, message) {
+      if (!haystack.includes(needle)) throw new Error(`Assertion Failed: ${message || ''} Expected string "${haystack}" to contain "${needle}"`);
+    }
+  };
+}
+
+if (typeof TestRunner === 'undefined') {
+  this.TestRunner = class TestRunner {
+    constructor() {
+      this.results = { passed: 0, failed: 0, errors: [] };
+    }
+
+    log(message) {
+      console.log(message);
+    }
+
+    pass(suiteName, testName) {
+      this.results.passed++;
+      this.log(`PASS: ${suiteName} -> ${testName}`);
+    }
+
+    fail(suiteName, testName, error) {
+      this.results.failed++;
+      const errorMessage = `FAIL: ${suiteName} -> ${testName}: ${error.message}`;
+      this.results.errors.push(errorMessage);
+      console.error(errorMessage, error.stack);
+    }
+
+    runAll(testSuite) {
+      testSuite.run(this);
+      this.log(`Tests completed. Passed: ${this.results.passed}, Failed: ${this.results.failed}`);
+      if (this.results.failed > 0) {
+        throw new Error(`Test suite "${testSuite.name}" had ${this.results.failed} failure(s).`);
+      }
+    }
+  };
+}
+
 function runCalendarProjectionTests() {
   const testRunner = new TestRunner();
   testRunner.runAll(new CalendarProjectionTestSuite());
@@ -316,7 +402,7 @@ const CacheService = {
 
 // Simplified LoggerFacade for testing (only if not already provided by production code)
 if (typeof LoggerFacade === 'undefined') {
-  var LoggerFacade = {
+  this.LoggerFacade = {
     error: (component, message, context) => { console.error(`ERROR: [${component}] ${message}`, context); },
     warn: (component, message, context) => { console.warn(`WARN: [${component}] ${message}`, context); },
     info: (component, message, context) => { console.log(`INFO: [${component}] ${message}`, context); },
