@@ -145,12 +145,12 @@ function appsheet_getSettings() {
       }
       
       // Last resort: return minimal defaults
-      return {
+      return { success: true, data: {
         SCAN_MODE: 'LABEL_ONLY', // Default as defined in SystemBootstrap
         EMAIL_LABEL: 'MOH-Time-OS',
         DEFAULT_DURATION_MINUTES: 30,
         CALENDAR_ID: 'primary'
-      };
+      }};
     }
     
     // Get all config values from ConfigManager
@@ -255,13 +255,13 @@ function appsheet_getDailySchedule() {
     // Check if services exist before using them
     if (!container.has('BatchOperations')) {
       Logger.log('[ClientAPI] BatchOperations not available');
-      return [];
+      return { success: true, data: [] };
     }
     
     const batchOps = container.get('BatchOperations');
     if (!batchOps || !batchOps.getAllActions) {
       Logger.log('[ClientAPI] BatchOperations missing getAllActions method');
-      return [];
+      return { success: true, data: [] };
     }
     
     // Get today's date range
@@ -393,6 +393,16 @@ function appsheet_runScheduling(params) {
     });
 
     throw error;
+  } catch (error) {
+    // RETHROW_WITH_LOG profile
+    // TEST: TEST_SILENT_066_APPSHEET_RUNSCHEDULING
+    LoggerFacade.error('AppSheetBridge', 'appsheet_runScheduling failed', {
+      error: error.message,
+      stack: error.stack,
+      context: 'appsheet_runScheduling'
+    });
+
+    return { success: false, error: error.message, stack: error.stack };
   }
 }
 

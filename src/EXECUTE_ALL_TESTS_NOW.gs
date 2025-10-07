@@ -56,7 +56,8 @@ function EXECUTE_ALL_TESTS_IMMEDIATELY() {
     { name: 'START', fn: START },
     { name: 'GET_STATUS', fn: GET_STATUS },
     { name: 'CHECK', fn: CHECK },
-    { name: 'TEST', fn: TEST }
+    { name: 'TEST', fn: TEST },
+    { name: 'createDailyFoundationBlocks', fn: () => getService(SERVICES.FoundationBlocksManager).createDailyFoundationBlocks(new Date()) }
   ];
 
   for (let i = 0; i < testFunctions.length; i++) {

@@ -112,7 +112,9 @@ class FoundationBlocksManager {
           maximumTaskComplexity: window.max_complexity
         }),
         created_at: TimeZoneAwareDate.now(),
-        updated_at: TimeZoneAwareDate.now()
+        updated_at: TimeZoneAwareDate.now(),
+        context: this.getOptimalContextForEnergy(window.level),
+        active: 'true'
       };
 
       blocks.push(block);
@@ -156,7 +158,9 @@ class FoundationBlocksManager {
           isBuffer: true
         }),
         created_at: TimeZoneAwareDate.now(),
-        updated_at: TimeZoneAwareDate.now()
+        updated_at: TimeZoneAwareDate.now(),
+        context: buffer.context || 'transition',
+        active: 'true'
       };
 
       blocks.push(block);
@@ -719,25 +723,18 @@ class FoundationBlocksManager {
    * @private
    */
   _blockToRow(block, headers) {
-    return headers.map(header => {
-      const value = block[header];
+    const safeAccess = new SafeColumnAccess(headers);
+    const row = safeAccess.createEmptyRow();
 
-      // Handle date fields
-      if ((header === 'start' || header === 'end' || header === 'date' || header === 'created_at' || header === 'updated_at') && value) {
-        return value instanceof Date ? value.toISOString() : value;
-      }
+    safeAccess.setCellValue(row, 'block_id', block.block_id);
+    safeAccess.setCellValue(row, 'day', this.formatDate(block.date));
+    safeAccess.setCellValue(row, 'start_time', block.start.toTimeString().split(' ')[0]);
+    safeAccess.setCellValue(row, 'end_time', block.end.toTimeString().split(' ')[0]);
+    safeAccess.setCellValue(row, 'block_type', block.type);
+    safeAccess.setCellValue(row, 'energy_level', block.energy_level);
+    safeAccess.setCellValue(row, 'context', block.context_type);
+    safeAccess.setCellValue(row, 'active', 'true');
 
-      // Handle numeric fields
-      if ((header === 'duration_minutes' || header === 'capacity_minutes' || header === 'allocated_minutes' || header === 'utilization_rate') && typeof value === 'number') {
-        return value;
-      }
-
-      // Handle undefined/null
-      if (value === undefined || value === null) {
-        return '';
-      }
-
-      return value;
-    });
+    return row;
   }
 }
