@@ -7244,5 +7244,116 @@ class BatchOperations {
       return this._compareValues(cellValue, expectedValue);
     });
   }
+
+  /**
+   * Sanitize JSON columns by replacing empty/invalid values with defaults
+   * Phase 2: Data integrity guard rails
+   *
+   * @param {string} sheetName - Name of sheet to sanitize
+   * @param {Array<string>} columnNames - Array of column names to sanitize
+   * @param {Object} defaultsMap - Map of column names to default JSON strings (e.g., {dependencies: '[]', tags: '[]'})
+   * @returns {Object} Result with patches_applied count
+   */
+  sanitizeJsonColumns(sheetName, columnNames, defaultsMap) {
+    if (!sheetName || typeof sheetName !== 'string') {
+      throw new Error('BatchOperations.sanitizeJsonColumns: sheetName must be a non-empty string');
+    }
+    if (!Array.isArray(columnNames) || columnNames.length === 0) {
+      throw new Error('BatchOperations.sanitizeJsonColumns: columnNames must be a non-empty array');
+    }
+    if (!defaultsMap || typeof defaultsMap !== 'object') {
+      throw new Error('BatchOperations.sanitizeJsonColumns: defaultsMap must be an object');
+    }
+
+    const result = {
+      sheet: sheetName,
+      columns_processed: columnNames,
+      patches_applied: 0,
+      patches_by_column: {}
+    };
+
+    try {
+      const sheet = this._getSheet(sheetName);
+      const lastRow = sheet.getLastRow();
+
+      if (lastRow <= 1) {
+        this.logger.info('BatchOperations', `No data rows in ${sheetName} - skipping sanitization`);
+        return result;
+      }
+
+      // Get headers
+      const headers = this.getHeaders(sheetName);
+
+      // Build column index map
+      const columnIndices = {};
+      for (let i = 0; i < columnNames.length; i++) {
+        const colName = columnNames[i];
+        const idx = headers.indexOf(colName);
+        if (idx === -1) {
+          this.logger.warn('BatchOperations', `Column ${colName} not found in ${sheetName} - skipping`);
+        } else {
+          columnIndices[colName] = idx;
+          result.patches_by_column[colName] = 0;
+        }
+      }
+
+      // Read all data
+      const dataRange = sheet.getRange(2, 1, lastRow - 1, headers.length);
+      const data = dataRange.getValues();
+
+      // Fix issues
+      let dataModified = false;
+
+      for (let i = 0; i < data.length; i++) {
+        const row = data[i];
+
+        for (const colName in columnIndices) {
+          const idx = columnIndices[colName];
+          const value = row[idx];
+          const defaultValue = defaultsMap[colName] || '{}';
+
+          let needsFix = false;
+
+          // Check if empty
+          if (value === '' || value === null || value === undefined) {
+            needsFix = true;
+          }
+          // Check if invalid JSON
+          else if (typeof value === 'string') {
+            try {
+              JSON.parse(value);
+            } catch (e) {
+              needsFix = true;
+            }
+          }
+
+          if (needsFix) {
+            data[i][idx] = defaultValue;
+            result.patches_by_column[colName]++;
+            result.patches_applied++;
+            dataModified = true;
+          }
+        }
+      }
+
+      // Write back if modified
+      if (dataModified) {
+        dataRange.setValues(data);
+        SpreadsheetApp.flush();
+        this.logger.info('BatchOperations', `Applied ${result.patches_applied} JSON sanitization patches to ${sheetName}`, result.patches_by_column);
+      } else {
+        this.logger.info('BatchOperations', `No JSON issues found in ${sheetName}`);
+      }
+
+      return result;
+
+    } catch (error) {
+      this.logger.error('BatchOperations', `sanitizeJsonColumns failed for ${sheetName}`, {
+        error: error.message,
+        stack: error.stack
+      });
+      throw new Error(`BatchOperations.sanitizeJsonColumns failed: ${error.message}`);
+    }
+  }
 }
 
