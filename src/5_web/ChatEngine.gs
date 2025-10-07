@@ -402,26 +402,12 @@ class ChatEngine {
     };
   }
 
-  _handleCreateDependency(match, context) {
-    const dependentTitle = match[1] ? match[1].trim() : '';
-    const dependencyTitle = match[2] ? match[2].trim() : '';
-    const dependentTask = this._findTaskByTitle(dependentTitle);
-    const dependencyTask = this._findTaskByTitle(dependencyTitle);
-
-    if (!dependentTask || !dependencyTask) {
-      return {
-        success: true,
-        response: this._createSimpleResponse('One or both tasks not found to establish dependency.')
-      };
-    }
-    this._updateTaskInSheet(dependentTask.action_id, { dependency: dependencyTask.action_id });
-    return {
-      success: true,
-      response: this._createSimpleResponse(
-        `Task "${dependentTask.title}" will now depend on "${dependencyTask.title}".`
-      )
-    };
-  }
+  // REMOVED: _handleCreateDependency (lines 405-424)
+  // Reason: Handler was non-functional - used 'dependency' (singular) field which doesn't exist
+  // in MohTask schema (uses 'dependencies' plural array). Additionally, 'dependencies' field
+  // is not serialized in MohTask.toSheetRow (line 412). Handler never worked and is not used.
+  // If dependency management is needed in future, implement using proper 'dependencies' array
+  // field with optimistic locking pattern.
 
   _handleExplainScheduling(match, context) {
     const taskIdentifier = match[1] ? match[1].trim() : '';

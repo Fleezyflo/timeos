@@ -729,3 +729,513 @@ function bootstrapClient() {
 
   return result;
 }
+
+/**
+ * ========================================================================
+ * APPSHEET MUTATION ENDPOINTS - OPTIMISTIC LOCKING
+ * All mutation endpoints use BatchOperations.updateActionWithOptimisticLocking()
+ * Returns {success, versionConflict?, error?} for proper conflict detection
+ * ========================================================================
+ */
+
+/**
+ * Start a task - change status to IN_PROGRESS
+ * @param {Object} params - Parameters
+ * @param {string} params.taskId - Task ID to start
+ * @return {Object} Result with success/conflict status
+ */
+function appsheet_startTask(params) {
+  ensureBootstrapServices();
+  try {
+    if (!params || !params.taskId) {
+      return { success: false, error: 'taskId is required' };
+    }
+
+    const batchOps = getService(SERVICES.BatchOperations);
+    const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+    const rows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: params.taskId });
+
+    if (rows.length === 0) {
+      return { success: false, error: 'Task not found: ' + params.taskId };
+    }
+
+    const { row } = rows[0];
+    const task = MohTask.fromSheetRow(row, headers);
+
+    if (!task) {
+      return { success: false, error: 'Failed to instantiate task' };
+    }
+
+    task.status = STATUS.IN_PROGRESS;
+
+    const result = batchOps.updateActionWithOptimisticLocking(
+      SHEET_NAMES.ACTIONS,
+      params.taskId,
+      task
+    );
+
+    if (!result.success) {
+      return {
+        success: false,
+        versionConflict: result.versionConflict || false,
+        error: result.error || 'Update failed'
+      };
+    }
+
+    const logger = getService(SERVICES.SmartLogger);
+    logger.info('AppSheetBridge', 'Started task ' + params.taskId);
+
+    return { success: true, data: { action_id: params.taskId, status: STATUS.IN_PROGRESS } };
+
+  } catch (error) {
+    LoggerFacade.error('AppSheetBridge', 'appsheet_startTask failed', {
+      error: error.message,
+      stack: error.stack,
+      params: params
+    });
+    return { success: false, error: error.message, stack: error.stack };
+  }
+}
+
+/**
+ * Complete a task - change status to COMPLETED with metrics
+ * @param {Object} params - Parameters
+ * @param {string} params.taskId - Task ID to complete
+ * @param {number} params.actualMinutes - Actual minutes taken (optional)
+ * @param {string} params.notes - Completion notes (optional)
+ * @return {Object} Result with success/conflict status
+ */
+function appsheet_completeTask(params) {
+  ensureBootstrapServices();
+  try {
+    if (!params || !params.taskId) {
+      return { success: false, error: 'taskId is required' };
+    }
+
+    const batchOps = getService(SERVICES.BatchOperations);
+    const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+    const rows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: params.taskId });
+
+    if (rows.length === 0) {
+      return { success: false, error: 'Task not found: ' + params.taskId };
+    }
+
+    const { row } = rows[0];
+    const task = MohTask.fromSheetRow(row, headers);
+
+    if (!task) {
+      return { success: false, error: 'Failed to instantiate task' };
+    }
+
+    task.status = STATUS.COMPLETED;
+    task.completed_date = TimeZoneAwareDate.now();
+    task.actual_minutes = params.actualMinutes || task.estimated_minutes || 30;
+    task.estimation_accuracy = task.estimated_minutes > 0 ? (task.actual_minutes / task.estimated_minutes) : 1;
+
+    if (params.notes) {
+      task.completion_notes = params.notes;
+    }
+
+    const result = batchOps.updateActionWithOptimisticLocking(
+      SHEET_NAMES.ACTIONS,
+      params.taskId,
+      task
+    );
+
+    if (!result.success) {
+      return {
+        success: false,
+        versionConflict: result.versionConflict || false,
+        error: result.error || 'Update failed'
+      };
+    }
+
+    const logger = getService(SERVICES.SmartLogger);
+    logger.info('AppSheetBridge', 'Completed task ' + params.taskId + ' in ' + task.actual_minutes + ' minutes');
+
+    return { success: true, data: { action_id: params.taskId, status: STATUS.COMPLETED } };
+
+  } catch (error) {
+    LoggerFacade.error('AppSheetBridge', 'appsheet_completeTask failed', {
+      error: error.message,
+      stack: error.stack,
+      params: params
+    });
+    return { success: false, error: error.message, stack: error.stack };
+  }
+}
+
+/**
+ * Snooze a task - defer to later time
+ * @param {Object} params - Parameters
+ * @param {string} params.taskId - Task ID to snooze
+ * @param {number} params.minutes - Minutes to snooze (default: 60)
+ * @return {Object} Result with success/conflict status
+ */
+function appsheet_snoozeTask(params) {
+  ensureBootstrapServices();
+  try {
+    if (!params || !params.taskId) {
+      return { success: false, error: 'taskId is required' };
+    }
+
+    const batchOps = getService(SERVICES.BatchOperations);
+    const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+    const rows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: params.taskId });
+
+    if (rows.length === 0) {
+      return { success: false, error: 'Task not found: ' + params.taskId };
+    }
+
+    const { row } = rows[0];
+    const task = MohTask.fromSheetRow(row, headers);
+
+    if (!task) {
+      return { success: false, error: 'Failed to instantiate task' };
+    }
+
+    const snoozeMinutes = params.minutes || 60;
+    const newStart = new Date(Date.now() + snoozeMinutes * 60000);
+
+    task.status = STATUS.DEFERRED;
+    task.scheduled_start = TimeZoneAwareDate.toISOString(newStart);
+    task.rollover_count = (task.rollover_count || 0) + 1;
+
+    const result = batchOps.updateActionWithOptimisticLocking(
+      SHEET_NAMES.ACTIONS,
+      params.taskId,
+      task
+    );
+
+    if (!result.success) {
+      return {
+        success: false,
+        versionConflict: result.versionConflict || false,
+        error: result.error || 'Update failed'
+      };
+    }
+
+    const logger = getService(SERVICES.SmartLogger);
+    logger.info('AppSheetBridge', 'Snoozed task ' + params.taskId + ' for ' + snoozeMinutes + ' minutes');
+
+    return { success: true, data: { action_id: params.taskId, snoozed_until: task.scheduled_start } };
+
+  } catch (error) {
+    LoggerFacade.error('AppSheetBridge', 'appsheet_snoozeTask failed', {
+      error: error.message,
+      stack: error.stack,
+      params: params
+    });
+    return { success: false, error: error.message, stack: error.stack };
+  }
+}
+
+/**
+ * Cancel a task - change status to CANCELED
+ * @param {Object} params - Parameters
+ * @param {string} params.taskId - Task ID to cancel
+ * @param {string} params.reason - Cancellation reason (optional)
+ * @return {Object} Result with success/conflict status
+ */
+function appsheet_cancelTask(params) {
+  ensureBootstrapServices();
+  try {
+    if (!params || !params.taskId) {
+      return { success: false, error: 'taskId is required' };
+    }
+
+    const batchOps = getService(SERVICES.BatchOperations);
+    const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+    const rows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: params.taskId });
+
+    if (rows.length === 0) {
+      return { success: false, error: 'Task not found: ' + params.taskId };
+    }
+
+    const { row } = rows[0];
+    const task = MohTask.fromSheetRow(row, headers);
+
+    if (!task) {
+      return { success: false, error: 'Failed to instantiate task' };
+    }
+
+    task.status = STATUS.CANCELED;
+
+    if (params.reason) {
+      task.completion_notes = 'CANCELED: ' + params.reason;
+    }
+
+    const result = batchOps.updateActionWithOptimisticLocking(
+      SHEET_NAMES.ACTIONS,
+      params.taskId,
+      task
+    );
+
+    if (!result.success) {
+      return {
+        success: false,
+        versionConflict: result.versionConflict || false,
+        error: result.error || 'Update failed'
+      };
+    }
+
+    const logger = getService(SERVICES.SmartLogger);
+    logger.info('AppSheetBridge', 'Canceled task ' + params.taskId);
+
+    return { success: true, data: { action_id: params.taskId, status: STATUS.CANCELED } };
+
+  } catch (error) {
+    LoggerFacade.error('AppSheetBridge', 'appsheet_cancelTask failed', {
+      error: error.message,
+      stack: error.stack,
+      params: params
+    });
+    return { success: false, error: error.message, stack: error.stack };
+  }
+}
+
+/**
+ * Reschedule a task - update scheduled times
+ * @param {Object} params - Parameters
+ * @param {string} params.taskId - Task ID to reschedule
+ * @param {string} params.newStart - New start time (ISO string)
+ * @param {string} params.newEnd - New end time (ISO string, optional)
+ * @return {Object} Result with success/conflict status
+ */
+function appsheet_rescheduleTask(params) {
+  ensureBootstrapServices();
+  try {
+    if (!params || !params.taskId || !params.newStart) {
+      return { success: false, error: 'taskId and newStart are required' };
+    }
+
+    const batchOps = getService(SERVICES.BatchOperations);
+    const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+    const rows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: params.taskId });
+
+    if (rows.length === 0) {
+      return { success: false, error: 'Task not found: ' + params.taskId };
+    }
+
+    const { row } = rows[0];
+    const task = MohTask.fromSheetRow(row, headers);
+
+    if (!task) {
+      return { success: false, error: 'Failed to instantiate task' };
+    }
+
+    task.scheduled_start = params.newStart;
+
+    if (params.newEnd) {
+      task.scheduled_end = params.newEnd;
+    } else {
+      const startTime = new Date(params.newStart);
+      const duration = task.estimated_minutes || 30;
+      task.scheduled_end = TimeZoneAwareDate.toISOString(new Date(startTime.getTime() + duration * 60000));
+    }
+
+    const result = batchOps.updateActionWithOptimisticLocking(
+      SHEET_NAMES.ACTIONS,
+      params.taskId,
+      task
+    );
+
+    if (!result.success) {
+      return {
+        success: false,
+        versionConflict: result.versionConflict || false,
+        error: result.error || 'Update failed'
+      };
+    }
+
+    const logger = getService(SERVICES.SmartLogger);
+    logger.info('AppSheetBridge', 'Rescheduled task ' + params.taskId + ' to ' + params.newStart);
+
+    return { success: true, data: { action_id: params.taskId, scheduled_start: task.scheduled_start } };
+
+  } catch (error) {
+    LoggerFacade.error('AppSheetBridge', 'appsheet_rescheduleTask failed', {
+      error: error.message,
+      stack: error.stack,
+      params: params
+    });
+    return { success: false, error: error.message, stack: error.stack };
+  }
+}
+
+/**
+ * Update a task - generic field updates
+ * @param {Object} params - Parameters with taskId and updates object
+ * @return {Object} Result with success/conflict status
+ */
+function appsheet_updateTask(params) {
+  ensureBootstrapServices();
+  try {
+    if (!params || !params.taskId) {
+      return { success: false, error: 'taskId is required' };
+    }
+
+    const batchOps = getService(SERVICES.BatchOperations);
+    const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+    const rows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: params.taskId });
+
+    if (rows.length === 0) {
+      return { success: false, error: 'Task not found: ' + params.taskId };
+    }
+
+    const { row } = rows[0];
+    const task = MohTask.fromSheetRow(row, headers);
+
+    if (!task) {
+      return { success: false, error: 'Failed to instantiate task' };
+    }
+
+    // Apply updates from params.updates object or direct params
+    const updates = params.updates || params;
+    const allowedFields = ['title', 'description', 'priority', 'lane', 'status', 'estimated_minutes',
+                          'energy_required', 'focus_required', 'deadline', 'scheduled_start', 'scheduled_end'];
+
+    for (const field of allowedFields) {
+      if (updates[field] !== undefined && updates[field] !== null) {
+        task[field] = updates[field];
+      }
+    }
+
+    const result = batchOps.updateActionWithOptimisticLocking(
+      SHEET_NAMES.ACTIONS,
+      params.taskId,
+      task
+    );
+
+    if (!result.success) {
+      return {
+        success: false,
+        versionConflict: result.versionConflict || false,
+        error: result.error || 'Update failed'
+      };
+    }
+
+    const logger = getService(SERVICES.SmartLogger);
+    logger.info('AppSheetBridge', 'Updated task ' + params.taskId);
+
+    return { success: true, data: { action_id: params.taskId } };
+
+  } catch (error) {
+    LoggerFacade.error('AppSheetBridge', 'appsheet_updateTask failed', {
+      error: error.message,
+      stack: error.stack,
+      params: params
+    });
+    return { success: false, error: error.message, stack: error.stack };
+  }
+}
+
+/**
+ * Create a new task
+ * @param {Object} taskData - Task data
+ * @return {Object} Result with new task ID or conflict status
+ */
+function appsheet_createTask(taskData) {
+  ensureBootstrapServices();
+  try {
+    if (!taskData || !taskData.title) {
+      return { success: false, error: 'title is required' };
+    }
+
+    const batchOps = getService(SERVICES.BatchOperations);
+
+    const newTask = new MohTask({
+      title: taskData.title,
+      description: taskData.description || '',
+      priority: taskData.priority || PRIORITY.MEDIUM,
+      lane: taskData.lane || LANE.OPERATIONAL,
+      status: taskData.status || STATUS.PENDING,
+      estimated_minutes: taskData.estimated_minutes || 30,
+      energy_required: taskData.energy_required || 'MEDIUM',
+      focus_required: taskData.focus_required || 'MEDIUM',
+      deadline: taskData.deadline || null,
+      scheduled_start: taskData.scheduled_start || null,
+      scheduled_end: taskData.scheduled_end || null,
+      source: taskData.source || 'appsheet',
+      created_by: taskData.created_by || 'appsheet_api'
+    });
+
+    const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+    const rowData = newTask.toSheetRow(headers);
+
+    batchOps.appendRows(SHEET_NAMES.ACTIONS, [rowData]);
+
+    const logger = getService(SERVICES.SmartLogger);
+    logger.info('AppSheetBridge', 'Created task ' + newTask.action_id);
+
+    return { success: true, data: { action_id: newTask.action_id, title: newTask.title } };
+
+  } catch (error) {
+    LoggerFacade.error('AppSheetBridge', 'appsheet_createTask failed', {
+      error: error.message,
+      stack: error.stack,
+      taskData: taskData
+    });
+    return { success: false, error: error.message, stack: error.stack };
+  }
+}
+
+/**
+ * Delete a task (mark as DELETED status for soft delete)
+ * @param {Object} params - Parameters
+ * @param {string} params.taskId - Task ID to delete
+ * @return {Object} Result with success/conflict status
+ */
+function appsheet_deleteTask(params) {
+  ensureBootstrapServices();
+  try {
+    if (!params || !params.taskId) {
+      return { success: false, error: 'taskId is required' };
+    }
+
+    const batchOps = getService(SERVICES.BatchOperations);
+    const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+    const rows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: params.taskId });
+
+    if (rows.length === 0) {
+      return { success: false, error: 'Task not found: ' + params.taskId };
+    }
+
+    const { row } = rows[0];
+    const task = MohTask.fromSheetRow(row, headers);
+
+    if (!task) {
+      return { success: false, error: 'Failed to instantiate task' };
+    }
+
+    // Soft delete - mark as DELETED status
+    task.status = 'DELETED';
+
+    const result = batchOps.updateActionWithOptimisticLocking(
+      SHEET_NAMES.ACTIONS,
+      params.taskId,
+      task
+    );
+
+    if (!result.success) {
+      return {
+        success: false,
+        versionConflict: result.versionConflict || false,
+        error: result.error || 'Update failed'
+      };
+    }
+
+    const logger = getService(SERVICES.SmartLogger);
+    logger.info('AppSheetBridge', 'Deleted (soft) task ' + params.taskId);
+
+    return { success: true, data: { action_id: params.taskId, status: 'DELETED' } };
+
+  } catch (error) {
+    LoggerFacade.error('AppSheetBridge', 'appsheet_deleteTask failed', {
+      error: error.message,
+      stack: error.stack,
+      params: params
+    });
+    return { success: false, error: error.message, stack: error.stack };
+  }
+}
