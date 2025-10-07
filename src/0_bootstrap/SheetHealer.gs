@@ -263,6 +263,8 @@ class SheetHealer {
     return {
       'ACTIONS': this._getActionsSchema(),
       'PROPOSED_TASKS': this._getProposedTasksSchema(),
+      'ACTIONS_ARCHIVE': this._getActionsArchiveSchema(),
+      'PROPOSED_ARCHIVE': this._getProposedArchiveSchema(),
       'DEPENDENCIES': this._getDependenciesSchema(),
       'CALENDAR_PROJECTION': this._getCalendarProjectionSchema(),
       'FOUNDATION_BLOCKS': this._getFoundationBlocksSchema(),
@@ -375,6 +377,22 @@ class SheetHealer {
           }
         ]
     };
+  }
+
+  /**
+   * ACTIONS_ARCHIVE sheet schema
+   * Identical to ACTIONS schema - stores archived tasks
+   */
+  static _getActionsArchiveSchema() {
+    return this._getActionsSchema();
+  }
+
+  /**
+   * PROPOSED_ARCHIVE sheet schema
+   * Identical to PROPOSED_TASKS schema - stores archived proposals
+   */
+  static _getProposedArchiveSchema() {
+    return this._getProposedTasksSchema();
   }
 
   /**

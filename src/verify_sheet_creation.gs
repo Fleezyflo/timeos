@@ -41,7 +41,7 @@ function VERIFY_SHEET_CREATION() {
   const actionsSheet = spreadsheet.getSheetByName('ACTIONS');
   if (actionsSheet) {
     const actionsHeaders = actionsSheet.getRange(1, 1, 1, actionsSheet.getLastColumn()).getValues()[0];
-    const expectedActionsCount = 52;
+    const expectedActionsCount = 53;
     if (actionsHeaders.length !== expectedActionsCount) {
       Logger.log('✗ ACTIONS header count mismatch: expected ' + expectedActionsCount + ', got ' + actionsHeaders.length);
       Logger.log('  Missing: ' + (expectedActionsCount - actionsHeaders.length) + ' columns');
