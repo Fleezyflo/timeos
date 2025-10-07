@@ -424,7 +424,7 @@ class MohTask {
     const row = new Array(headers.length).fill('');
     const headerMap = optionalHeaderMap || new Map(headers.map((h, i) => [h, i]));
 
-    // Property mapping with type conversion
+    // Property mapping with type conversion - matches SheetHealer canonical order
     const propertyMap = {
       'action_id': this.action_id,
       'status': this.status,
@@ -439,6 +439,10 @@ class MohTask {
       'scheduled_end': this.scheduled_end || '',
       'actual_minutes': this.actual_minutes || '',
       'completed_date': this.completed_date || '',
+      'completion_notes': this.completion_notes || '',
+      'created_by': this.created_by || 'system',
+      'assigned_to': this.assigned_to || '',
+      'parent_id': this.parent_id || '',
       'source': this.source,
       'source_id': this.source_id || '',
       'description': this.description,
@@ -472,10 +476,6 @@ class MohTask {
       'last_scheduled_metadata': safeJSONStringify(this.last_scheduled_metadata, '{}'),
       'last_scheduled_dependency': this.last_scheduled_dependency || '',
       'last_scheduled_estimated_completion': this.last_scheduled_estimated_completion || '',
-      'completion_notes': this.completion_notes || '',
-      'created_by': this.created_by || 'system',
-      'assigned_to': this.assigned_to || '',
-      'parent_id': this.parent_id || '',
       'dependencies': safeJSONStringify(this.dependencies, '[]'),
       'tags': safeJSONStringify(this.tags, '[]'),
       'archived_at': this.archived_at || ''
