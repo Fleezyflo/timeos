@@ -81,6 +81,89 @@ class SystemManager {
   }
 
   /**
+   * Validate that live sheet schemas match canonical SheetHealer definitions
+   * @returns {Object} Validation results with per-sheet discrepancies
+   */
+  validateSchemaIntegrity() {
+    const results = {
+      timestamp: TimeZoneAwareDate.toISOString(new Date()),
+      schemasChecked: 0,
+      discrepancies: [],
+      allValid: true
+    };
+
+    try {
+      // Get canonical schemas from SheetHealer
+      const requiredSheets = SheetHealer.getRequiredSheets();
+
+      for (const [sheetName, schema] of Object.entries(requiredSheets)) {
+        results.schemasChecked++;
+
+        try {
+          // Get live headers from sheet
+          const liveHeaders = this.batchOperations.getHeaders(sheetName);
+          const expectedHeaders = schema.headers;
+
+          // Compare counts
+          if (liveHeaders.length !== expectedHeaders.length) {
+            results.allValid = false;
+            results.discrepancies.push({
+              sheet: sheetName,
+              issue: 'column_count_mismatch',
+              expected: expectedHeaders.length,
+              actual: liveHeaders.length,
+              missing: expectedHeaders.length - liveHeaders.length
+            });
+          }
+
+          // Compare order and names
+          const mismatches = [];
+          for (let i = 0; i < Math.max(liveHeaders.length, expectedHeaders.length); i++) {
+            if (liveHeaders[i] !== expectedHeaders[i]) {
+              mismatches.push({
+                index: i,
+                expected: expectedHeaders[i] || 'undefined',
+                actual: liveHeaders[i] || 'undefined'
+              });
+            }
+          }
+
+          if (mismatches.length > 0) {
+            results.allValid = false;
+            results.discrepancies.push({
+              sheet: sheetName,
+              issue: 'header_mismatches',
+              count: mismatches.length,
+              details: mismatches.slice(0, 10) // Limit to first 10
+            });
+          }
+
+        } catch (sheetError) {
+          results.allValid = false;
+          results.discrepancies.push({
+            sheet: sheetName,
+            issue: 'validation_error',
+            error: sheetError.message
+          });
+        }
+      }
+
+      this.logger.info('SystemManager', 'Schema integrity validation complete', {
+        checked: results.schemasChecked,
+        valid: results.allValid,
+        discrepancy_count: results.discrepancies.length
+      });
+
+    } catch (error) {
+      this.logger.error('SystemManager', 'Schema validation failed', { error: error.message });
+      results.allValid = false;
+      results.error = error.message;
+    }
+
+    return results;
+  }
+
+  /**
    * Run comprehensive system health check
    * @returns {Object} Health check results
    */
@@ -102,6 +185,21 @@ class SystemManager {
       };
       healthResults.partial_failure_mode = true;
       this.logger.error('SystemManager', 'Database health check failed catastrophically', { error: error.message });
+    }
+
+    // NEW: Schema integrity check
+    try {
+      const schemaCheck = this.validateSchemaIntegrity();
+      healthResults.checks.schema_integrity = {
+        status: schemaCheck.allValid ? 'HEALTHY' : 'DEGRADED',
+        details: schemaCheck
+      };
+    } catch (error) {
+      healthResults.checks.schema_integrity = {
+        status: 'ERROR',
+        error: error.message
+      };
+      healthResults.partial_failure_mode = true;
     }
 
     try {

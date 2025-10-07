@@ -285,13 +285,31 @@ class SheetHealer {
         headers: [
           'action_id', 'status', 'priority', 'created_at', 'updated_at',
           'title', 'context', 'lane', 'estimated_minutes', 'scheduled_start',
-          'scheduled_end', 'actual_minutes', 'completed_date', 'completion_notes',
-          'source', 'source_id', 'description', 'calendar_event_id', 'rollover_count',
+          'scheduled_end', 'actual_minutes', 'completed_date', 'source',
+          'source_id', 'description', 'calendar_event_id', 'rollover_count',
           'scheduling_metadata', 'score', 'deadline', 'energy_required',
-          'focus_required', 'estimation_accuracy', 'created_by',
-          'assigned_to', 'parent_id', 'dependencies', 'tags', 'archived_at'
+          'focus_required', 'estimation_accuracy', 'version',
+          'last_scheduled_score', 'last_scheduled_block_type', 'last_scheduled_energy_level',
+          'last_scheduled_context_type', 'last_scheduled_lane', 'last_scheduled_duration',
+          'last_scheduled_priority', 'last_scheduled_impact', 'last_scheduled_urgency',
+          'last_scheduled_effort_minutes', 'last_scheduled_estimation_accuracy',
+          'last_scheduled_rollover_count', 'last_scheduled_last_rollover_date',
+          'last_scheduled_notes', 'last_scheduled_source', 'last_scheduled_source_id',
+          'last_scheduled_external_url', 'last_scheduled_attachments', 'last_scheduled_metadata',
+          'last_scheduled_dependency', 'last_scheduled_estimated_completion',
+          'completion_notes', 'created_by', 'assigned_to', 'parent_id',
+          'dependencies', 'tags', 'archived_at'
         ],
-        columnWidths: [150, 100, 80, 150, 150, 200, 100, 80, 80, 150, 150, 80, 150, 100, 150, 300],
+        columnWidths: [
+          150, 100, 80, 150, 150, 200, 100, 80, 80, 150,
+          150, 80, 150, 150, 150, 300, 150, 80, 250, 80,
+          150, 100, 100, 120, 80,
+          80, 120, 120, 120, 100, 80,
+          100, 100, 100, 80, 120,
+          80, 150, 200, 150, 150,
+          200, 250, 250, 150, 150,
+          200, 150, 150, 150, 250, 250, 150
+        ],
         validations: [
           {
             range: 'B2:B1000',
@@ -344,9 +362,9 @@ class SheetHealer {
           'proposal_id', 'status', 'created_at', 'processed_at', 'source',
           'source_id', 'sender', 'subject', 'parsed_title', 'suggested_lane',
           'suggested_priority', 'suggested_duration',
-          'confidence_score', 'raw_content_preview', 'created_task_id'
+          'confidence_score', 'raw_content_preview', 'created_task_id', 'archived_at'
         ],
-        columnWidths: [150, 120, 150, 150, 100, 150, 200, 250, 200, 100, 80, 400],
+        columnWidths: [150, 120, 150, 150, 100, 150, 200, 250, 200, 100, 80, 80, 120, 400, 150, 150],
         validations: [
           {
             range: 'B2:B1000',

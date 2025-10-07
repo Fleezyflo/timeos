@@ -36,6 +36,25 @@ function VERIFY_SHEET_CREATION() {
     return { success: false, error: 'APPSHEET_CONFIG sheet missing after FIX()' };
   }
 
+  // NEW: Verify ACTIONS sheet header count
+  Logger.log('\nStep 2b: Verifying ACTIONS schema integrity...');
+  const actionsSheet = spreadsheet.getSheetByName('ACTIONS');
+  if (actionsSheet) {
+    const actionsHeaders = actionsSheet.getRange(1, 1, 1, actionsSheet.getLastColumn()).getValues()[0];
+    const expectedActionsCount = 52;
+    if (actionsHeaders.length !== expectedActionsCount) {
+      Logger.log('✗ ACTIONS header count mismatch: expected ' + expectedActionsCount + ', got ' + actionsHeaders.length);
+      Logger.log('  Missing: ' + (expectedActionsCount - actionsHeaders.length) + ' columns');
+      Logger.log('  Current headers: ' + JSON.stringify(actionsHeaders));
+      return { success: false, error: 'ACTIONS schema incomplete: ' + actionsHeaders.length + '/' + expectedActionsCount + ' columns' };
+    } else {
+      Logger.log('✓ ACTIONS schema validated: ' + actionsHeaders.length + ' columns');
+    }
+  } else {
+    Logger.log('✗ ACTIONS sheet NOT FOUND');
+    return { success: false, error: 'ACTIONS sheet missing' };
+  }
+
   // Step 3: Check all other required sheets
   Logger.log('\nStep 3: Verifying all required sheets...');
   const requiredSheets = [
