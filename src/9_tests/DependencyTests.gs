@@ -82,22 +82,22 @@ class DependencyManagementTestSuite extends TestSuite {
     const actionHeaders = this.mockBatchOperations.getHeaders(SHEET_NAMES.ACTIONS);
     const actionSafeAccess = new SafeColumnAccess(actionHeaders);
 
-    const taskA = new MohTask({
+    const taskA = new TestMohTask({
       action_id: "task-A",
       title: "Task A",
       dependencies: []
     });
-    const taskB = new MohTask({
+    const taskB = new TestMohTask({
       action_id: "task-B",
       title: "Task B",
       dependencies: ["task-A"]
     });
-    const taskC = new MohTask({
+    const taskC = new TestMohTask({
       action_id: "task-C",
       title: "Task C",
       dependencies: ["task-A", "task-B"]
     });
-    const taskD = new MohTask({
+    const taskD = new TestMohTask({
       action_id: "task-D",
       title: "Task D",
       dependencies: ["task-C"]
@@ -160,22 +160,22 @@ class DependencyManagementTestSuite extends TestSuite {
     const actionHeaders = this.mockBatchOperations.getHeaders(SHEET_NAMES.ACTIONS);
     const actionSafeAccess = new SafeColumnAccess(actionHeaders);
 
-    const task1 = new MohTask({
+    const task1 = new TestMohTask({
       action_id: "task-1",
       title: "Task 1",
       dependencies: []
     });
-    const task2 = new MohTask({
+    const task2 = new TestMohTask({
       action_id: "task-2",
       title: "Task 2",
       dependencies: ["task-1"]
     });
-    const task3 = new MohTask({
+    const task3 = new TestMohTask({
       action_id: "task-3",
       title: "Task 3",
       dependencies: [] // Will have sheet dependency on task-2
     });
-    const task4 = new MohTask({
+    const task4 = new TestMohTask({
       action_id: "task-4",
       title: "Task 4",
       dependencies: ["task-3"]
@@ -229,12 +229,12 @@ class DependencyManagementTestSuite extends TestSuite {
     const actionHeaders = this.mockBatchOperations.getHeaders(SHEET_NAMES.ACTIONS);
     const actionSafeAccess = new SafeColumnAccess(actionHeaders);
 
-    const taskA = new MohTask({
+    const taskA = new TestMohTask({
       action_id: "task-A",
       title: "Task A",
       dependencies: []
     });
-    const taskB = new MohTask({
+    const taskB = new TestMohTask({
       action_id: "task-B",
       title: "Task B",
       dependencies: []
@@ -256,12 +256,12 @@ class DependencyManagementTestSuite extends TestSuite {
     const actionHeaders = this.mockBatchOperations.getHeaders(SHEET_NAMES.ACTIONS);
     const actionSafeAccess = new SafeColumnAccess(actionHeaders);
 
-    const taskX = new MohTask({
+    const taskX = new TestMohTask({
       action_id: "task-X",
       title: "Task X",
       dependencies: ["task-Y"]
     });
-    const taskY = new MohTask({
+    const taskY = new TestMohTask({
       action_id: "task-Y",
       title: "Task Y",
       dependencies: ["task-X"]
@@ -285,7 +285,7 @@ class DependencyManagementTestSuite extends TestSuite {
   testIdentifyDependencyChains_invalidDependency() {
     // Seed ACTIONS sheet with a task having an invalid dependency
     const actionHeaders = this.mockBatchOperations.getHeaders(SHEET_NAMES.ACTIONS);
-    const taskWithInvalidDep = new MohTask({
+    const taskWithInvalidDep = new TestMohTask({
       action_id: "task-invalid",
       title: "Task with Invalid Dependency",
       dependencies: ["non-existent-task"]
@@ -312,10 +312,10 @@ class DependencyManagementTestSuite extends TestSuite {
 
     // 2. Identify chains
     const actionHeaders = this.mockBatchOperations.getHeaders(SHEET_NAMES.ACTIONS);
-    const taskA = new MohTask({ action_id: "task-A", title: "Task A", dependencies: [] });
-    const taskB = new MohTask({ action_id: "task-B", title: "Task B", dependencies: ["task-A"] });
-    const taskC = new MohTask({ action_id: "task-C", title: "Task C", dependencies: ["task-A", "task-B"] });
-    const taskD = new MohTask({ action_id: "task-D", title: "Task D", dependencies: ["task-C"] });
+    const taskA = new TestMohTask({ action_id: "task-A", title: "Task A", dependencies: [] });
+    const taskB = new TestMohTask({ action_id: "task-B", title: "Task B", dependencies: ["task-A"] });
+    const taskC = new TestMohTask({ action_id: "task-C", title: "Task C", dependencies: ["task-A", "task-B"] });
+    const taskD = new TestMohTask({ action_id: "task-D", title: "Task D", dependencies: ["task-C"] });
 
     const allActions = [taskA, taskB, taskC, taskD];
     const chains = this.intelligentScheduler._identifyDependencyChains(allActions);
@@ -379,7 +379,7 @@ class MockDynamicLaneManager {
 // These would typically be in other files but are included here for self-containment in the test file.
 
 // Simplified MohTask for testing (ensure it matches the actual MohTask structure used by services)
-class MohTask {
+class TestMohTask {
   constructor(data) {
     this.action_id = data.action_id || Utilities.getUuid();
     this.title = data.title;
