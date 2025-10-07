@@ -280,36 +280,6 @@ class MockConfigManagerCalendarTests {
   set(key, value) { this.config[key] = value; }
 }
 
-class MockErrorHandler {
-  withRetry(func, context) { return func(); }
-  executeWithCircuitBreaker(service, func) { return func(); }
-  getServiceStatus(service) { return { state: 'CLOSED' }; }
-}
-
-class MockSmartLogger {
-  info(component, message, context) { /* console.log(`INFO: [${component}] ${message}`, context); */ }
-  error(component, message, context) { console.error(`ERROR: [${component}] ${message}`, context); }
-  warn(component, message, context) { console.warn(`WARN: [${component}] ${message}`, context); }
-  debug(component, message, context) { /* console.log(`DEBUG: [${component}] ${message}`, context); */ }
-  log(component, message, context) { /* console.log(`LOG: [${component}] ${message}`, context); */ }
-}
-
-class MockPersistentStore {
-  constructor() { this.store = {}; }
-  set(key, value) { this.store[key] = value; }
-  get(key) { return this.store[key]; }
-  delete(key) { delete this.store[key]; }
-}
-
-class MockCrossExecutionCache {
-  constructor(persistentStore) { this.persistentStore = persistentStore; this.memoryCache = new Map(); }
-  get(key) { return this.memoryCache.get(key) || this.persistentStore.get(key); }
-  set(key, value, ttl) { this.memoryCache.set(key, value); this.persistentStore.set(key, value, ttl); }
-  delete(key) { this.memoryCache.delete(key); this.persistentStore.delete(key); }
-  deletePattern(pattern) { /* not implemented for mock */ }
-  clear() { this.memoryCache.clear(); this.persistentStore.clear(); }
-}
-
 // Mock CalendarApp and CalendarEvent
 class MockCalendarApp {
   constructor() {

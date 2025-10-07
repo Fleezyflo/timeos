@@ -354,40 +354,6 @@ class MockConfigManagerDependencyTests {
   set(key, value) { this.config[key] = value; }
 }
 
-class MockErrorHandler {
-  withRetry(func, context) { return func(); }
-  executeWithCircuitBreaker(service, func) { return func(); }
-  getServiceStatus(service) { return { state: 'CLOSED' }; }
-}
-
-class MockSmartLogger {
-  constructor() {
-    this.logs = [];
-  }
-  info(component, message, context) { this.logs.push({ level: 'info', component, message, context }); }
-  error(component, message, context) { this.logs.push({ level: 'error', component, message, context }); }
-  warn(component, message, context) { this.logs.push({ level: 'warn', component, message, context }); }
-  debug(component, message, context) { this.logs.push({ level: 'debug', component, message, context }); }
-  log(component, message, context) { this.logs.push({ level: 'log', component, message, context }); }
-  getLogs() { return this.logs; }
-}
-
-class MockPersistentStore {
-  constructor() { this.store = {}; }
-  set(key, value) { this.store[key] = value; }
-  get(key) { return this.store[key]; }
-  delete(key) { delete this.store[key]; }
-}
-
-class MockCrossExecutionCache {
-  constructor(persistentStore) { this.persistentStore = persistentStore; this.memoryCache = new Map(); }
-  get(key) { return this.memoryCache.get(key) || this.persistentStore.get(key); }
-  set(key, value, ttl) { this.memoryCache.set(key, value); this.persistentStore.set(key, value, ttl); }
-  delete(key) { this.memoryCache.delete(key); }
-  deletePattern(pattern) { /* not implemented for mock */ }
-  clear() { this.memoryCache.clear(); this.persistentStore.clear(); }
-}
-
 class MockArchiveManager {
   archiveCompletedTasks() { return { success: true, archived_count: 0 }; }
 }
@@ -468,54 +434,6 @@ class MohTask {
     return row;
   }
 }
-
-// Simplified TimeZoneAwareDate for testing
-const TimeZoneAwareDate = {
-  now: () => new Date().toISOString(),
-  toISOString: (date) => date.toISOString(),
-  isRecent: (isoString, seconds) => {
-    const date = new Date(isoString);
-    const now = new Date();
-    return (now.getTime() - date.getTime()) < (seconds * 1000);
-  }
-};
-
-// Simplified Utilities for testing
-const Utilities = {
-  getUuid: () => 'mock-uuid-' + Math.random().toString(36).substr(2, 9),
-  computeDigest: (algorithm, value) => [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15], // Mock digest
-  newBlob: (data, contentType) => ({
-    getBytes: () => new TextEncoder().encode(data),
-    getDataAsString: () => data
-  }),
-  gzip: (blob) => blob, // Mock gzip
-  ungzip: (blob) => blob // Mock ungzip
-};
-
-// Simplified ContentService for testing
-const ContentService = {
-  MimeType: {
-    JSON: 'application/json'
-  },
-  createTextOutput: (content) => ({
-    _content: content,
-    _mimeType: null,
-    setMimeType: function(mimeType) {
-      this._mimeType = mimeType;
-      return this;
-    }
-  })
-};
-
-// Simplified CacheService for testing
-const CacheService = {
-  getScriptCache: () => ({
-    _cache: {},
-    get: function(key) { return this._cache[key]; },
-    put: function(key, value, ttl) { this._cache[key] = value; },
-    remove: function(key) { delete this._cache[key]; }
-  })
-};
 
 // Simplified LoggerFacade for testing (only define if production LoggerFacade is unavailable)
 if (typeof LoggerFacade === 'undefined') {
