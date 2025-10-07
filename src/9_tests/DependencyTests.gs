@@ -73,6 +73,7 @@ class DependencyManagementTestSuite extends TestSuite {
 
   teardown() {
     this.mockBatchOperations.clearTestData();
+    this.mockCache.clear();
     container.reset();
   }
 

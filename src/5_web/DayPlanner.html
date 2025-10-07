@@ -2727,13 +2727,10 @@ padding: 6px 8px;
                         this.showToast('Error updating duration: ' + error.message, 'error');
                         reject(error);
                       })
-                      .appsheet_updateTask({
+                      .appsheet_rescheduleTask({
                         taskId: taskId,
-                        updates: {
-                          scheduled_start: event.start.toISOString(),
-                          scheduled_end: event.end ? event.end.toISOString() : new Date(event.start.getTime() + 30 * 60000).toISOString(),
-                          estimated_minutes: event.end ? Math.round((event.end - event.start) / (1000 * 60)) : 30
-                        }
+                        newStart: event.start.toISOString(),
+                        newEnd: event.end ? event.end.toISOString() : new Date(event.start.getTime() + 30 * 60000).toISOString()
                       });
                   });
                 }).catch(error => {

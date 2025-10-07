@@ -392,16 +392,6 @@ function appsheet_runScheduling(params) {
       context: 'appsheet_runScheduling'
     });
 
-    throw error;
-  } catch (error) {
-    // RETHROW_WITH_LOG profile
-    // TEST: TEST_SILENT_066_APPSHEET_RUNSCHEDULING
-    LoggerFacade.error('AppSheetBridge', 'appsheet_runScheduling failed', {
-      error: error.message,
-      stack: error.stack,
-      context: 'appsheet_runScheduling'
-    });
-
     return { success: false, error: error.message, stack: error.stack };
   }
 }
@@ -1097,5 +1087,133 @@ function appsheet_createTask(params) {
       params: params
     });
     return { success: false, error: `Failed to create task: ${error.message}`, stack: error.stack };
+  }
+}
+
+function appsheet_startTask(params) {
+  ensureBootstrapServices();
+  try {
+    const batchOps = getService(SERVICES.BatchOperations);
+    const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+    const safeAccess = new SafeColumnAccess(headers);
+    const matches = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: params.taskId });
+
+    if (!matches || matches.length === 0) {
+      return { success: false, error: `Task not found: ${params.taskId}` };
+    }
+
+    const { row, sheetRowIndex } = matches[0];
+    const updatedRow = [...row];
+    const nowIso = TimeZoneAwareDate.now();
+
+    safeAccess.setCellValue(updatedRow, 'status', STATUS.IN_PROGRESS);
+    safeAccess.setCellValue(updatedRow, 'updated_at', nowIso);
+
+    const rangeA1 = _calculateRowRange(headers.length, sheetRowIndex);
+    batchOps.batchUpdate(SHEET_NAMES.ACTIONS, [{
+      rangeA1: rangeA1,
+      values: [updatedRow]
+    }]);
+
+    CacheService.getScriptCache().remove(CACHE_ALL_TASKS_KEY);
+    return { success: true, data: { action_id: params.taskId, status: 'in_progress' } };
+  } catch (error) {
+    LoggerFacade.error('AppSheetBridge', 'appsheet_startTask failed', {
+      error: error.message,
+      stack: error.stack,
+      params: params
+    });
+    return { success: false, error: error.message, stack: error.stack };
+  }
+}
+
+function appsheet_completeTask(params) {
+  ensureBootstrapServices();
+  try {
+    const batchOps = getService(SERVICES.BatchOperations);
+    const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+    const safeAccess = new SafeColumnAccess(headers);
+    const matches = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: params.taskId });
+
+    if (!matches || matches.length === 0) {
+      return { success: false, error: `Task not found: ${params.taskId}` };
+    }
+
+    const { row, sheetRowIndex } = matches[0];
+    const updatedRow = [...row];
+    const nowIso = TimeZoneAwareDate.now();
+
+    safeAccess.setCellValue(updatedRow, 'status', STATUS.COMPLETED);
+    safeAccess.setCellValue(updatedRow, 'actual_minutes', params.actualMinutes || 0);
+    safeAccess.setCellValue(updatedRow, 'completion_notes', params.notes || '');
+    safeAccess.setCellValue(updatedRow, 'completed_date', nowIso);
+    safeAccess.setCellValue(updatedRow, 'updated_at', nowIso);
+
+    // Calculate estimation accuracy if estimated_minutes is available
+    const estimatedMinutes = safeAccess.getCellValue(row, 'estimated_minutes', 0);
+    if (estimatedMinutes > 0 && params.actualMinutes > 0) {
+      const accuracy = (estimatedMinutes / params.actualMinutes) * 100;
+      safeAccess.setCellValue(updatedRow, 'estimation_accuracy', Math.min(accuracy, 100)); // Cap at 100%
+    } else {
+      safeAccess.setCellValue(updatedRow, 'estimation_accuracy', 0);
+    }
+
+
+    const rangeA1 = _calculateRowRange(headers.length, sheetRowIndex);
+    batchOps.batchUpdate(SHEET_NAMES.ACTIONS, [{
+      rangeA1: rangeA1,
+      values: [updatedRow]
+    }]);
+
+    CacheService.getScriptCache().remove(CACHE_ALL_TASKS_KEY);
+    return { success: true, data: { action_id: params.taskId, status: 'completed' } };
+  } catch (error) {
+    LoggerFacade.error('AppSheetBridge', 'appsheet_completeTask failed', {
+      error: error.message,
+      stack: error.stack,
+      params: params
+    });
+    return { success: false, error: error.message, stack: error.stack };
+  }
+}
+
+function appsheet_snoozeTask(params) {
+  ensureBootstrapServices();
+  try {
+    const batchOps = getService(SERVICES.BatchOperations);
+    const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+    const safeAccess = new SafeColumnAccess(headers);
+    const matches = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: params.taskId });
+
+    if (!matches || matches.length === 0) {
+      return { success: false, error: `Task not found: ${params.taskId}` };
+    }
+
+    const { row, sheetRowIndex } = matches[0];
+    const updatedRow = [...row];
+    const nowIso = TimeZoneAwareDate.now();
+
+    let newScheduledStart = new Date(safeAccess.getCellValue(row, 'scheduled_start', nowIso));
+    const minutesToSnooze = params.minutes || 60; // Default to 1 hour
+    newScheduledStart.setMinutes(newScheduledStart.getMinutes() + minutesToSnooze);
+
+    safeAccess.setCellValue(updatedRow, 'scheduled_start', newScheduledStart.toISOString());
+    safeAccess.setCellValue(updatedRow, 'updated_at', nowIso);
+
+    const rangeA1 = _calculateRowRange(headers.length, sheetRowIndex);
+    batchOps.batchUpdate(SHEET_NAMES.ACTIONS, [{
+      rangeA1: rangeA1,
+      values: [updatedRow]
+    }]);
+
+    CacheService.getScriptCache().remove(CACHE_ALL_TASKS_KEY);
+    return { success: true, data: { action_id: params.taskId, snoozed: true } };
+  } catch (error) {
+    LoggerFacade.error('AppSheetBridge', 'appsheet_snoozeTask failed', {
+      error: error.message,
+      stack: error.stack,
+      params: params
+    });
+    return { success: false, error: error.message, stack: error.stack };
   }
 }
