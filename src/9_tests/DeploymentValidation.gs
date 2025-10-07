@@ -381,6 +381,54 @@ function validateDatabaseSchema() {
       return false;
     }
 
+    // Column conversion utilities validation (inline - no new function)
+    logger.info('Deployment', 'Testing SafeColumnAccess column conversion...');
+    try {
+      // Test 1: 53-column ACTIONS sheet (real-world case)
+      const actionsHeaders = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+      const actionsSafeAccess = new SafeColumnAccess(actionsHeaders);
+      const range53 = actionsSafeAccess.getRowRange(5);
+
+      if (!range53.startsWith('A5:') || !range53.endsWith('5')) {
+        logger.error('Deployment', 'Column conversion FAILED - 53-column range invalid: ' + range53);
+        return false;
+      }
+
+      // Test 2: Boundary cases
+      const testCases = [
+        { cols: 1, expected: 'A1:A1' },
+        { cols: 26, expected: 'A10:Z10' },
+        { cols: 27, expected: 'A10:AA10' },
+        { cols: 52, expected: 'A10:AZ10' }
+      ];
+
+      for (const testCase of testCases) {
+        const testHeaders = new Array(testCase.cols).fill('h');
+        const testAccess = new SafeColumnAccess(testHeaders);
+        const testRange = testAccess.getRowRange(testCase.expected.startsWith('A1:') ? 1 : 10);
+
+        if (testRange !== testCase.expected) {
+          logger.error('Deployment', 'Column conversion FAILED - ' + testCase.cols + ' columns: expected ' + testCase.expected + ', got ' + testRange);
+          return false;
+        }
+      }
+
+      // Test 3: Error handling
+      try {
+        const emptyAccess = new SafeColumnAccess([]);
+        emptyAccess.getRowRange(1);
+        logger.error('Deployment', 'Column conversion FAILED - empty headers should throw');
+        return false;
+      } catch (expectedError) {
+        // Expected to throw
+      }
+
+      logger.info('Deployment', '✓ Column conversion utilities validated');
+    } catch (convError) {
+      logger.error('Deployment', 'Column conversion test crashed: ' + convError.message);
+      return false;
+    }
+
     logger.info('Deployment', '✓ Database schema validation passed');
     return true;
 

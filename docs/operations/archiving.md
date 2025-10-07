@@ -115,3 +115,34 @@ If issues occur:
 1. Revert commit: `git revert <commit-hash>`
 2. Redeploy: `clasp push`
 3. Archive sheets preserve data - no data loss expected
+
+## Phase 5: Range Calculation Safety
+
+### Problem Solved
+Manual `String.fromCharCode(65 + headers.length - 1)` calculations fail beyond 26 columns:
+- Column 26 → 'Z' ✓
+- Column 27 → '[' ✗ (should be 'AA')
+- Column 53 → 't' ✗ (should be 'BA')
+
+ACTIONS sheet has 53 columns. Manual ASCII calculations produced invalid ranges.
+
+### Solution: SafeColumnAccess.getRowRange()
+```javascript
+const headers = batchOperations.getHeaders(SHEET_NAMES.ACTIONS);
+const safeAccess = new SafeColumnAccess(headers);
+const rangeA1 = safeAccess.getRowRange(5);  // Returns "A5:BA5" for 53 columns
+```
+
+### Migration Completed
+- ✅ SafeColumnAccess: Added 4 methods (+72 lines)
+- ✅ IntelligentScheduler.gs:95 refactored
+- ✅ SenderReputationManager.gs:322 refactored
+- ✅ TestSeeder.gs: 7 instances refactored
+- ✅ DeploymentValidation.gs: Inline tests added
+- ✅ All 9 manual String.fromCharCode instances eliminated
+
+### Verification
+```bash
+grep -rn "String\.fromCharCode.*headers\.length" src/ --include="*.gs"
+# Should return 0 results
+```

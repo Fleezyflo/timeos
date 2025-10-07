@@ -117,10 +117,11 @@ class TestSeeder {
   _seedBasicWorkflowData(batchOps) {
     const actions = this.mockService.createMockActionsForScenario('basic');
     const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+    const safeAccess = new SafeColumnAccess(headers);
 
     // Convert actions to sheet rows
     const updates = actions.map((action, index) => ({
-      rangeA1: `A${index + 2}:${String.fromCharCode(65 + headers.length - 1)}${index + 2}`, // A2, A3, etc.
+      rangeA1: safeAccess.getRowRange(index + 2), // A2, A3, etc.
       values: [action.toSheetRow(headers)]
     }));
 
@@ -137,18 +138,20 @@ class TestSeeder {
 
     // Seed actions
     const actionHeaders = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+    const actionSafeAccess = new SafeColumnAccess(actionHeaders);
     const actionUpdates = actions.map((action, index) => ({
-      rangeA1: `A${index + 2}:${String.fromCharCode(65 + actionHeaders.length - 1)}${index + 2}`,
+      rangeA1: actionSafeAccess.getRowRange(index + 2),
       values: [action.toSheetRow(actionHeaders)]
     }));
     batchOps.batchUpdate(SHEET_NAMES.ACTIONS, actionUpdates);
 
     // Seed time blocks
     const blockHeaders = batchOps.getHeaders(SHEET_NAMES.TIME_BLOCKS);
+    const blockSafeAccess = new SafeColumnAccess(blockHeaders);
     const blockUpdates = timeBlocks.map((block, index) => {
       const row = blockHeaders.map(header => block[header] || '');
       return {
-        rangeA1: `A${index + 2}:${String.fromCharCode(65 + blockHeaders.length - 1)}${index + 2}`,
+        rangeA1: blockSafeAccess.getRowRange(index + 2),
         values: [row]
       };
     });
@@ -162,11 +165,12 @@ class TestSeeder {
   _seedEmailIngestionData(batchOps) {
     const proposals = this.mockService.createMockProposedTasks(5);
     const headers = batchOps.getHeaders(SHEET_NAMES.PROPOSED_TASKS);
+    const safeAccess = new SafeColumnAccess(headers);
 
     const updates = proposals.map((proposal, index) => {
       const row = headers.map(header => proposal[header] || '');
       return {
-        rangeA1: `A${index + 2}:${String.fromCharCode(65 + headers.length - 1)}${index + 2}`,
+        rangeA1: safeAccess.getRowRange(index + 2),
         values: [row]
       };
     });
@@ -181,11 +185,12 @@ class TestSeeder {
   _seedCalendarIntegrationData(batchOps) {
     const events = this.mockService.createMockCalendarEvents(8);
     const headers = batchOps.getHeaders(SHEET_NAMES.CALENDAR_PROJECTION);
+    const safeAccess = new SafeColumnAccess(headers);
 
     const updates = events.map((event, index) => {
       const row = headers.map(header => event[header] || '');
       return {
-        rangeA1: `A${index + 2}:${String.fromCharCode(65 + headers.length - 1)}${index + 2}`,
+        rangeA1: safeAccess.getRowRange(index + 2),
         values: [row]
       };
     });
@@ -204,10 +209,11 @@ class TestSeeder {
     // Add some calendar events
     const events = this.mockService.createMockCalendarEvents(3);
     const eventHeaders = batchOps.getHeaders(SHEET_NAMES.CALENDAR_PROJECTION);
+    const eventSafeAccess = new SafeColumnAccess(eventHeaders);
     const eventUpdates = events.map((event, index) => {
       const row = eventHeaders.map(header => event[header] || '');
       return {
-        rangeA1: `A${index + 2}:${String.fromCharCode(65 + eventHeaders.length - 1)}${index + 2}`,
+        rangeA1: eventSafeAccess.getRowRange(index + 2),
         values: [row]
       };
     });
@@ -216,10 +222,11 @@ class TestSeeder {
     // Add some proposed tasks
     const proposals = this.mockService.createMockProposedTasks(2);
     const proposalHeaders = batchOps.getHeaders(SHEET_NAMES.PROPOSED_TASKS);
+    const proposalSafeAccess = new SafeColumnAccess(proposalHeaders);
     const proposalUpdates = proposals.map((proposal, index) => {
       const row = proposalHeaders.map(header => proposal[header] || '');
       return {
-        rangeA1: `A${index + 2}:${String.fromCharCode(65 + proposalHeaders.length - 1)}${index + 2}`,
+        rangeA1: proposalSafeAccess.getRowRange(index + 2),
         values: [row]
       };
     });

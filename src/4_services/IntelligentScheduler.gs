@@ -87,12 +87,13 @@ class IntelligentScheduler {
 
       if (!dryRun) {
         const updates = [];
+        const safeAccess = new SafeColumnAccess(headers);
         scheduleResult.scheduled.forEach(action => {
           const originalItem = actionsWithPos.find(item => item.row[headers.indexOf('action_id')] === action.action_id);
           if (originalItem) {
             const rowIndex = originalItem.sheetRowIndex;
             updates.push({
-              rangeA1: `A${rowIndex}:${String.fromCharCode(65 + headers.length - 1)}${rowIndex}`,
+              rangeA1: safeAccess.getRowRange(rowIndex),
               values: [action.toSheetRow(headers)]
             });
           }

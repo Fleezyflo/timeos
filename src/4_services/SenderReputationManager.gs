@@ -295,6 +295,7 @@ class SenderReputationManager {
       this.logger.info('SenderReputationManager', `Flushing ${this.pendingUpdates.size} pending reputation updates`);
 
       const headers = this.batchOperations.getHeaders(SHEET_NAMES.SENDER_REPUTATION);
+      const safeAccess = new SafeColumnAccess(headers);
       const existingData = this.batchOperations.getRowsByFilter(SHEET_NAMES.SENDER_REPUTATION, {});
 
       // Build a map of existing data for efficient lookup
@@ -319,7 +320,7 @@ class SenderReputationManager {
           // Update existing row
           const rowNumber = existingMap.get(senderEmail);
           updates.push({
-            range: `A${rowNumber}:${String.fromCharCode(65 + headers.length - 1)}${rowNumber}`,
+            range: safeAccess.getRowRange(rowNumber),
             values: [row]
           });
         } else {
