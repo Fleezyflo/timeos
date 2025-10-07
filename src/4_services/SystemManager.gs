@@ -222,6 +222,23 @@ class SystemManager {
       });
     }
 
+    // Persist health check summary to STATUS sheet
+    try {
+      const summaryValue = JSON.stringify({
+        status: overallHealth,
+        timestamp: TimeZoneAwareDate.toISOString(new Date()),
+        checks_count: Object.keys(healthResults.checks).length,
+        partial_failure: healthResults.partial_failure_mode || false
+      });
+
+      this._updateStatusRow('health_check_last_run', summaryValue, 'AUTO');
+      this.logger.debug('SystemManager', 'Health check summary persisted to STATUS');
+    } catch (statusError) {
+      this.logger.warn('SystemManager', 'Failed to persist health summary to STATUS', {
+        error: statusError.message
+      });
+    }
+
     this.logger.info('SystemManager', `Health check completed: ${overallHealth}`, healthResults);
     return healthResults;
   }
@@ -513,13 +530,14 @@ class SystemManager {
   }
 
   /**
-   * Check data integrity (validate data consistency)
+   * Check data integrity (validate data consistency and schema)
    * @returns {Object} Data integrity status
    * @private
    */
   _checkDataIntegrity() {
     const integrityHealth = {
       status: 'HEALTHY',
+      schema_validation: null,
       details: {},
       issues: []
     };
@@ -575,6 +593,30 @@ class SystemManager {
         });
 
         throw error;
+      }
+
+      // Run schema validation if SheetHealer available
+      try {
+        if (typeof SheetHealer !== 'undefined' && typeof SheetHealer.validateSchemas === 'function') {
+          const schemaResults = SheetHealer.validateSchemas();
+          integrityHealth.schema_validation = {
+            passed: schemaResults.allValid,
+            sheets_validated: schemaResults.results ? Object.keys(schemaResults.results).length : 0,
+            issues: schemaResults.allValid ? [] : Object.keys(schemaResults.results || {}).filter(s => !schemaResults.results[s].valid)
+          };
+
+          if (!schemaResults.allValid) {
+            integrityHealth.issues.push('Schema validation failed for some sheets');
+            integrityHealth.status = 'DEGRADED';
+          }
+        }
+      } catch (schemaError) {
+        integrityHealth.schema_validation = {
+          error: schemaError.message,
+          passed: false
+        };
+        integrityHealth.issues.push('Schema validation error');
+        integrityHealth.status = 'DEGRADED';
       }
 
     } catch (error) {

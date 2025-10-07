@@ -273,6 +273,19 @@ class MasterTestOrchestrator {
       suites.regression = new RegressionTestGuard();
     }
 
+    // Phase-specific validation tests
+    if (typeof validatePhase3Complete === 'function') {
+      suites.phase3 = { run: validatePhase3Complete };
+    }
+
+    if (typeof validatePhase6Batching === 'function') {
+      suites.phase6 = { run: validatePhase6Batching };
+    }
+
+    if (typeof test_ChunkedMaintenance === 'function') {
+      suites.phase7 = { run: test_ChunkedMaintenance };
+    }
+
     return suites;
   }
 
@@ -312,6 +325,17 @@ class MasterTestOrchestrator {
             break;
           case 'regression':
             results[suiteName] = suite.testCriticalPaths();
+            break;
+          case 'phase3':
+          case 'phase6':
+          case 'phase7':
+            // Phase-specific tests return boolean, wrap in result object
+            const phaseResult = suite.run();
+            results[suiteName] = {
+              passed: phaseResult === true,
+              tests: 1,
+              failures: phaseResult === true ? 0 : 1
+            };
             break;
         }
 

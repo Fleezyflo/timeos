@@ -47,6 +47,16 @@ function RUN_EVERYTHING_NOW() {
   safeRun('runValidationTests', runValidationTests);
   safeRun('testArchiveReliability', testArchiveReliability);
 
+  // Phase-specific validation tests
+  safeRun('validatePhase6Batching', validatePhase6Batching);
+  safeRun('test_ChunkedMaintenance', test_ChunkedMaintenance);
+
+  // Test Master Orchestrator (comprehensive suite)
+  safeRun('MasterTestOrchestrator.runComprehensiveSuite', function() {
+    const orchestrator = new MasterTestOrchestrator();
+    return orchestrator.runComprehensiveSuite({ includeStress: false });
+  });
+
   // Trigger Functions
   safeRun('runEmailProcessing', runEmailProcessing);
   safeRun('runSchedulingCycle', runSchedulingCycle);
@@ -64,6 +74,7 @@ function RUN_EVERYTHING_NOW() {
   // Summary
   var successCount = results.filter(function(r) { return r.status === 'SUCCESS'; }).length;
   var errorCount = results.filter(function(r) { return r.status === 'ERROR'; }).length;
+  var failures = results.filter(function(r) { return r.status === 'ERROR'; });
 
   Logger.log('\n========================================');
   Logger.log('🎯 EXECUTION COMPLETE');
@@ -72,6 +83,14 @@ function RUN_EVERYTHING_NOW() {
   Logger.log('✅ Success: ' + successCount);
   Logger.log('❌ Errors: ' + errorCount);
   Logger.log('⏱️ Duration: ' + duration + 's');
+
+  if (failures.length > 0) {
+    Logger.log('\n🔴 FAILURES:');
+    failures.forEach(function(f) {
+      Logger.log('  - ' + f.name + ': ' + f.error);
+    });
+  }
+
   Logger.log('========================================\n');
 
   return {
