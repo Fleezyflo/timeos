@@ -2409,6 +2409,12 @@ padding: 6px 8px;
             backendCallTriggered = true;
           }
         }
+        if (effectiveView === 'scheduler') {
+          if (options.force || !this.isCacheFresh('scheduler')) {
+            this.refreshSchedulerHealth({ force: true });
+            backendCallTriggered = true;
+          }
+        }
 
         if (backendCallTriggered) {
           this.state.lastSync = new Date();
