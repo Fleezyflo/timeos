@@ -36,6 +36,8 @@ function RUN_EVERYTHING_NOW() {
   safeRun('validateSystemForDeployment', validateSystemForDeployment);
   safeRun('isSystemReadyForDeployment', isSystemReadyForDeployment);
   safeRun('validatePhase10_BootstrapMonitoring', validatePhase10_BootstrapMonitoring);
+  safeRun('validatePhase10_3_HumanStateSchema', validatePhase10_3_HumanStateSchema);
+  safeRun('validatePhase10_3_LogLevelConfig', validatePhase10_3_LogLevelConfig);
 
   // Core Tests
   safeRun('test_PersistentStore', test_PersistentStore);

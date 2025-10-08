@@ -33,7 +33,11 @@ function registerAllServices() {
   ));
 
   // Layer 2: Depends on Layer 1 services
-  container.register(SERVICES.SmartLogger, () => new SmartLogger(container.get(SERVICES.CrossExecutionCache)));
+  // Phase 10.3: SmartLogger now accepts ConfigManager for LOG_LEVEL control
+  container.register(SERVICES.SmartLogger, () => new SmartLogger(
+    container.get(SERVICES.CrossExecutionCache),
+    container.get(SERVICES.ConfigManager)  // Added for LOG_LEVEL config integration
+  ));
   container.register(SERVICES.ErrorHandler, () => new ErrorHandler(container.get(SERVICES.SmartLogger)));
   container.register(SERVICES.BatchOperations, () => new BatchOperations(
     container.get(SERVICES.CrossExecutionCache),
@@ -325,8 +329,10 @@ function registerService(serviceName) {
       break;
 
     case SERVICES.SmartLogger:
+      // Phase 10.3: SmartLogger now accepts ConfigManager for LOG_LEVEL control
       container.register(SERVICES.SmartLogger, () => new SmartLogger(
-        container.get(SERVICES.CrossExecutionCache)
+        container.get(SERVICES.CrossExecutionCache),
+        container.get(SERVICES.ConfigManager)
       ));
       break;
 
@@ -839,7 +845,8 @@ function createServiceDependencyMap() {
   // Core infrastructure layer
   dependencyMap[SERVICES.PersistentStore] = [];
   dependencyMap[SERVICES.CrossExecutionCache] = [SERVICES.PersistentStore];
-  dependencyMap[SERVICES.SmartLogger] = [SERVICES.CrossExecutionCache];
+  // Phase 10.3: SmartLogger now depends on ConfigManager for LOG_LEVEL control
+  dependencyMap[SERVICES.SmartLogger] = [SERVICES.CrossExecutionCache, SERVICES.ConfigManager];
   dependencyMap[SERVICES.ErrorHandler] = [SERVICES.SmartLogger];
   dependencyMap[SERVICES.BatchOperations] = [SERVICES.CrossExecutionCache, SERVICES.SmartLogger];
   dependencyMap[SERVICES.DistributedLockManager] = [SERVICES.PersistentStore, SERVICES.SmartLogger];

@@ -2613,11 +2613,12 @@ class CrossExecutionCache {
  * Includes error handling and graceful degradation.
  */
 class SmartLogger {
-  constructor(cache) {
+  constructor(cache, configManager = null) {
     if (!cache) {
       throw new Error('SmartLogger: cache parameter is required');
     }
     this.cache = cache;
+    this.configManager = configManager;
     this.batchedLogs = [];
     this.maxBatchSize = 50;
     this.suppressionWindow = 30; // seconds
@@ -2627,7 +2628,8 @@ class SmartLogger {
       WARN: 2,
       ERROR: 3
     };
-    this.currentLogLevel = this.logLevels.INFO; // Default to INFO and above
+    // Phase 10.3: Initialize from config if available
+    this.currentLogLevel = this._getConfiguredLogLevel();
   }
 
   /**
@@ -2638,6 +2640,33 @@ class SmartLogger {
     if (this.logLevels[level] !== undefined) {
       this.currentLogLevel = this.logLevels[level];
     }
+  }
+
+  /**
+   * Phase 10.3: Get log level from ConfigManager or default to INFO
+   * @returns {number} Log level threshold
+   * @private
+   */
+  _getConfiguredLogLevel() {
+    if (!this.configManager) {
+      return this.logLevels.INFO; // Fallback during bootstrap
+    }
+
+    try {
+      const configLevel = this.configManager.getString('LOG_LEVEL', 'INFO').toUpperCase();
+      return this.logLevels[configLevel] !== undefined
+        ? this.logLevels[configLevel]
+        : this.logLevels.INFO;
+    } catch (error) {
+      return this.logLevels.INFO; // Fallback on error
+    }
+  }
+
+  /**
+   * Phase 10.3: Refresh log level from config (call when config changes)
+   */
+  updateLogLevel() {
+    this.currentLogLevel = this._getConfiguredLogLevel();
   }
 
   /**
@@ -4289,7 +4318,8 @@ const DEFAULT_CONFIG_DATA = Object.freeze([
   ['ZERO_TRUST_BATCH_SIZE', '100'],
   ['ZERO_TRUST_MIN_REPUTATION_SCORE', '0.3'],
   ['SCHEDULER_INTERVAL_MINUTES', '15'],
-  ['CONTEXT_MATCH_BONUS', '0.25']
+  ['CONTEXT_MATCH_BONUS', '0.25'],
+  ['LOG_LEVEL', 'INFO']  // Phase 10.3: Runtime log level control (DEBUG, INFO, WARN, ERROR)
 ]);
 
 class HardenedConfigManager {

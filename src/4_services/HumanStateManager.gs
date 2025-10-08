@@ -30,15 +30,17 @@ class HumanStateManager {
   recordHumanState(state) {
     try {
       const timestamp = TimeZoneAwareDate.toISOString(new Date());
-      // Phase 8: Sanitize user-provided notes
+      // Phase 10.3: Fixed schema alignment (8 columns matching SheetHealer._getHumanStateSchema)
+      // Schema: state_id, timestamp, energy_level, focus_level, mood, stress_level, current_context, notes
       const stateEntry = [
-        timestamp,
-        state.energy || 'MEDIUM',
-        state.mood || 'NEUTRAL',
-        state.focus || 'NORMAL',
-        sanitizeString(state.notes || ''),
-        'MANUAL', // Source: manual vs detected
-        JSON.stringify(state) // Full state for analysis
+        Utilities.getUuid(),                      // state_id (col 1) - PRIMARY KEY
+        timestamp,                                // timestamp (col 2)
+        state.energy || 'MEDIUM',                // energy_level (col 3)
+        state.focus || 'NORMAL',                 // focus_level (col 4)
+        state.mood || 'NEUTRAL',                 // mood (col 5)
+        state.stress || 'LOW',                   // stress_level (col 6)
+        state.context || 'GENERAL',              // current_context (col 7)
+        sanitizeString(state.notes || '')        // notes (col 8)
       ];
 
       // Use HUMAN_STATE sheet name from constants
@@ -90,9 +92,10 @@ class HumanStateManager {
       const totalWeight = weights.reduce((sum, w) => sum + w, 0);
 
       const weightedStates = recentStates.map((state, index) => ({
-        energy: this._mapStateToNumber(state[1], 'energy'),
-        mood: this._mapStateToNumber(state[2], 'mood'),
+        energy: this._mapStateToNumber(state[2], 'energy'),
         focus: this._mapStateToNumber(state[3], 'focus'),
+        mood: this._mapStateToNumber(state[4], 'mood'),
+        stress: this._mapStateToNumber(state[5], 'stress'),
         weight: weights[index] / totalWeight
       }));
 

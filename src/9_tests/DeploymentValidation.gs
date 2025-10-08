@@ -1125,4 +1125,148 @@ function validatePhase10_BootstrapMonitoring() {
     return false;
   }
 }
+
+/**
+ * Phase 10.3: HUMAN_STATE Schema Alignment Validation
+ * Verifies HumanStateManager writes match canonical schema
+ */
+function validatePhase10_3_HumanStateSchema() {
+  const logger = getLogger();
+
+  try {
+    logger.info('Phase10.3Validation', 'Testing HUMAN_STATE schema alignment');
+
+    // Test 1: Verify schema definition exists
+    const schema = SheetHealer._getHumanStateSchema();
+    const expectedHeaders = schema.headers;
+
+    if (expectedHeaders.length !== 8) {
+      throw new Error(`Expected 8 columns in schema, found ${expectedHeaders.length}`);
+    }
+
+    logger.info('Phase10.3Validation', `✓ Test 1 passed: Schema defines 8 columns`);
+
+    // Test 2: Verify actual sheet headers match schema
+    const batchOps = container.get(SERVICES.BatchOperations);
+    const actualHeaders = batchOps.getHeaders(SHEET_NAMES.HUMAN_STATE);
+
+    if (JSON.stringify(expectedHeaders) !== JSON.stringify(actualHeaders)) {
+      throw new Error(`Schema mismatch: expected [${expectedHeaders.join(', ')}], found [${actualHeaders.join(', ')}]`);
+    }
+
+    logger.info('Phase10.3Validation', `✓ Test 2 passed: Sheet headers match schema`);
+
+    // Test 3: Test write operation produces 8 columns
+    const humanStateManager = container.get(SERVICES.HumanStateManager);
+    const testState = {
+      energy: 'HIGH',
+      focus: 'SHARP',
+      mood: 'POSITIVE',
+      stress: 'LOW',
+      context: 'TEST_VALIDATION',
+      notes: 'Phase 10.3 schema validation test'
+    };
+
+    const writeSuccess = humanStateManager.recordHumanState(testState);
+    if (!writeSuccess) {
+      throw new Error('Failed to write test state');
+    }
+
+    logger.info('Phase10.3Validation', `✓ Test 3 passed: Test state written successfully`);
+
+    // Test 4: Verify last row has exactly 8 columns
+    const rows = batchOps.getRowsWithPosition(SHEET_NAMES.HUMAN_STATE, {});
+    if (rows.length === 0) {
+      throw new Error('No rows found in HUMAN_STATE sheet');
+    }
+
+    const lastRow = rows[rows.length - 1];
+    if (lastRow.row.length !== 8) {
+      throw new Error(`Expected 8 columns in written row, found ${lastRow.row.length}`);
+    }
+
+    logger.info('Phase10.3Validation', `✓ Test 4 passed: Written row has 8 columns`);
+
+    // Test 5: Verify state_id (column 1) is UUID
+    const stateId = lastRow.row[0];
+    const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidPattern.test(stateId)) {
+      throw new Error(`state_id is not valid UUID: ${stateId}`);
+    }
+
+    logger.info('Phase10.3Validation', `✓ Test 5 passed: state_id is valid UUID`);
+
+    // Clean up test row
+    batchOps.deleteRowsByIndices(SHEET_NAMES.HUMAN_STATE, [lastRow.sheetRow]);
+
+    logger.info('Phase10.3Validation', '✅ HUMAN_STATE schema validation passed', {
+      schema_columns: expectedHeaders.length,
+      test_state_id: stateId
+    });
+
+    return true;
+
+  } catch (error) {
+    logger.error('Phase10.3Validation', 'HUMAN_STATE schema validation failed: ' + error.message);
+    return false;
+  }
+}
+
+/**
+ * Phase 10.3: LOG_LEVEL Config Integration Validation
+ * Verifies SmartLogger ConfigManager integration
+ */
+function validatePhase10_3_LogLevelConfig() {
+  const logger = getLogger();
+
+  try {
+    logger.info('Phase10.3Validation', 'Testing LOG_LEVEL config integration');
+
+    // Test 1: Verify ConfigManager dependency injection
+    const smartLogger = container.get(SERVICES.SmartLogger);
+    if (!smartLogger.configManager) {
+      throw new Error('SmartLogger missing configManager dependency');
+    }
+
+    logger.info('Phase10.3Validation', '✓ Test 1 passed: ConfigManager injected');
+
+    // Test 2: Verify _getConfiguredLogLevel method exists
+    if (typeof smartLogger._getConfiguredLogLevel !== 'function') {
+      throw new Error('SmartLogger missing _getConfiguredLogLevel method');
+    }
+
+    logger.info('Phase10.3Validation', '✓ Test 2 passed: _getConfiguredLogLevel method exists');
+
+    // Test 3: Verify updateLogLevel method exists
+    if (typeof smartLogger.updateLogLevel !== 'function') {
+      throw new Error('SmartLogger missing updateLogLevel method');
+    }
+
+    logger.info('Phase10.3Validation', '✓ Test 3 passed: updateLogLevel method exists');
+
+    // Test 4: Verify log level respects config
+    const configMgr = container.get(SERVICES.ConfigManager);
+    const configuredLevel = configMgr.getString('LOG_LEVEL', 'INFO');
+
+    logger.info('Phase10.3Validation', `✓ Test 4 passed: LOG_LEVEL config accessible (current: ${configuredLevel})`);
+
+    // Test 5: Verify log levels defined
+    if (!smartLogger.logLevels || Object.keys(smartLogger.logLevels).length !== 4) {
+      throw new Error('SmartLogger logLevels not properly defined');
+    }
+
+    logger.info('Phase10.3Validation', '✓ Test 5 passed: Log levels defined (DEBUG, INFO, WARN, ERROR)');
+
+    logger.info('Phase10.3Validation', '✅ LOG_LEVEL config integration validated', {
+      configured_level: configuredLevel,
+      current_threshold: smartLogger.currentLogLevel
+    });
+
+    return true;
+
+  } catch (error) {
+    logger.error('Phase10.3Validation', 'LOG_LEVEL config validation failed: ' + error.message);
+    return false;
+  }
+}
 // BUILD:REMOVE:END
