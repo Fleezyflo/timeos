@@ -710,18 +710,31 @@ class EmailIngestionEngine {
       const detectedDates = this._extractDateEntities(content);
       const deadline = detectedDates.length > 0 ? detectedDates[0] : '';
 
+      // Phase 8: Apply sanitization and privacy masking
+      const maskContent = this.configManager.getBoolean('MASK_PROPOSAL_CONTENT', false);
+      const maskSender = this.configManager.getBoolean('MASK_SENDER_EMAIL', false);
+
+      const rawPreview = (body || '').substring(0, 200) + ((body || '').length > 200 ? '...' : '');
+      const contentPreview = maskContent
+        ? sanitizeString(rawPreview.substring(0, 100) + '[...masked]')
+        : sanitizeString(rawPreview);
+
+      const maskedSender = maskSender && senderEmail
+        ? senderEmail.charAt(0) + '***@' + senderEmail.split('@')[1]
+        : senderEmail;
+
       const result = {
         status: STATUS.PENDING,
         created_at: TimeZoneAwareDate.toISOString(date),
         processed_at: null,
         is_from_email: true, // Explicit flag for email origin
         source_id: messageId,
-        sender: senderEmail,
-        subject: subject,
-        parsed_title: title,
+        sender: sanitizeString(maskedSender),
+        subject: sanitizeString(subject),
+        parsed_title: sanitizeString(title),
         suggested_lane: lane,
         confidence_score: actionabilityScore || 0.5,
-        raw_content_preview: (body || '').substring(0, 200) + ((body || '').length > 200 ? '...' : '')
+        raw_content_preview: contentPreview
       };
 
       this.logger.debug('EmailIngestionEngine', 'parseTaskFromEmailWithLearning returning', {

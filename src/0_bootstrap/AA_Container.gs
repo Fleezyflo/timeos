@@ -127,7 +127,10 @@ const SHEET_NAMES = Object.freeze({
   TIME_BLOCKS: 'TIME_BLOCKS',
   LANES: 'LANES',
   SENDER_REPUTATION: 'SENDER_REPUTATION',
-  CHAT_QUEUE: 'CHAT_QUEUE'
+  CHAT_QUEUE: 'CHAT_QUEUE',
+
+  // Phase 10: Deployment tracking
+  PLAN_EXECUTION_LOG: 'PLAN_EXECUTION_LOG'
 });
 
 // Service identifiers for type safety and circuit breakers
@@ -152,6 +155,7 @@ const SERVICES = Object.freeze({
   ArchiveManager: 'ArchiveManager',
   DynamicLaneManager: 'DynamicLaneManager',
   SystemManager: 'SystemManager',
+  BackupManager: 'BackupManager',
 
   // Web and external interfaces
   WebAppManager: 'WebAppManager',

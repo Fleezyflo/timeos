@@ -618,34 +618,15 @@ class FoundationBlocksManager {
 
   /**
    * Log events to activity sheet
+   * Phase 6: Delegate to SmartLogger instead of direct sheet writes
    */
   logEvent(event, message, details = null) {
     try {
       if (this.logger) {
-        this.logger.info('FoundationBlocksManager', message, details);
+        // Phase 6: Merge event into context for structured logging
+        const context = details ? { ...details, event: event } : { event: event };
+        this.logger.info('FoundationBlocksManager', message, context);
       }
-
-      // Also log to spreadsheet if available
-      try {
-        const spreadsheet = getActiveSystemSpreadsheet();
-        const activitySheet = spreadsheet.getSheetByName(SHEET_NAMES.ACTIVITY);
-
-        if (activitySheet) {
-          const logRow = [
-            TimeZoneAwareDate.now(),
-            event,
-            message,
-            details ? JSON.stringify(details).slice(0, 10000) : '',
-            'info',
-            'FoundationBlocksManager',
-            false
-          ];
-          activitySheet.appendRow(logRow);
-        }
-      } catch (sheetError) {
-        // Don't throw on sheet logging errors
-      }
-
     } catch (error) {
       Logger.log(`Failed to log event: ${error.message || error}`);
     }

@@ -673,6 +673,10 @@ class IntelligentScheduler {
    * @param {Array} blocks - Array of time block objects to persist
    * @returns {number} Number of blocks persisted
    */
+  /**
+   * Phase 6: Cleanup-before-append pattern to prevent duplicates
+   * Extracts unique days from blocks, deletes existing blocks for those days, then appends new blocks
+   */
   _persistTimeBlocks(blocks) {
     try {
       if (!blocks || blocks.length === 0) {
@@ -680,20 +684,62 @@ class IntelligentScheduler {
         return 0;
       }
 
-      // Get headers from TIME_BLOCKS sheet
+      // Phase 6: Extract unique days from blocks to be persisted
+      const uniqueDays = new Set();
+      blocks.forEach(block => {
+        const blockDate = block.start_time instanceof Date ? block.start_time : new Date(block.start_time);
+        const dayStr = TimeZoneAwareDate.toISOString(blockDate).split('T')[0];
+        uniqueDays.add(dayStr);
+      });
+
+      this.logger.debug('IntelligentScheduler', `Persisting blocks for ${uniqueDays.size} unique days`, {
+        days: Array.from(uniqueDays)
+      });
+
+      // Phase 6: Delete existing blocks for those days
+      let deletedCount = 0;
+      if (uniqueDays.size > 0) {
+        const existingBlocks = this.batchOperations.getRowsByFilter(
+          SHEET_NAMES.TIME_BLOCKS,
+          {},
+          { includeHeader: false }
+        );
+
+        const rowsToDelete = [];
+        const headers = this.batchOperations.getHeaders(SHEET_NAMES.TIME_BLOCKS);
+        const startTimeIndex = headers.indexOf('start_time');
+
+        existingBlocks.forEach((row, index) => {
+          const sheetRowIndex = index + 2; // +2 because row 1 is header, and index is 0-based
+          const startTime = row[startTimeIndex];
+          if (startTime) {
+            const rowDate = new Date(startTime);
+            const rowDayStr = TimeZoneAwareDate.toISOString(rowDate).split('T')[0];
+            if (uniqueDays.has(rowDayStr)) {
+              rowsToDelete.push(sheetRowIndex);
+            }
+          }
+        });
+
+        if (rowsToDelete.length > 0) {
+          deletedCount = this.batchOperations.deleteRowsByIndices(SHEET_NAMES.TIME_BLOCKS, rowsToDelete);
+          this.logger.info('IntelligentScheduler', `Deleted ${deletedCount} existing time blocks before append`);
+        }
+      }
+
+      // Get headers and convert blocks to sheet rows
       const headers = this.batchOperations.getHeaders(SHEET_NAMES.TIME_BLOCKS);
-
-      // Convert blocks to sheet rows
       const rows = blocks.map(block => this._blockToRow(block, headers));
-
-      // Clear existing blocks for today first (optional - prevents duplicates)
-      const today = new Date();
-      const todayDateStr = today.toISOString().split('T')[0];
 
       // Append new blocks
       this.batchOperations.appendRows(SHEET_NAMES.TIME_BLOCKS, rows);
 
-      this.logger.info('IntelligentScheduler', `Persisted ${blocks.length} time blocks to TIME_BLOCKS sheet`);
+      this.logger.info('IntelligentScheduler', `Persisted ${blocks.length} time blocks to TIME_BLOCKS sheet`, {
+        daysUpdated: uniqueDays.size,
+        deletedBlocks: deletedCount,
+        addedBlocks: blocks.length
+      });
+
       return blocks.length;
 
     } catch (error) {

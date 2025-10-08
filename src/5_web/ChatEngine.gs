@@ -196,13 +196,14 @@ class ChatEngine {
     const rawPriority = paramMatches.priority;
     const rawLane = paramMatches.lane;
 
+    // Phase 8: Sanitize user input to prevent injection attacks
     return {
-      title: paramMatches.title || text,
-      description: paramMatches.description || '',
+      title: sanitizeString(paramMatches.title || text),
+      description: sanitizeString(paramMatches.description || ''),
       deadline: paramMatches.deadline || '',
       priority: normalizePriority(rawPriority || PRIORITY.MEDIUM),
       lane: normalizeLane(rawLane || LANE.OPERATIONAL),
-      created_by: context && context.user ? context.user : 'unknown',
+      created_by: sanitizeString(context && context.user ? context.user : 'unknown'),
       created_at: new Date().toISOString()
     };
   }

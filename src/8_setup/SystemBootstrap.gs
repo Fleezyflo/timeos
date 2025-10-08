@@ -478,6 +478,10 @@ function seedInitialData() {
           ['cfg_email_label', 'EMAIL', 'PROCESSING', 'Processing Label', 'EMAIL_PROCESSING_LABEL', 'MOH-Time-OS', 'Gmail label for processing emails'],
           ['cfg_email_batch_size', 'EMAIL', 'PERFORMANCE', 'Batch Size', 'EMAIL_BATCH_SIZE', '50', 'Number of emails to process per batch'],
 
+          // Phase 8: Privacy configuration
+          ['cfg_mask_proposal_content', 'PRIVACY', 'DATA_HANDLING', 'Mask Proposal Content', 'MASK_PROPOSAL_CONTENT', 'false', 'Mask raw email content in proposals'],
+          ['cfg_mask_sender_email', 'PRIVACY', 'DATA_HANDLING', 'Mask Sender Email', 'MASK_SENDER_EMAIL', 'false', 'Mask sender email addresses'],
+
           // Priority and scoring configuration
           ['cfg_priority_high_threshold', 'SCORING', 'THRESHOLDS', 'High Priority Threshold', 'PROPOSAL_THRESHOLD_HIGH', '0.70', 'Threshold for high priority proposals'],
           ['cfg_priority_low_threshold', 'SCORING', 'THRESHOLDS', 'Low Priority Threshold', 'PROPOSAL_THRESHOLD_LOW', '0.30', 'Threshold for low priority proposals'],
@@ -528,6 +532,10 @@ function seedInitialData() {
           ['cfg_scan_mode', 'EMAIL', 'PROCESSING', 'Scan Mode', 'SCAN_MODE', 'LABEL_ONLY', 'Email scanning mode: LABEL_ONLY or ZERO_TRUST_TRIAGE'],
           ['cfg_email_label', 'EMAIL', 'PROCESSING', 'Processing Label', 'EMAIL_PROCESSING_LABEL', 'MOH-Time-OS', 'Gmail label for processing emails'],
           ['cfg_email_batch_size', 'EMAIL', 'PERFORMANCE', 'Batch Size', 'EMAIL_BATCH_SIZE', '50', 'Number of emails to process per batch'],
+
+          // Phase 8: Privacy configuration
+          ['cfg_mask_proposal_content', 'PRIVACY', 'DATA_HANDLING', 'Mask Proposal Content', 'MASK_PROPOSAL_CONTENT', 'false', 'Mask raw email content in proposals'],
+          ['cfg_mask_sender_email', 'PRIVACY', 'DATA_HANDLING', 'Mask Sender Email', 'MASK_SENDER_EMAIL', 'false', 'Mask sender email addresses'],
 
           // Priority and scoring configuration
           ['cfg_priority_high_threshold', 'SCORING', 'THRESHOLDS', 'High Priority Threshold', 'PROPOSAL_THRESHOLD_HIGH', '0.70', 'Threshold for high priority proposals'],

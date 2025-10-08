@@ -14,6 +14,12 @@ class MockBatchOperations {
     this.logger = logger;
     this.mockSheets = new Map(); // In-memory sheets
     this.headerCachePrefix = 'headers_';
+    // Phase 6: Operation tracking for test assertions
+    this.operationCounts = {
+      optimisticLockCalls: 0,
+      deletions: 0,
+      appends: 0
+    };
     this.initializeMockSheets();
   }
 
@@ -292,5 +298,151 @@ class MockBatchOperations {
     }
     logger.info('BatchOperations', `Legacy clear and set performed for ${sheetName}`);
     return false;
+  }
+
+  /**
+   * Phase 6: Append rows to mock sheet
+   * Instrumented for test assertions
+   */
+  appendRows(sheetName, rows) {
+    const mockSheet = this.mockSheets.get(sheetName);
+    if (!mockSheet) {
+      throw new Error(`MockBatchOperations: Sheet '${sheetName}' does not exist`);
+    }
+
+    rows.forEach(row => {
+      mockSheet.data.push([...row]);
+      this.operationCounts.appends++; // Phase 6: Track appends
+    });
+
+    this.logger.debug('MockBatchOperations', `Appended ${rows.length} rows to ${sheetName}`);
+  }
+
+  /**
+   * Phase 6: Update action with optimistic locking
+   * Simplified mock implementation with instrumentation
+   */
+  updateActionWithOptimisticLocking(sheetName, actionId, updatedAction) {
+    this.operationCounts.optimisticLockCalls++; // Phase 6: Track optimistic lock calls
+
+    const mockSheet = this.mockSheets.get(sheetName);
+    if (!mockSheet) {
+      throw new Error(`MockBatchOperations: Sheet '${sheetName}' does not exist`);
+    }
+
+    const actionIdIndex = mockSheet.headers.indexOf('action_id');
+    if (actionIdIndex === -1) {
+      return { success: false, error: 'action_id column not found' };
+    }
+
+    // Find the row with matching action_id
+    const rowIndex = mockSheet.data.findIndex(row => row[actionIdIndex] === actionId);
+
+    if (rowIndex === -1) {
+      return { success: false, error: 'Task not found' };
+    }
+
+    // Mock version check (simplified - always succeeds for testing)
+    const versionIndex = mockSheet.headers.indexOf('version');
+    if (versionIndex !== -1) {
+      const currentVersion = mockSheet.data[rowIndex][versionIndex] || 0;
+      const expectedVersion = updatedAction.version || 0;
+
+      if (currentVersion !== expectedVersion) {
+        return { success: false, versionConflict: true, error: 'Version conflict' };
+      }
+    }
+
+    // Update the row with new values
+    mockSheet.headers.forEach((header, index) => {
+      if (updatedAction[header] !== undefined) {
+        mockSheet.data[rowIndex][index] = updatedAction[header];
+      }
+    });
+
+    // Increment version if present
+    if (versionIndex !== -1) {
+      mockSheet.data[rowIndex][versionIndex] = (mockSheet.data[rowIndex][versionIndex] || 0) + 1;
+    }
+
+    return { success: true };
+  }
+
+  /**
+   * Phase 6: Delete rows by indices
+   * Instrumented for test assertions
+   */
+  deleteRowsByIndices(sheetName, rowIndices) {
+    const mockSheet = this.mockSheets.get(sheetName);
+    if (!mockSheet) {
+      throw new Error(`MockBatchOperations: Sheet '${sheetName}' does not exist`);
+    }
+
+    // Sort indices in descending order to delete from bottom up
+    const sortedIndices = [...rowIndices].sort((a, b) => b - a);
+
+    sortedIndices.forEach(rowIndex => {
+      // Convert 1-based sheet row index to 0-based data array index
+      const dataIndex = rowIndex - 2; // -2 because row 1 is header
+      if (dataIndex >= 0 && dataIndex < mockSheet.data.length) {
+        mockSheet.data.splice(dataIndex, 1);
+        this.operationCounts.deletions++; // Phase 6: Track deletions
+      }
+    });
+
+    this.logger.debug('MockBatchOperations', `Deleted ${sortedIndices.length} rows from ${sheetName}`);
+    return sortedIndices.length;
+  }
+
+  /**
+   * Phase 6: Get operation counts for test assertions
+   */
+  getOperationCounts() {
+    return { ...this.operationCounts };
+  }
+
+  /**
+   * Phase 6: Reset operation counts for test isolation
+   */
+  resetOperationCounts() {
+    this.operationCounts = {
+      optimisticLockCalls: 0,
+      deletions: 0,
+      appends: 0
+    };
+  }
+
+  /**
+   * Phase 6: Get rows by filter (for testing)
+   * Simplified implementation
+   */
+  getRowsByFilter(sheetName, filterObject = {}, options = {}) {
+    const mockSheet = this.mockSheets.get(sheetName);
+    if (!mockSheet) {
+      throw new Error(`MockBatchOperations: Sheet '${sheetName}' does not exist`);
+    }
+
+    const { includeHeader = false } = options;
+    const filteredData = [];
+
+    mockSheet.data.forEach(row => {
+      let matches = true;
+      for (const [key, value] of Object.entries(filterObject)) {
+        const colIndex = mockSheet.headers.indexOf(key);
+        if (colIndex !== -1 && row[colIndex] !== value) {
+          matches = false;
+          break;
+        }
+      }
+      if (matches) {
+        filteredData.push([...row]);
+      }
+    });
+
+    if (includeHeader && filteredData.length > 0) {
+      return [[...mockSheet.headers], ...filteredData];
+    }
+
+    return filteredData;
   }
 }

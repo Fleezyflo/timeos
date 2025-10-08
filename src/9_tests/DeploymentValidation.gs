@@ -859,4 +859,270 @@ function validatePhase6Batching() {
     return false;
   }
 }
+
+/**
+ * Phase 8: Sanitization & Privacy Controls Validation
+ * Tests formula injection prevention, XSS hardening, and privacy masking
+ */
+function validatePhase8Sanitization() {
+  const logger = getLogger();
+
+  try {
+    logger.info('Phase8Validation', 'Starting Phase 8 sanitization validation tests');
+
+    // Test 1: Formula injection prevention
+    const formulaTests = [
+      { input: '=1+1', expectedPrefix: "'" },
+      { input: '+IMPORTRANGE()', expectedPrefix: "'" },
+      { input: '-SUM(A1:A10)', expectedPrefix: "'" },
+      { input: '@FORMULA', expectedPrefix: "'" },
+      { input: 'Normal text', expectedPrefix: null }
+    ];
+
+    for (const test of formulaTests) {
+      const sanitized = sanitizeString(test.input);
+      if (test.expectedPrefix && !sanitized.startsWith(test.expectedPrefix + test.input.charAt(0))) {
+        throw new Error(`Formula injection test failed for input: ${test.input}. Expected prefix but got: ${sanitized}`);
+      }
+      if (!test.expectedPrefix && sanitized !== test.input) {
+        throw new Error(`Normal text should not be modified. Input: ${test.input}, Got: ${sanitized}`);
+      }
+    }
+    logger.info('Phase8Validation', '✓ Test 1 passed: Formula injection prevention works');
+
+    // Test 2: HTML/Script tag removal
+    const xssTests = [
+      { input: '<script>alert(1)</script>', shouldNotContain: ['<', '>', 'script'] },
+      { input: '<b>Bold text</b>', shouldNotContain: ['<', '>'] },
+      { input: 'javascript:void(0)', shouldNotContain: ['javascript:'] },
+      { input: 'onclick=alert(1)', shouldNotContain: ['onclick='] }
+    ];
+
+    for (const test of xssTests) {
+      const sanitized = sanitizeString(test.input);
+      for (const badPattern of test.shouldNotContain) {
+        if (sanitized.toLowerCase().includes(badPattern.toLowerCase())) {
+          throw new Error(`XSS test failed. Input: ${test.input}, sanitized still contains: ${badPattern}`);
+        }
+      }
+    }
+    logger.info('Phase8Validation', '✓ Test 2 passed: HTML/Script sanitization works');
+
+    // Test 3: HTML entity removal
+    const entityTest = sanitizeString('Text with &lt;html&gt; and &amp; &quot;');
+    if (entityTest.includes('&lt;') || entityTest.includes('&gt;') ||
+        entityTest.includes('&amp;') || entityTest.includes('&quot;')) {
+      throw new Error('HTML entity sanitization failed');
+    }
+    logger.info('Phase8Validation', '✓ Test 3 passed: HTML entity removal works');
+
+    // Test 4: Privacy config flags exist
+    const batchOps = container.get(SERVICES.BatchOperations);
+    const configs = batchOps.getRowsByFilter(SHEET_NAMES.APPSHEET_CONFIG, {});
+
+    const hasMaskContent = configs.some(row =>
+      Array.isArray(row) && row.some(cell => cell === 'MASK_PROPOSAL_CONTENT')
+    );
+    const hasMaskSender = configs.some(row =>
+      Array.isArray(row) && row.some(cell => cell === 'MASK_SENDER_EMAIL')
+    );
+
+    if (!hasMaskContent) {
+      throw new Error('MASK_PROPOSAL_CONTENT config flag not found in APPSHEET_CONFIG');
+    }
+    if (!hasMaskSender) {
+      throw new Error('MASK_SENDER_EMAIL config flag not found in APPSHEET_CONFIG');
+    }
+    logger.info('Phase8Validation', '✓ Test 4 passed: Privacy config flags exist');
+
+    // Test 5: Length limiting
+    const longString = 'a'.repeat(15000);
+    const truncated = sanitizeString(longString);
+    if (truncated.length > 10000) {
+      throw new Error(`String length limit failed. Expected max 10000, got ${truncated.length}`);
+    }
+    logger.info('Phase8Validation', '✓ Test 5 passed: Length limiting works');
+
+    // Test 6: Null/undefined handling
+    if (sanitizeString(null) !== '') {
+      throw new Error('sanitizeString(null) should return empty string');
+    }
+    if (sanitizeString(undefined) !== '') {
+      throw new Error('sanitizeString(undefined) should return empty string');
+    }
+    if (sanitizeString(123) !== '') {
+      throw new Error('sanitizeString(non-string) should return empty string');
+    }
+    logger.info('Phase8Validation', '✓ Test 6 passed: Null/undefined handling works');
+
+    logger.info('Phase8Validation', 'All Phase 8 validation tests passed!', {
+      tests_passed: 6,
+      formula_injection_prevention: true,
+      xss_hardening: true,
+      html_entity_removal: true,
+      privacy_config_flags: true,
+      length_limiting: true,
+      null_handling: true
+    });
+
+    return true;
+
+  } catch (error) {
+    logger.error('Phase8Validation', 'Phase 8 validation failed: ' + error.message, {
+      stack: error.stack
+    });
+    return false;
+  }
+}
+
+/**
+ * Phase 10: Deployment Infrastructure Validation
+ * Tests backup, versioning, logging, and deployment readiness
+ */
+function validatePhase10Deployment() {
+  const logger = getLogger();
+
+  try {
+    logger.info('Phase10Validation', 'Starting Phase 10 deployment validation tests');
+
+    // Test 1: Version management
+    const version = getSystemVersion();
+    if (!version || !version.includes('v2.0.0')) {
+      throw new Error(`Invalid version string: ${version}`);
+    }
+    const versionMeta = getSystemVersionMetadata();
+    if (!versionMeta.phase || versionMeta.phase !== 10) {
+      throw new Error(`Incorrect phase in version metadata: ${versionMeta.phase}`);
+    }
+    logger.info('Phase10Validation', '✓ Test 1 passed: Version management works');
+
+    // Test 2: PLAN_EXECUTION_LOG sheet exists
+    const batchOps = container.get(SERVICES.BatchOperations);
+    const logHeaders = batchOps.getHeaders(SHEET_NAMES.PLAN_EXECUTION_LOG);
+    const expectedHeaders = ['log_id', 'timestamp', 'phase', 'operator', 'action', 'status',
+                             'details', 'verification_results', 'duration_ms', 'error_message'];
+    if (logHeaders.length !== expectedHeaders.length) {
+      throw new Error(`PLAN_EXECUTION_LOG has ${logHeaders.length} headers, expected ${expectedHeaders.length}`);
+    }
+    logger.info('Phase10Validation', '✓ Test 2 passed: PLAN_EXECUTION_LOG schema correct');
+
+    // Test 3: BackupManager service available
+    const backupManager = container.get(SERVICES.BackupManager);
+    if (typeof backupManager.createBackup !== 'function') {
+      throw new Error('BackupManager.createBackup() method not found');
+    }
+    if (typeof backupManager.verifyBackup !== 'function') {
+      throw new Error('BackupManager.verifyBackup() method not found');
+    }
+    if (typeof backupManager.restoreFromBackup !== 'function') {
+      throw new Error('BackupManager.restoreFromBackup() method not found');
+    }
+    logger.info('Phase10Validation', '✓ Test 3 passed: BackupManager service available');
+
+    // Test 4: SystemManager deployment logging
+    const systemManager = container.get(SERVICES.SystemManager);
+    if (typeof systemManager.logDeploymentAction !== 'function') {
+      throw new Error('SystemManager.logDeploymentAction() method not found');
+    }
+
+    // Test logging functionality
+    const logResult = systemManager.logDeploymentAction(
+      'Phase 10',
+      'VERIFY',
+      'STARTED',
+      { test: true }
+    );
+    if (!logResult) {
+      throw new Error('Deployment logging failed');
+    }
+    logger.info('Phase10Validation', '✓ Test 4 passed: Deployment logging works');
+
+    // Test 5: Pre-deployment validation function exists
+    if (typeof runPreDeploymentChecks !== 'function') {
+      throw new Error('runPreDeploymentChecks() function not found');
+    }
+    logger.info('Phase10Validation', '✓ Test 5 passed: Pre-deployment validation exists');
+
+    // Test 6: Post-deployment verification function exists
+    if (typeof runPostDeploymentVerification !== 'function') {
+      throw new Error('runPostDeploymentVerification() function not found');
+    }
+    logger.info('Phase10Validation', '✓ Test 6 passed: Post-deployment verification exists');
+
+    logger.info('Phase10Validation', 'All Phase 10 validation tests passed!', {
+      tests_passed: 6,
+      version_management: true,
+      plan_execution_log: true,
+      backup_manager: true,
+      deployment_logging: true,
+      validation_functions: true
+    });
+
+    return true;
+
+  } catch (error) {
+    logger.error('Phase10Validation', 'Phase 10 validation failed: ' + error.message, {
+      stack: error.stack
+    });
+    return false;
+  }
+}
+
+/**
+ * Phase 10: Bootstrap Performance Monitoring Validation
+ * Verifies bootstrap metrics are tracked in STATUS sheet
+ */
+function validatePhase10_BootstrapMonitoring() {
+  const logger = getLogger();
+
+  try {
+    logger.info('Phase10Validation', 'Testing bootstrap performance monitoring');
+
+    // Test 1: Verify bootstrap metrics exist in STATUS
+    const systemManager = container.get(SERVICES.SystemManager);
+    const lastBootstrapDuration = systemManager.getStatusValue('last_bootstrap_duration_ms');
+    const lastBootstrapTimestamp = systemManager.getStatusValue('last_bootstrap_timestamp');
+
+    if (!lastBootstrapDuration) {
+      throw new Error('Bootstrap duration not recorded in STATUS sheet');
+    }
+
+    const durationMs = parseInt(lastBootstrapDuration, 10);
+    if (isNaN(durationMs) || durationMs < 0) {
+      throw new Error(`Invalid bootstrap duration: ${lastBootstrapDuration}`);
+    }
+
+    logger.info('Phase10Validation', `✓ Test 1 passed: Bootstrap duration tracked (${durationMs}ms)`);
+
+    // Test 2: Verify timestamp format
+    if (!lastBootstrapTimestamp) {
+      throw new Error('Bootstrap timestamp not recorded');
+    }
+
+    const timestamp = new Date(lastBootstrapTimestamp);
+    if (isNaN(timestamp.getTime())) {
+      throw new Error(`Invalid timestamp format: ${lastBootstrapTimestamp}`);
+    }
+
+    logger.info('Phase10Validation', `✓ Test 2 passed: Bootstrap timestamp valid (${lastBootstrapTimestamp})`);
+
+    // Test 3: Warn if bootstrap is slow
+    if (durationMs > 30000) {
+      logger.warn('Phase10Validation', `Bootstrap is slow: ${durationMs}ms (>30s threshold)`);
+    } else {
+      logger.info('Phase10Validation', `✓ Test 3 passed: Bootstrap performance acceptable (${durationMs}ms)`);
+    }
+
+    logger.info('Phase10Validation', 'Bootstrap monitoring validation passed', {
+      duration_ms: durationMs,
+      timestamp: lastBootstrapTimestamp
+    });
+
+    return true;
+
+  } catch (error) {
+    logger.error('Phase10Validation', 'Bootstrap monitoring validation failed: ' + error.message);
+    return false;
+  }
+}
 // BUILD:REMOVE:END

@@ -272,7 +272,18 @@ class SheetHealer {
       'ACTIVITY': this._getActivitySchema(),
       'STATUS': this._getStatusSchema(),
       'APPSHEET_CONFIG': this._getAppSheetConfigSchema(),
-      'HUMAN_STATE': this._getHumanStateSchema()
+      'HUMAN_STATE': this._getHumanStateSchema(),
+      'PLAN_EXECUTION_LOG': this._getPlanExecutionLogSchema(),
+      // Archive sheets (mirror primary sheets)
+      'ACTIONS_ARCHIVE': this._getActionsArchiveSchema(),
+      'PROPOSED_ARCHIVE': this._getProposedArchiveSchema(),
+      'ACTIVITY_ARCHIVE': this._getActivityArchiveSchema(),
+      // Dependencies sheet
+      'Dependencies': this._getDependenciesSchema(),
+      // Temporary sheets (staging for atomic operations)
+      'ACTIONS_TEMP': this._getActionsTempSchema(),
+      'PROPOSED_TEMP': this._getProposedTempSchema(),
+      'CALENDAR_TEMP': this._getCalendarTempSchema()
     };
   }
 
@@ -534,6 +545,113 @@ class SheetHealer {
         ],
         columnWidths: [150, 100, 100, 100, 100, 150, 300]
     };
+  }
+
+  /**
+   * Phase 10: PLAN_EXECUTION_LOG sheet schema
+   * Tracks deployment actions and verification results
+   */
+  static _getPlanExecutionLogSchema() {
+    return {
+        headers: [
+          'log_id',             // Unique identifier (UUID)
+          'timestamp',          // ISO 8601 timestamp
+          'phase',              // Phase number (e.g., 'Phase 10')
+          'operator',           // Who performed action (email or 'system')
+          'action',             // Action type: 'BACKUP' | 'DEPLOY' | 'VERIFY' | 'ROLLBACK'
+          'status',             // 'STARTED' | 'SUCCESS' | 'FAILURE' | 'SKIPPED'
+          'details',            // JSON string with action-specific data
+          'verification_results', // JSON string with test results
+          'duration_ms',        // Operation duration in milliseconds
+          'error_message'       // Error details if status=FAILURE
+        ],
+        columnWidths: [200, 150, 100, 150, 100, 100, 300, 300, 100, 300]
+    };
+  }
+
+  /**
+   * ACTIONS_ARCHIVE sheet schema (mirrors ACTIONS with archived_at)
+   */
+  static _getActionsArchiveSchema() {
+    const actionsSchema = this._getActionsSchema();
+    return {
+        headers: [...actionsSchema.headers, 'archived_at'],
+        columnWidths: [...actionsSchema.columnWidths, 150],
+        validations: actionsSchema.validations
+    };
+  }
+
+  /**
+   * PROPOSED_ARCHIVE sheet schema (mirrors PROPOSED_TASKS with archived_at)
+   */
+  static _getProposedArchiveSchema() {
+    const proposedSchema = this._getProposedTasksSchema();
+    return {
+        headers: [...proposedSchema.headers, 'archived_at'],
+        columnWidths: [...proposedSchema.columnWidths, 150],
+        validations: proposedSchema.validations
+    };
+  }
+
+  /**
+   * ACTIVITY_ARCHIVE sheet schema (mirrors ACTIVITY with archived_at)
+   */
+  static _getActivityArchiveSchema() {
+    const activitySchema = this._getActivitySchema();
+    return {
+        headers: [...activitySchema.headers, 'archived_at'],
+        columnWidths: [...activitySchema.columnWidths, 150]
+    };
+  }
+
+  /**
+   * Dependencies sheet schema
+   */
+  static _getDependenciesSchema() {
+    return {
+        headers: [
+          'dependency_id', 'parent_task_id', 'child_task_id', 'dependency_type',
+          'created_at', 'updated_at', 'status', 'notes'
+        ],
+        columnWidths: [150, 150, 150, 120, 150, 150, 100, 200],
+        validations: [
+          {
+            range: 'D2:D1000',
+            values: ['BLOCKS', 'BLOCKED_BY', 'RELATED_TO', 'SUBTASK_OF', 'PARENT_OF'],
+            showDropdown: true,
+            allowInvalid: true,
+            helpText: 'Dependency relationship type'
+          },
+          {
+            range: 'G2:G1000',
+            values: ['ACTIVE', 'RESOLVED', 'CANCELLED'],
+            showDropdown: true,
+            allowInvalid: true,
+            helpText: 'Dependency status'
+          }
+        ]
+    };
+  }
+
+  /**
+   * ACTIONS_TEMP sheet schema (temporary staging for atomic operations)
+   */
+  static _getActionsTempSchema() {
+    return this._getActionsSchema(); // Same as ACTIONS
+  }
+
+  /**
+   * PROPOSED_TEMP sheet schema (temporary staging for atomic operations)
+   */
+  static _getProposedTempSchema() {
+    return this._getProposedTasksSchema(); // Same as PROPOSED_TASKS
+  }
+
+  /**
+   * CALENDAR_TEMP sheet schema (temporary staging for atomic operations)
+   */
+  static _getCalendarTempSchema() {
+    return this._getCalendarProjectionSchema(); // Same as CALENDAR_PROJECTION
   }
 
   /**

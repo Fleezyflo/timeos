@@ -11,7 +11,11 @@
     "open": "clasp open",
     "logs": "clasp logs",
     "create": "clasp create --type sheets --title \"MOH Time OS v2.0\" --rootDir ./src",
-    "build:prod": "node build.js --production"
+    "build:prod": "node build.js --production",
+    "deploy:pre-check": "echo 'Run runPreDeploymentChecks() in Apps Script console'",
+    "deploy:backup": "echo 'Run BackupManager.createBackup() in Apps Script console'",
+    "deploy:push": "clasp push",
+    "deploy:verify": "echo 'Run runPostDeploymentVerification() in Apps Script console'"
   },
   "keywords": ["google-apps-script", "task-management", "scheduling", "productivity"],
   "author": "MOH",

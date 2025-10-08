@@ -95,6 +95,7 @@ function calculateConfigurableAgingMultiplier(rolloverCount, config) {
 
 /**
  * Sanitize string input to prevent injection attacks and ensure data safety
+ * Phase 8: Enhanced with formula injection prevention and XSS hardening
  * @param {any} input - Input to sanitize (will be converted to string)
  * @returns {string} Sanitized string safe for processing
  */
@@ -107,6 +108,15 @@ function sanitizeString(input) {
   // Convert to string and trim whitespace
   let sanitized = String(input).trim();
 
+  // Phase 8: Prevent formula injection attacks (CSV/spreadsheet formula execution)
+  // Prefix dangerous formula characters with single quote to escape them
+  if (sanitized.length > 0) {
+    const firstChar = sanitized.charAt(0);
+    if (firstChar === '=' || firstChar === '+' || firstChar === '-' || firstChar === '@') {
+      sanitized = "'" + sanitized;
+    }
+  }
+
   // Strip potentially dangerous HTML/script characters
   // Remove < and > characters that could be used for HTML/script injection
   sanitized = sanitized.replace(/[<>]/g, '');
@@ -115,6 +125,8 @@ function sanitizeString(input) {
   sanitized = sanitized.replace(/javascript:/gi, '');
   sanitized = sanitized.replace(/on\w+\s*=/gi, ''); // Remove event handlers like onclick=
   sanitized = sanitized.replace(/&lt;|&gt;/g, ''); // Remove HTML entities for < and >
+  sanitized = sanitized.replace(/&amp;/g, ''); // Remove encoded ampersands
+  sanitized = sanitized.replace(/&quot;/g, ''); // Remove encoded quotes
 
   // Limit maximum length to prevent abuse
   const MAX_LENGTH = 10000;

@@ -428,6 +428,19 @@ class ZeroTrustTriageEngine {
           return { passed: false, reason: 'No actionable content detected' };
         }
 
+        // Phase 8: Apply sanitization and privacy masking
+        const maskContent = this.configManager.getBoolean('MASK_PROPOSAL_CONTENT', false);
+        const maskSender = this.configManager.getBoolean('MASK_SENDER_EMAIL', false);
+
+        const rawPreview = body.substring(0, 200) + (body.length > 200 ? '...' : '');
+        const contentPreview = maskContent
+          ? sanitizeString(rawPreview.substring(0, 100) + '[...masked]')
+          : sanitizeString(rawPreview);
+
+        const maskedSender = maskSender && sender
+          ? sender.charAt(0) + '***@' + sender.split('@')[1]
+          : sender;
+
         // Build proposal data structure
         const proposalData = {
           proposal_id: `zt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
@@ -436,12 +449,12 @@ class ZeroTrustTriageEngine {
           processed_at: null,
           source: 'zero_trust_triage',
           source_id: emailData.messageId,
-          sender: sender,
-          subject: subject,
-          parsed_title: extractionResult.title,
+          sender: sanitizeString(maskedSender),
+          subject: sanitizeString(subject),
+          parsed_title: sanitizeString(extractionResult.title),
           suggested_lane: extractionResult.lane,
           confidence_score: extractionResult.score,
-          raw_content_preview: body.substring(0, 200) + (body.length > 200 ? '...' : '')
+          raw_content_preview: contentPreview
         };
 
         return {

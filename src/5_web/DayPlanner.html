@@ -3583,79 +3583,139 @@ padding: 6px 8px;
         if (bulkRescheduleBtn) bulkRescheduleBtn.disabled = !hasSelection;
       },
 
+      /**
+       * Phase 6: Single bulk call with per-task conflict retry
+       */
       bulkCompleteSelected() {
         const selectedIds = Array.from(this.state.selectedTasks);
         if (selectedIds.length === 0) return;
 
         this.showToast(`Completing ${selectedIds.length} tasks...`, 'info');
 
-        let completed = 0;
-        let conflicts = 0;
-        selectedIds.forEach(taskId => {
-          google.script.run
-            .withSuccessHandler(response => {
-              if (response && !response.success && response.versionConflict) {
-                conflicts++;
-                completed++;
-                if (completed === selectedIds.length) {
-                  if (conflicts > 0) {
-                    this.showToast(`⚠️ ${conflicts} task(s) updated elsewhere. Refreshing...`, 'warning');
+        // Phase 6: Single bulk call wrapped in retryWithBackoff
+        this.retryWithBackoff(() => {
+          return new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(response => {
+                if (!response.success && response.results) {
+                  const { completed, conflicts } = response.results;
+
+                  if (completed.length > 0) {
+                    this.showToast(`✓ Completed ${completed.length} tasks`, 'success');
                   }
+
+                  // Phase 6: Retry conflicts individually
+                  if (conflicts.length > 0) {
+                    const conflictIds = conflicts.filter(c => c.versionConflict).map(c => c.taskId);
+                    if (conflictIds.length > 0) {
+                      this.showToast(`Retrying ${conflictIds.length} conflicted tasks...`, 'info');
+                      this.retryConflictedTasks(conflictIds, 'complete');
+                    }
+                  }
+
                   this.state.selectedTasks.clear();
                   this.loadTasks({ force: true });
                   this.loadDashboard();
+                  resolve();
+                } else {
+                  this.showToast('All tasks completed!', 'success');
+                  this.state.selectedTasks.clear();
+                  this.loadTasks();
+                  this.loadDashboard();
+                  resolve();
                 }
-                return;
-              }
-              completed++;
-              if (completed === selectedIds.length) {
-                this.showToast('All tasks completed!', 'success');
-                this.state.selectedTasks.clear();
-                this.loadTasks();
-                this.loadDashboard();
-              }
-            })
-            .withFailureHandler(error => {
-              this.showToast('Error completing task: ' + error.message, 'error');
-            })
-            .appsheet_completeTask({ taskId: taskId });
+              })
+              .withFailureHandler(error => {
+                this.showToast('Error completing tasks: ' + error.message, 'error');
+                reject(error);
+              })
+              .appsheet_completeTask({ taskIds: selectedIds });
+          });
+        }).catch(error => {
+          console.error('Bulk complete failed after retries:', error);
         });
       },
 
+      /**
+       * Phase 6: Single bulk call with per-task conflict retry
+       */
       bulkCancelSelected() {
         const selectedIds = Array.from(this.state.selectedTasks);
         if (selectedIds.length === 0) return;
 
         this.showToast(`Canceling ${selectedIds.length} tasks...`, 'info');
 
-        let canceled = 0;
-        let conflicts = 0;
-        selectedIds.forEach(taskId => {
-          google.script.run
-            .withSuccessHandler(response => {
-              if (response && !response.success && response.versionConflict) {
-                conflicts++;
-                canceled++;
-                if (canceled === selectedIds.length) {
-                  if (conflicts > 0) {
-                    this.showToast(`⚠️ ${conflicts} task(s) updated elsewhere. Refreshing...`, 'warning');
+        // Phase 6: Single bulk call wrapped in retryWithBackoff
+        this.retryWithBackoff(() => {
+          return new Promise((resolve, reject) => {
+            google.script.run
+              .withSuccessHandler(response => {
+                if (!response.success && response.results) {
+                  const { completed, conflicts } = response.results;
+
+                  if (completed.length > 0) {
+                    this.showToast(`✓ Canceled ${completed.length} tasks`, 'success');
                   }
+
+                  // Phase 6: Retry conflicts individually
+                  if (conflicts.length > 0) {
+                    const conflictIds = conflicts.filter(c => c.versionConflict).map(c => c.taskId);
+                    if (conflictIds.length > 0) {
+                      this.showToast(`Retrying ${conflictIds.length} conflicted tasks...`, 'info');
+                      this.retryConflictedTasks(conflictIds, 'cancel');
+                    }
+                  }
+
                   this.state.selectedTasks.clear();
                   this.loadTasks({ force: true });
+                  resolve();
+                } else {
+                  this.showToast('All tasks canceled!', 'success');
+                  this.state.selectedTasks.clear();
+                  this.loadTasks();
+                  resolve();
                 }
-                return;
-              }
-              canceled++;
-              if (canceled === selectedIds.length) {
-                this.showToast('All tasks canceled!', 'success');
-                this.state.selectedTasks.clear();
-                this.loadTasks();
-              }
-            })
-            .withFailureHandler(error => {
-              this.showToast('Error canceling task: ' + error.message, 'error');
-            })
-            .appsheet_cancelTask({ taskId: taskId, reason: 'Bulk cancel' });
+              })
+              .withFailureHandler(error => {
+                this.showToast('Error canceling tasks: ' + error.message, 'error');
+                reject(error);
+              })
+              .appsheet_cancelTask({ taskIds: selectedIds, reason: 'Bulk cancel' });
+          });
+        }).catch(error => {
+          console.error('Bulk cancel failed after retries:', error);
+        });
+      },
+
+      /**
+       * Phase 6: Retry conflicted tasks individually
+       * Supports all 4 operations: start, complete, snooze, cancel
+       */
+      retryConflictedTasks(taskIds, operation) {
+        const endpointMap = {
+          start: 'appsheet_startTask',
+          complete: 'appsheet_completeTask',
+          snooze: 'appsheet_snoozeTask',
+          cancel: 'appsheet_cancelTask'
+        };
+
+        const endpoint = endpointMap[operation];
+        if (!endpoint) {
+          console.error('Unknown operation:', operation);
+          return;
+        }
+
+        taskIds.forEach(taskId => {
+          this.retryWithBackoff(() => {
+            return new Promise((resolve, reject) => {
+              google.script.run
+                .withSuccessHandler(resolve)
+                .withFailureHandler(reject)
+                [endpoint]({ taskId });
+            });
+          }).catch(error => {
+            console.error(`Retry ${operation} failed for task ${taskId}:`, error);
+          });
         });
       },
 

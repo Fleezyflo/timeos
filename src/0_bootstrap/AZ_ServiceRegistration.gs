@@ -13,6 +13,8 @@
  * This function sets up the entire service registry
  */
 function registerAllServices() {
+  const registrationStart = Date.now();
+
   Logger.log('[ServiceRegistration] Starting FULL service registration...');
 
   // Begin registration session with FULL validation mode
@@ -155,6 +157,15 @@ function registerAllServices() {
     )
   );
 
+  // Phase 10: Backup Manager
+  container.register(
+    SERVICES.BackupManager,
+    () => new BackupManager(
+      container.get(SERVICES.BatchOperations),
+      container.get(SERVICES.SmartLogger)
+    )
+  );
+
   container.register(
     SERVICES.ChatEngine,
     () => new ChatEngine(
@@ -269,6 +280,21 @@ function registerAllServices() {
   Logger.log('[ServiceRegistration] ✅ Circular dependencies resolved.');
 
   Logger.log(`[ServiceRegistration] ✅ Full registration completed: ${sessionSummary.servicesRegistered} services registered and validated in ${sessionSummary.duration}ms`);
+
+  // Calculate and log bootstrap duration
+  const registrationDuration = Date.now() - registrationStart;
+  Logger.log(`[ServiceRegistration] Bootstrap completed in ${registrationDuration}ms`);
+
+  // Record metrics in STATUS sheet for trending
+  try {
+    const systemManager = container.get(SERVICES.SystemManager);
+    if (systemManager && typeof systemManager._updateStatusRow === 'function') {
+      systemManager._updateStatusRow('last_bootstrap_duration_ms', String(registrationDuration), 'AUTO');
+      systemManager._updateStatusRow('last_bootstrap_timestamp', TimeZoneAwareDate.toISOString(new Date()), 'AUTO');
+    }
+  } catch (metricsError) {
+    Logger.log(`[ServiceRegistration] Could not record bootstrap metrics: ${metricsError.message}`);
+  }
 
   return sessionSummary;
 }
@@ -452,6 +478,16 @@ function registerService(serviceName) {
           container.get(SERVICES.ConfigManager),
           container.get(SERVICES.SmartLogger),
           container.get(SERVICES.BatchOperations)
+        )
+      );
+      break;
+
+    case SERVICES.BackupManager:
+      container.register(
+        SERVICES.BackupManager,
+        () => new BackupManager(
+          container.get(SERVICES.BatchOperations),
+          container.get(SERVICES.SmartLogger)
         )
       );
       break;
@@ -817,6 +853,7 @@ function createServiceDependencyMap() {
   dependencyMap[SERVICES.CalendarSyncManager] = [SERVICES.BatchOperations, SERVICES.ConfigManager, SERVICES.ErrorHandler, SERVICES.SmartLogger];
   dependencyMap[SERVICES.HumanStateManager] = [SERVICES.BatchOperations, SERVICES.SmartLogger, SERVICES.ConfigManager];
   dependencyMap[SERVICES.ArchiveManager] = [SERVICES.ConfigManager, SERVICES.SmartLogger, SERVICES.BatchOperations];
+  dependencyMap[SERVICES.BackupManager] = [SERVICES.BatchOperations, SERVICES.SmartLogger];
   dependencyMap[SERVICES.SystemManager] = [SERVICES.BatchOperations, SERVICES.SmartLogger, SERVICES.ConfigManager, SERVICES.ErrorHandler, SERVICES.ArchiveManager];
 
   // Email processing (with circular dependency)

@@ -739,24 +739,154 @@ function bootstrapClient() {
  */
 
 /**
+ * Phase 6: Shared bulk operation processing helper
+ * Applies mutator function to each task and collects results/conflicts
+ * @param {Array<string>} taskIds - Array of task IDs to process
+ * @param {Function} mutatorFn - Function that receives (task, params) and modifies task, returns extra response fields
+ * @param {Object} params - Parameters passed to mutator
+ * @param {string} operationName - Name of operation for logging
+ * @returns {Object} { success, results: { completed, conflicts } }
+ * @private
+ */
+function _processBulkOperation(taskIds, mutatorFn, params, operationName) {
+  const batchOps = getService(SERVICES.BatchOperations);
+  const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
+  const results = { completed: [], conflicts: [] };
+
+  for (const taskId of taskIds) {
+    try {
+      const rows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: taskId });
+
+      if (rows.length === 0) {
+        results.conflicts.push({ taskId, error: 'Task not found' });
+        continue;
+      }
+
+      const { row } = rows[0];
+      const task = MohTask.fromSheetRow(row, headers);
+
+      if (!task) {
+        results.conflicts.push({ taskId, error: 'Failed to instantiate task' });
+        continue;
+      }
+
+      // Phase 6: Mutator modifies task and returns extra response fields
+      const extraFields = mutatorFn(task, params) || {};
+
+      const result = batchOps.updateActionWithOptimisticLocking(SHEET_NAMES.ACTIONS, taskId, task);
+
+      if (!result.success) {
+        results.conflicts.push({
+          taskId,
+          versionConflict: result.versionConflict || false,
+          error: result.error || 'Update failed'
+        });
+      } else {
+        results.completed.push({ taskId, status: task.status, ...extraFields });
+      }
+
+    } catch (error) {
+      results.conflicts.push({ taskId, error: error.message });
+    }
+  }
+
+  const logger = getService(SERVICES.SmartLogger);
+  logger.info('AppSheetBridge', `Bulk ${operationName}: ${results.completed.length} completed, ${results.conflicts.length} conflicts`);
+
+  return {
+    success: results.conflicts.length === 0,
+    results: results
+  };
+}
+
+/**
+ * Phase 6: Bulk start multiple tasks
+ * @private
+ */
+function _bulkStartMultipleTasks(params, taskIds) {
+  return _processBulkOperation(taskIds, (task) => {
+    task.status = STATUS.IN_PROGRESS;
+    return {}; // No extra fields for start
+  }, params, 'start');
+}
+
+/**
+ * Phase 6: Bulk complete multiple tasks
+ * @private
+ */
+function _bulkCompleteMultipleTasks(params, taskIds) {
+  return _processBulkOperation(taskIds, (task, params) => {
+    task.status = STATUS.COMPLETED;
+    task.completed_date = TimeZoneAwareDate.now();
+    task.actual_minutes = params.actualMinutes || task.estimated_minutes || 30;
+    task.estimation_accuracy = task.estimated_minutes > 0 ? (task.actual_minutes / task.estimated_minutes) : 1;
+    if (params.notes) {
+      task.completion_notes = params.notes;
+    }
+    return {}; // No extra fields for complete
+  }, params, 'complete');
+}
+
+/**
+ * Phase 6: Bulk snooze multiple tasks
+ * @private
+ */
+function _bulkSnoozeMultipleTasks(params, taskIds) {
+  return _processBulkOperation(taskIds, (task, params) => {
+    const snoozeMinutes = params.minutes || 60;
+    const newStart = new Date(Date.now() + snoozeMinutes * 60000);
+    task.status = STATUS.DEFERRED; // Phase 6: Use DEFERRED not PENDING
+    task.scheduled_start = TimeZoneAwareDate.toISOString(newStart); // Phase 6: ISO format
+    task.rollover_count = (task.rollover_count || 0) + 1;
+    return { snoozed_until: task.scheduled_start }; // Phase 6: Extra field for response
+  }, params, 'snooze');
+}
+
+/**
+ * Phase 6: Bulk cancel multiple tasks
+ * @private
+ */
+function _bulkCancelMultipleTasks(params, taskIds) {
+  return _processBulkOperation(taskIds, (task, params) => {
+    task.status = STATUS.CANCELED;
+    if (params.reason) {
+      task.cancellation_reason = params.reason;
+    }
+    return {}; // No extra fields for cancel
+  }, params, 'cancel');
+}
+
+/**
  * Start a task - change status to IN_PROGRESS
+ * Phase 6: Now supports bulk operations via taskIds array
  * @param {Object} params - Parameters
- * @param {string} params.taskId - Task ID to start
+ * @param {string} params.taskId - Task ID to start (single operation)
+ * @param {Array<string>} params.taskIds - Task IDs to start (bulk operation)
  * @return {Object} Result with success/conflict status
  */
 function appsheet_startTask(params) {
   ensureBootstrapServices();
   try {
-    if (!params || !params.taskId) {
-      return { success: false, error: 'taskId is required' };
+    // Phase 6: Support bulk operations via taskIds array
+    const taskIds = params.taskIds || (params.taskId ? [params.taskId] : []);
+
+    if (taskIds.length === 0) {
+      return { success: false, error: 'taskId or taskIds is required' };
     }
 
+    // Phase 6: Route to bulk handler if multiple tasks
+    if (taskIds.length > 1) {
+      return _bulkStartMultipleTasks(params, taskIds);
+    }
+
+    // Single task operation (existing logic)
+    const taskId = taskIds[0];
     const batchOps = getService(SERVICES.BatchOperations);
     const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
-    const rows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: params.taskId });
+    const rows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: taskId });
 
     if (rows.length === 0) {
-      return { success: false, error: 'Task not found: ' + params.taskId };
+      return { success: false, error: 'Task not found: ' + taskId };
     }
 
     const { row } = rows[0];
@@ -770,7 +900,7 @@ function appsheet_startTask(params) {
 
     const result = batchOps.updateActionWithOptimisticLocking(
       SHEET_NAMES.ACTIONS,
-      params.taskId,
+      taskId,
       task
     );
 
@@ -783,9 +913,9 @@ function appsheet_startTask(params) {
     }
 
     const logger = getService(SERVICES.SmartLogger);
-    logger.info('AppSheetBridge', 'Started task ' + params.taskId);
+    logger.info('AppSheetBridge', 'Started task ' + taskId);
 
-    return { success: true, data: { action_id: params.taskId, status: STATUS.IN_PROGRESS } };
+    return { success: true, data: { action_id: taskId, status: STATUS.IN_PROGRESS } };
 
   } catch (error) {
     LoggerFacade.error('AppSheetBridge', 'appsheet_startTask failed', {
@@ -799,8 +929,10 @@ function appsheet_startTask(params) {
 
 /**
  * Complete a task - change status to COMPLETED with metrics
+ * Phase 6: Now supports bulk operations via taskIds array
  * @param {Object} params - Parameters
- * @param {string} params.taskId - Task ID to complete
+ * @param {string} params.taskId - Task ID to complete (single operation)
+ * @param {Array<string>} params.taskIds - Task IDs to complete (bulk operation)
  * @param {number} params.actualMinutes - Actual minutes taken (optional)
  * @param {string} params.notes - Completion notes (optional)
  * @return {Object} Result with success/conflict status
@@ -808,16 +940,26 @@ function appsheet_startTask(params) {
 function appsheet_completeTask(params) {
   ensureBootstrapServices();
   try {
-    if (!params || !params.taskId) {
-      return { success: false, error: 'taskId is required' };
+    // Phase 6: Support bulk operations via taskIds array
+    const taskIds = params.taskIds || (params.taskId ? [params.taskId] : []);
+
+    if (taskIds.length === 0) {
+      return { success: false, error: 'taskId or taskIds is required' };
     }
 
+    // Phase 6: Route to bulk handler if multiple tasks
+    if (taskIds.length > 1) {
+      return _bulkCompleteMultipleTasks(params, taskIds);
+    }
+
+    // Single task operation (existing logic)
+    const taskId = taskIds[0];
     const batchOps = getService(SERVICES.BatchOperations);
     const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
-    const rows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: params.taskId });
+    const rows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: taskId });
 
     if (rows.length === 0) {
-      return { success: false, error: 'Task not found: ' + params.taskId };
+      return { success: false, error: 'Task not found: ' + taskId };
     }
 
     const { row } = rows[0];
@@ -838,7 +980,7 @@ function appsheet_completeTask(params) {
 
     const result = batchOps.updateActionWithOptimisticLocking(
       SHEET_NAMES.ACTIONS,
-      params.taskId,
+      taskId,
       task
     );
 
@@ -851,9 +993,9 @@ function appsheet_completeTask(params) {
     }
 
     const logger = getService(SERVICES.SmartLogger);
-    logger.info('AppSheetBridge', 'Completed task ' + params.taskId + ' in ' + task.actual_minutes + ' minutes');
+    logger.info('AppSheetBridge', 'Completed task ' + taskId + ' in ' + task.actual_minutes + ' minutes');
 
-    return { success: true, data: { action_id: params.taskId, status: STATUS.COMPLETED } };
+    return { success: true, data: { action_id: taskId, status: STATUS.COMPLETED } };
 
   } catch (error) {
     LoggerFacade.error('AppSheetBridge', 'appsheet_completeTask failed', {
@@ -867,24 +1009,36 @@ function appsheet_completeTask(params) {
 
 /**
  * Snooze a task - defer to later time
+ * Phase 6: Now supports bulk operations via taskIds array
  * @param {Object} params - Parameters
- * @param {string} params.taskId - Task ID to snooze
+ * @param {string} params.taskId - Task ID to snooze (single operation)
+ * @param {Array<string>} params.taskIds - Task IDs to snooze (bulk operation)
  * @param {number} params.minutes - Minutes to snooze (default: 60)
  * @return {Object} Result with success/conflict status
  */
 function appsheet_snoozeTask(params) {
   ensureBootstrapServices();
   try {
-    if (!params || !params.taskId) {
-      return { success: false, error: 'taskId is required' };
+    // Phase 6: Support bulk operations via taskIds array
+    const taskIds = params.taskIds || (params.taskId ? [params.taskId] : []);
+
+    if (taskIds.length === 0) {
+      return { success: false, error: 'taskId or taskIds is required' };
     }
 
+    // Phase 6: Route to bulk handler if multiple tasks
+    if (taskIds.length > 1) {
+      return _bulkSnoozeMultipleTasks(params, taskIds);
+    }
+
+    // Single task operation (existing logic)
+    const taskId = taskIds[0];
     const batchOps = getService(SERVICES.BatchOperations);
     const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
-    const rows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: params.taskId });
+    const rows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: taskId });
 
     if (rows.length === 0) {
-      return { success: false, error: 'Task not found: ' + params.taskId };
+      return { success: false, error: 'Task not found: ' + taskId };
     }
 
     const { row } = rows[0];
@@ -903,7 +1057,7 @@ function appsheet_snoozeTask(params) {
 
     const result = batchOps.updateActionWithOptimisticLocking(
       SHEET_NAMES.ACTIONS,
-      params.taskId,
+      taskId,
       task
     );
 
@@ -916,9 +1070,9 @@ function appsheet_snoozeTask(params) {
     }
 
     const logger = getService(SERVICES.SmartLogger);
-    logger.info('AppSheetBridge', 'Snoozed task ' + params.taskId + ' for ' + snoozeMinutes + ' minutes');
+    logger.info('AppSheetBridge', 'Snoozed task ' + taskId + ' for ' + snoozeMinutes + ' minutes');
 
-    return { success: true, data: { action_id: params.taskId, snoozed_until: task.scheduled_start } };
+    return { success: true, data: { action_id: taskId, snoozed_until: task.scheduled_start } };
 
   } catch (error) {
     LoggerFacade.error('AppSheetBridge', 'appsheet_snoozeTask failed', {
@@ -932,24 +1086,36 @@ function appsheet_snoozeTask(params) {
 
 /**
  * Cancel a task - change status to CANCELED
+ * Phase 6: Now supports bulk operations via taskIds array
  * @param {Object} params - Parameters
- * @param {string} params.taskId - Task ID to cancel
+ * @param {string} params.taskId - Task ID to cancel (single operation)
+ * @param {Array<string>} params.taskIds - Task IDs to cancel (bulk operation)
  * @param {string} params.reason - Cancellation reason (optional)
  * @return {Object} Result with success/conflict status
  */
 function appsheet_cancelTask(params) {
   ensureBootstrapServices();
   try {
-    if (!params || !params.taskId) {
-      return { success: false, error: 'taskId is required' };
+    // Phase 6: Support bulk operations via taskIds array
+    const taskIds = params.taskIds || (params.taskId ? [params.taskId] : []);
+
+    if (taskIds.length === 0) {
+      return { success: false, error: 'taskId or taskIds is required' };
     }
 
+    // Phase 6: Route to bulk handler if multiple tasks
+    if (taskIds.length > 1) {
+      return _bulkCancelMultipleTasks(params, taskIds);
+    }
+
+    // Single task operation (existing logic)
+    const taskId = taskIds[0];
     const batchOps = getService(SERVICES.BatchOperations);
     const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);
-    const rows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: params.taskId });
+    const rows = batchOps.getRowsWithPosition(SHEET_NAMES.ACTIONS, { action_id: taskId });
 
     if (rows.length === 0) {
-      return { success: false, error: 'Task not found: ' + params.taskId };
+      return { success: false, error: 'Task not found: ' + taskId };
     }
 
     const { row } = rows[0];
@@ -967,7 +1133,7 @@ function appsheet_cancelTask(params) {
 
     const result = batchOps.updateActionWithOptimisticLocking(
       SHEET_NAMES.ACTIONS,
-      params.taskId,
+      taskId,
       task
     );
 
@@ -980,9 +1146,9 @@ function appsheet_cancelTask(params) {
     }
 
     const logger = getService(SERVICES.SmartLogger);
-    logger.info('AppSheetBridge', 'Canceled task ' + params.taskId);
+    logger.info('AppSheetBridge', 'Canceled task ' + taskId);
 
-    return { success: true, data: { action_id: params.taskId, status: STATUS.CANCELED } };
+    return { success: true, data: { action_id: taskId, status: STATUS.CANCELED } };
 
   } catch (error) {
     LoggerFacade.error('AppSheetBridge', 'appsheet_cancelTask failed', {
@@ -1144,9 +1310,10 @@ function appsheet_createTask(taskData) {
 
     const batchOps = getService(SERVICES.BatchOperations);
 
+    // Phase 8: Sanitize user input to prevent injection attacks
     const newTask = new MohTask({
-      title: taskData.title,
-      description: taskData.description || '',
+      title: sanitizeString(taskData.title),
+      description: sanitizeString(taskData.description || ''),
       priority: taskData.priority || PRIORITY.MEDIUM,
       lane: taskData.lane || LANE.OPERATIONAL,
       status: taskData.status || STATUS.PENDING,
@@ -1157,7 +1324,7 @@ function appsheet_createTask(taskData) {
       scheduled_start: taskData.scheduled_start || null,
       scheduled_end: taskData.scheduled_end || null,
       source: taskData.source || 'appsheet',
-      created_by: taskData.created_by || 'appsheet_api'
+      created_by: sanitizeString(taskData.created_by || 'appsheet_api')
     });
 
     const headers = batchOps.getHeaders(SHEET_NAMES.ACTIONS);

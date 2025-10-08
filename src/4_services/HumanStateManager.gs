@@ -30,12 +30,13 @@ class HumanStateManager {
   recordHumanState(state) {
     try {
       const timestamp = TimeZoneAwareDate.toISOString(new Date());
+      // Phase 8: Sanitize user-provided notes
       const stateEntry = [
         timestamp,
         state.energy || 'MEDIUM',
         state.mood || 'NEUTRAL',
         state.focus || 'NORMAL',
-        state.notes || '',
+        sanitizeString(state.notes || ''),
         'MANUAL', // Source: manual vs detected
         JSON.stringify(state) // Full state for analysis
       ];
